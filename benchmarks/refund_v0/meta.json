@@ -1,0 +1,23 @@
+{
+  "case_type_counts": {
+    "ambiguous": 10,
+    "correct": 10,
+    "hard_negative": 10,
+    "ignored_evidence": 10,
+    "incorrect_input": 10,
+    "irrelevant_cue": 10
+  },
+  "generator_version": "refund-gen-0.1",
+  "n_cases": 60,
+  "n_variants": 160,
+  "name": "refund_v0",
+  "per_type": 10,
+  "policy": {
+    "defect_window_days": 90,
+    "policy_id": "refund_v0",
+    "window_days": 30
+  },
+  "seed": 0,
+  "sha256": "7aa439c283a673a297d5b76d1336e4cab0e70ef0bf4cc8fbe3d5106c2c7b2323",
+  "text": "template"
+}

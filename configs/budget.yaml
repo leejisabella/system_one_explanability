@@ -1,0 +1,7 @@
+# Cost limits enforced by sysone.budget.guard.CostGuard.
+# "Per call" means per individual API request to an outside provider
+# (OpenRouter, Bedrock, Google). Every retry attempt is its own call.
+
+per_call_cap_usd: 2.00   # a request whose worst-case cost exceeds this is never sent
+run_cap_usd: 25.00       # total spend allowed for one experiment run (one run_id)
+max_retries: 2           # extra attempts after the first, each checked against both caps

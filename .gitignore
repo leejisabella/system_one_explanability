@@ -218,3 +218,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Harness outputs (spending logs, response cache, experiment results)
+results/

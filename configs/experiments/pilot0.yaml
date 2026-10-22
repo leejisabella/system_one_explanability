@@ -1,0 +1,11 @@
+# Pilot 0: Jev decision characterization. See research_docs/12_first_experiments_roadmap.md.
+
+benchmark: benchmarks/refund_v0
+model_alias: jev               # TODO: set the Jev model ID in configs/models.yaml before a live run
+samples_per_variant: 3         # repeats of each input, for stability
+temperature: null              # null = provider default, closest to how Jev is deployed
+max_output_tokens: 256         # the decision is a short JSON object
+reasoning_max_tokens: null     # TODO: decide once we know whether the Jev model reasons
+structured_output: true        # request JSON-schema output where the provider supports it
+use_cache: false               # true would reuse Jev answers from earlier runs and hide drift
+max_consecutive_errors: 10     # stop the run if this many requests in a row fail

@@ -1,0 +1,34 @@
+# Named model aliases used by the harness. Code refers to aliases, never raw IDs.
+# Any model ID starting with "TODO" is a placeholder: the client refuses to call it.
+#
+# Every alias needs a matching price in configs/pricing.yaml, or calls are refused.
+
+jev:
+  # TODO: choose the Jev model ID. As of 2026-10-21 the only public OpenRouter
+  # listing is "typesafe/jev-router", which routes each request to a model and
+  # reasoning effort of its choosing, with dynamic pricing. A fixed model ID is
+  # preferable so the decision model f stays constant across counterfactual probes.
+  provider: openrouter
+  model: TODO_JEV_MODEL_ID
+
+case_writer:
+  # Writes natural-language realizations of synthetic benchmark cases.
+  # Deliberately a different model from Jev, so the generator is not the model judged.
+  # "us." is the US cross-region inference profile, required for this model in us-east-2.
+  provider: bedrock
+  model: us.anthropic.claude-opus-4-5-20251101-v1:0
+
+# TODO: choose explainer models (Bedrock and Gemini). Placeholders below.
+explainer_bedrock:
+  provider: bedrock
+  model: TODO_BEDROCK_EXPLAINER_MODEL_ID
+
+explainer_gemini:
+  provider: gemini
+  model: TODO_GEMINI_EXPLAINER_MODEL_ID
+
+# TODO: choose the LLM judge for free-text stretch-goal scoring. It should come
+# from a different model family than the explainer being scored.
+judge:
+  provider: gemini
+  model: TODO_JUDGE_MODEL_ID

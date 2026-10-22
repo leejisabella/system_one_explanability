@@ -1,0 +1,33 @@
+# USD per 1M tokens, keyed by provider then model ID.
+# The cost guard refuses to call any model that is not listed here.
+# Output prices must cover reasoning/thinking tokens (all three providers bill them as output).
+#
+# When a published price is scheduled to rise, the higher price is used so the
+# worst-case estimate stays conservative. Re-verify prices before large runs.
+
+openrouter:
+  # TODO: set once the Jev model ID is chosen. For OpenRouter, these numbers are
+  # also sent as provider.max_price, so OpenRouter refuses to route the request
+  # to anything more expensive. (Whether max_price applies to jev-router is unverified.)
+  # TODO_JEV_MODEL_ID: {input: 0.0, output: 0.0}
+
+bedrock:
+  # Claude Opus 4.5. Anthropic first-party list price is $5 / $25; Bedrock regional
+  # ("us.") profiles carry a 10% premium over global ones, hence $5.50 / $27.50.
+  # TODO: verify against https://aws.amazon.com/bedrock/pricing/ for us-east-2.
+  us.anthropic.claude-opus-4-5-20251101-v1:0: {input: 5.50, output: 27.50}
+
+gemini:
+  # Paid-tier Gemini API prices from ai.google.dev/gemini-api/docs/pricing (checked 2026-10-21).
+  # Where a price rises on Dec 1, 2026 or Jan 1, 2027, the later price is listed.
+  # Gemini 2.5 Pro and 3.1 Pro charge more above 200k input tokens; the higher tier is listed.
+  # Vertex AI pricing may differ. TODO: re-check if we use Vertex credits instead of the Gemini API.
+  gemini-4-argon:          {input: 4.00, output: 20.00}
+  gemini-3.1-pro-preview:  {input: 4.00, output: 18.00}
+  gemini-3.8-flash:        {input: 1.50, output: 7.50}
+  gemini-3.6-flash:        {input: 1.50, output: 7.50}
+  gemini-3.5-flash-lite:   {input: 0.30, output: 2.50}
+  gemini-3.1-flash-lite:   {input: 0.25, output: 1.50}
+  gemini-2.5-pro:          {input: 2.50, output: 15.00}
+  gemini-2.5-flash:        {input: 0.30, output: 2.50}
+  gemini-2.5-flash-lite:   {input: 0.10, output: 0.40}
