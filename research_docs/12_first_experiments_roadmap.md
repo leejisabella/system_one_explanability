@@ -7,7 +7,7 @@ How we get from the current harness (provider clients and cost controls) to the 
 Before we can measure anything about *explanations*, we need to know how Jev itself behaves on our benchmark. Every later experiment depends on this:
 
 - Experiment 1 (faithfulness vs. contestability) needs cases where Jev's decision is actually wrong under ground truth. If Jev never errs on the benchmark, there is nothing to contest.
-- Experiments 1–3 compare explanations against Jev's *observed* behavior under counterfactual edits. That only means something if Jev's decisions are stable across repeated samples.
+- Experiments 1–3 (and 4) compare explanations against Jev's *observed* behavior under counterfactual edits. That only means something if Jev's decisions are stable across repeated samples.
 - Jev must stay one decision function $f$ for the whole run. `jev-latest` can move to a new release, so every call records the version that answered and the run halts if it changes (see [11_harness_and_infrastructure.md](11_harness_and_infrastructure.md)).
 
 Pilot 0 is also the cheapest experiment: it calls only Jev (plus the case writer once to produce case text), and it needs no explainer models.
@@ -23,7 +23,7 @@ Pilot 0 is also the cheapest experiment: it calls only Jev (plus the case writer
 | P0.5 | Does Jev respond to the decisive field? | Flip rate when a policy-relevant field is changed across the decision threshold |
 | P0.6 | Is Jev sensitive to irrelevant cues? | Flip rate under name/dialect edits that leave the policy outcome unchanged |
 | P0.7 | Did one model version answer every call? | Distribution of `model_used` (the version); a locked run should show one |
-| P0.8 | What does it cost? | Cost per decision, to budget Experiments 1–2 |
+| P0.8 | What does it cost? | Cost per decision, to budget Experiments 1–4 (numbered as of 2026-10-28) |
 
 Note the difference between P0.2 and P0.3. For an incorrect-input case, Jev can apply the policy perfectly to the record it sees and still be wrong under ground truth. That gap is what a contestability explanation should surface.
 

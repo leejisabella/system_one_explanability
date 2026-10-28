@@ -125,15 +125,17 @@ Repeats list the options in a different order, so these ranges are an upper boun
 
 ![Links from E0's findings to the experiments they feed](figures/fig6_what_e0_sets_up.png)
 
+Experiment numbers follow [research_docs/05](../../research_docs/05_experiments.md) as renumbered on 2026-10-28 (E1 Jev vs. explainer, E2 similar targets, E3 information ablation, E4 CAPE, E5 identifiability, E6 robustness and abstention, E7 socially sensitive cues, E8 generalization).
+
 | Finding | Used by | How |
 |---|---|---|
-| 24 customer-harming wrong decisions, each caused by one corrupted field | E1, E2, stretch S1–S3 | The ground truth for "did the explanation find the grounds for review?": the corrupted field and the evidence that would correct it are known. Stretch: whether explainers justify these wrong denials. |
-| Corrections flip all 24 (P(approve) shift 0.99) | E1, E2 | A probing method that tries the right correction gets an unambiguous signal, so finding it is a fair test of query strategy. |
-| Noise floor: P(approve) range ≤ 0.07 for 95% of variants | E1, E2, E3 | Counterfactual shifts smaller than about 0.07 can't be distinguished from repeat noise. |
-| Date-window errors (51% of outside-window samples denied) | E4, E5 | A second kind of wrong decision: Jev misapplies the policy rather than following a bad record. Unlike record errors, this one is identifiable from queries alone (varying the date reveals the threshold), which is the contrast E4 needs. |
-| Missing receipts: "undetermined" in only 58% of samples | E5 | A measured abstention gap in the decision model itself, to separate from abstention by the explainer. |
-| No effect of names, register or option order | E3 | On template text Jev shows no cue sensitivity, so E3 needs Dataset C (dialect variation) to find any. This null result is a baseline, not evidence of fairness. |
-| 564 saved decisions with full probabilities; $0.000028 per decision | E1, E2, budget | Pilot 1 reuses these decisions, so it makes no new Jev calls. The $5 TypeSafe budget covers about 175,000 more decisions, which is ample for E2's probing. |
+| 24 customer-harming wrong decisions, each caused by one corrupted field | E1, E4, stretch S1–S3 | The ground truth for "did the explanation find the grounds for review?": the corrupted field and the evidence that would correct it are known. Stretch: whether explainers justify these wrong denials. |
+| Corrections flip all 24 (P(approve) shift 0.99) | E1, E3, E4 | A probing method that tries the right correction gets an unambiguous signal, so finding it is a fair test of query strategy. |
+| Noise floor: P(approve) range ≤ 0.07 for 95% of variants | E1–E4, E7 | Counterfactual shifts smaller than about 0.07 can't be distinguished from repeat noise. |
+| Date-window errors (51% of outside-window samples denied) | E2, E5, E6 | A second kind of wrong decision: Jev misapplies the policy rather than following a bad record. Unlike record errors, this one is identifiable from queries alone (varying the date reveals the threshold), which is the contrast E5 needs. Jev's effective window (approvals up to about 57 days) also makes it a third target for E2. |
+| Missing receipts: "undetermined" in only 58% of samples | E6 | A measured abstention gap in the decision model itself, to separate from abstention by the explainer. |
+| No effect of names, register or option order | E2, E7 | On template text Jev shows no cue sensitivity, so E7 needs Dataset C (dialect variation) to find any. This null result is a baseline, not evidence of fairness. |
+| 564 saved decisions with full probabilities; $0.000028 per decision | E1, E3, E4, budget | Pilot 1 reuses these decisions, so it makes no new Jev calls. The $5 TypeSafe budget covers about 175,000 more decisions, which is ample for E3's probe rungs and E4's probing. |
 
 ## Caveats
 

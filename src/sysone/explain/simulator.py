@@ -22,7 +22,7 @@ from typing import Any
 from sysone.clients.base import GuardedClient
 from sysone.decision.jev import LABELS, PROBABILITY_SUM_TOLERANCE
 from sysone.explain.basis import BASIS_INSTRUCTIONS, BASIS_SCHEMA, Basis, BasisError, parse_basis
-from sysone.explain.jsonout import parse_json_object, uses_schema
+from sysone.explain.jsonout import parse_json_object, repair_spelled_digits, uses_schema
 from sysone.types import ChatRequest, ChatResponse
 
 # Models state probabilities less precisely than Jev's two-decimal output.
@@ -77,6 +77,8 @@ class Simulation:
     parse_error: str | None
     response: ChatResponse
     request_key: str
+    # True when the reply parsed only after repair_spelled_digits.
+    repaired: bool = False
 
 
 def _is_unit_number(x: Any) -> bool:
@@ -130,10 +132,14 @@ class Simulator:
 
 
 def parse_simulation(response: ChatResponse, key: str) -> Simulation:
-    def fail(reason: str, basis_raw: Any = None) -> Simulation:
-        return Simulation(None, None, basis_raw, None, None, None, False, reason, response, key)
+    obj, repaired = parse_json_object(response.text), False
+    if obj is None:
+        obj = parse_json_object(repair_spelled_digits(response.text))
+        repaired = obj is not None
 
-    obj = parse_json_object(response.text)
+    def fail(reason: str, basis_raw: Any = None) -> Simulation:
+        return Simulation(None, None, basis_raw, None, None, None, False, reason, response, key, repaired)
+
     if obj is None:
         return fail(f"reply is not a JSON object: {response.text[:200]!r}")
     basis_raw = obj.get("basis")
@@ -156,4 +162,4 @@ def parse_simulation(response: ChatResponse, key: str) -> Simulation:
     except BasisError as e:
         basis, basis_error = None, str(e)
     return Simulation(predicted, {k: float(probs[k]) for k in LABELS}, basis_raw, basis, basis_error, covered,
-                      True, None, response, key)
+                      True, None, response, key, repaired)

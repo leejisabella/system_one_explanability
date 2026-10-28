@@ -1,0 +1,5 @@
+provider,model,status,calls,cost_usd
+bedrock,openai.gpt-oss-120b-1:0,ok,669,0.140155
+bedrock,us.meta.llama4-maverick-17b-instruct-v1:0,error,101,0.0
+bedrock,us.meta.llama4-maverick-17b-instruct-v1:0,ok,712,0.118901
+gemini,gemini-3.1-flash-lite,ok,712,0.146628

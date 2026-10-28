@@ -15,7 +15,11 @@ Plus Jev-explainer disagreement: the two models' independent majority decisions 
 Jev's decision on a variant is its Pilot 0 majority; variants where it tied are left out.
 Contestability scoring against the verified defects needs the LLM judge and is not here yet.
 
-Usage:  uv run python -m sysone.analysis.pilot1 results/runs/<run_id>
+Saved simulator replies that failed to parse are re-parsed with the current parser, which
+repairs decimals with a spelled-out digit ("0. nine"); repaired replies are counted in the
+report. --no-repair scores them as unparsed instead.
+
+Usage:  uv run python -m sysone.analysis.pilot1 [--no-repair] results/runs/<run_id>
 
 Writes summary.json and report.md into the run directory. Both are derived files and
 can be regenerated at any time without new API calls.
@@ -35,6 +39,8 @@ from sysone.benchmark.records import Record
 from sysone.benchmark.store import load_benchmark
 from sysone.decision.jev import LABELS
 from sysone.explain.basis import BasisError, execute, parse_basis
+from sysone.explain.simulator import parse_simulation
+from sysone.types import ChatResponse, Usage
 
 CONTROL = "control"
 STRUCTURED = "structured"
@@ -81,6 +87,38 @@ def _executed(basis_raw: Any, record: Record) -> str | None:
         return execute(parse_basis(basis_raw), record).decision
     except BasisError:
         return None
+
+
+def reparse_simulations(rows: list[dict[str, Any]], *, repair: bool = True) -> list[dict[str, Any]]:
+    """Saved simulations, with replies that parse only after repair filled in (repair=True)
+    or scored as unparsed (repair=False)."""
+    out = []
+    for r in rows:
+        if r.get("status") == "ok" and not repair and r.get("repaired"):
+            r = {**r, "parse_ok": False, "parse_error": "repaired reply excluded (--no-repair)"}
+        elif r.get("status") == "ok" and repair and not r["parse_ok"] and r.get("raw_text"):
+            saved = ChatResponse(text=r["raw_text"], usage=Usage(0, 0), cost_usd=0.0, provider="",
+                                 model_requested="", model_used="", finish_reason=None, raw={})
+            sim = parse_simulation(saved, r.get("request_key", ""))
+            if sim.repaired:
+                r = {**r, "predicted_decision": sim.predicted, "probabilities": sim.probabilities,
+                     "basis": sim.basis_raw, "basis_ok": sim.basis is not None, "basis_error": sim.basis_error,
+                     "covered": sim.covered, "parse_ok": sim.parse_ok, "parse_error": sim.parse_error,
+                     "repaired": True}
+        out.append(r)
+    return out
+
+
+def _on_departures(rows: list[dict[str, Any]], control: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    """A-direct and control on the hidden variants where Jev's decision differs from the policy's,
+    the only variants where knowing the policy isn't enough to predict Jev."""
+    paired = [r for r in rows if r["parse_ok"] and r["jev_decision"] is not None
+              and r.get("policy_outcome") not in (None, r["jev_decision"]) and control.get(r["variant_id"], {}).get("parse_ok")]
+    return {
+        "a_direct": _rate(sum(r["predicted_decision"] == r["jev_decision"] for r in paired), len(paired)),
+        "control": _rate(sum(control[r["variant_id"]]["predicted_decision"] == r["jev_decision"] for r in paired),
+                         len(paired)),
+    }
 
 
 def _faithfulness(rows: list[dict[str, Any]], control: dict[str, dict[str, Any]],
@@ -237,6 +275,9 @@ def summarize(explainer_decisions: list[dict[str, Any]], explanations: list[dict
                 sum(r["predicted_decision"] == r["jev_decision"] for r in control_scored), len(control_scored)),
         },
         "faithfulness": {f"{a}/{c}": _faithfulness(rows, control, records) for (a, c), rows in sorted(groups.items())},
+        "faithfulness_on_policy_departures": {f"{a}/{c}": _on_departures(rows, control)
+                                              for (a, c), rows in sorted(groups.items())},
+        "simulations_repaired": sum(bool(r.get("repaired")) and bool(r["parse_ok"]) for r in simulations),
         "option_b_structured_executed": _option_b(explanations, hidden, records, jev),
         "jev_explainer_disagreement": _disagreement(explainer_decisions, jev, kinds, policy),
         "model_versions": dict(versions.most_common()),
@@ -275,6 +316,13 @@ def render_report(s: dict[str, Any], run_id: str = "") -> str:
             f"{pct(f['a_executed_agreement_with_jev'])} |")
     out += ["", "NSG = (A-direct − control) / (1 − control). A low A-direct vs A-executed agreement means the "
             "simulator reasoned on its own instead of from the explanation.", ""]
+    out += ["**Where Jev departs from the policy** (hidden variants whose policy outcome differs from Jev's "
+            "decision; knowing the policy alone predicts these wrong)", "",
+            "| Explainer / condition | A-direct | Control (same variants) |", "|---|---|---|"]
+    out += [f"| {g} | {cell(d['a_direct'])} | {cell(d['control'])} |"
+            for g, d in s["faithfulness_on_policy_departures"].items()]
+    out += ["", f"Simulator replies repaired before parsing (spelled-out digits such as \"0. nine\"): "
+            f"{s['simulations_repaired']} of {s['n_simulations']}.", ""]
     if s["option_b_structured_executed"]:
         out += ["**Option B: structured explanations run directly against the records**", "",
                 "| Explainer | Variants | Decidable | Agreement with Jev |", "|---|---|---|---|"]
@@ -297,7 +345,7 @@ def render_report(s: dict[str, Any], run_id: str = "") -> str:
     return "\n".join(out)
 
 
-def analyze_run(run_dir: str | Path) -> dict[str, Any]:
+def analyze_run(run_dir: str | Path, *, repair: bool = True) -> dict[str, Any]:
     run_dir = Path(run_dir)
     manifest = json.loads((run_dir / "manifest.json").read_text())
     cases, _ = load_benchmark(manifest["benchmark"]["path"])
@@ -309,7 +357,8 @@ def analyze_run(run_dir: str | Path) -> dict[str, Any]:
     summary = summarize(
         _latest_ok(_read_jsonl(run_dir / "explainer_decisions.jsonl"), "explainer", "variant_id", "sample_index"),
         _latest_ok(_read_jsonl(run_dir / "explanations.jsonl"), "explanation_id"),
-        _latest_ok(_read_jsonl(run_dir / "simulations.jsonl"), "explanation_id", "variant_id"),
+        _latest_ok(reparse_simulations(_read_jsonl(run_dir / "simulations.jsonl"), repair=repair),
+                   "explanation_id", "variant_id"),
         records=records, hidden=hidden, kinds=kinds, policy=policy, jev=jev,
         ledger=_read_jsonl(run_dir / "ledger.jsonl"),
     )
@@ -319,7 +368,8 @@ def analyze_run(run_dir: str | Path) -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
+    args = [a for a in sys.argv[1:] if a != "--no-repair"]
+    if len(args) != 1:
         sys.exit(__doc__)
-    analyze_run(sys.argv[1])
-    print((Path(sys.argv[1]) / "report.md").read_text())
+    analyze_run(args[0], repair="--no-repair" not in sys.argv[1:])
+    print((Path(args[0]) / "report.md").read_text())

@@ -29,7 +29,7 @@ The stretch goal is subordinate to the main question. It reuses the same benchma
 | 02 | [02_related_work.md](02_related_work.md) | Faithfulness, contestability, black-box auditing, and the research gap |
 | 03 | [03_framework_CAPE.md](03_framework_CAPE.md) | Formal problem setup, evidence classes, adaptive probing objective, verification, explanation generation |
 | 04 | [04_datasets_and_benchmark.md](04_datasets_and_benchmark.md) | Dataset A (synthetic), B (BANKING77), C (AAE/SAE, names) |
-| 05 | [05_experiments.md](05_experiments.md) | Experiments 1–6 |
+| 05 | [05_experiments.md](05_experiments.md) | Experiments 1–8 (renumbered 2026-10-28), their order and dependencies |
 | 06 | [06_evaluation_metrics.md](06_evaluation_metrics.md) | Faithfulness, contestability, reliability, computational human-centered outcomes |
 | 07 | [07_stretch_goal_explainer_misalignment.md](07_stretch_goal_explainer_misalignment.md) | Stretch goal: explainer-LLM misalignment, rationalization of harmful decisions |
 | 08 | [08_roadmap_and_goals.md](08_roadmap_and_goals.md) | Stages I–V, concrete steps, milestones, deliverables, success criteria, publication ambition |

@@ -1,0 +1,516 @@
+{
+  "control": {
+    "agreement_with_jev": {
+      "k": 94,
+      "n": 104,
+      "rate": 0.9038
+    },
+    "n_simulations": 114,
+    "simulator_parse": {
+      "k": 104,
+      "n": 114,
+      "rate": 0.9123
+    }
+  },
+  "cost": {
+    "by_model_usd": {
+      "bedrock/openai.gpt-oss-120b-1:0": 0.140155,
+      "bedrock/us.meta.llama4-maverick-17b-instruct-v1:0": 0.118901,
+      "gemini/gemini-3.1-flash-lite": 0.146628
+    },
+    "by_step_usd": {
+      "explainer_decision": 0.137011,
+      "explanation": 0.128518,
+      "simulation": 0.140155
+    },
+    "total_usd": 0.405683
+  },
+  "explanation_parse": {
+    "explainer_gemini/free_form": {
+      "k": 74,
+      "n": 74,
+      "rate": 1.0
+    },
+    "explainer_gemini/structured": {
+      "k": 74,
+      "n": 74,
+      "rate": 1.0
+    },
+    "explainer_open/free_form": {
+      "k": 74,
+      "n": 74,
+      "rate": 1.0
+    },
+    "explainer_open/structured": {
+      "k": 66,
+      "n": 74,
+      "rate": 0.8919
+    },
+    "none/decision_probabilities": {
+      "k": 74,
+      "n": 74,
+      "rate": 1.0
+    }
+  },
+  "faithfulness": {
+    "explainer_gemini/free_form": {
+      "a_direct_agreement_when_covered": 0.9114,
+      "a_direct_agreement_with_jev": 0.869,
+      "a_direct_vs_a_executed_agreement": 0.967,
+      "a_executed_agreement_with_jev": 0.8791,
+      "basis_decidable": {
+        "k": 91,
+        "n": 92,
+        "rate": 0.9891
+      },
+      "by_variant_kind": {
+        "correction": {
+          "a_direct": 1.0,
+          "control": 1.0,
+          "n": 11
+        },
+        "cue_edit": {
+          "a_direct": 1.0,
+          "control": 1.0,
+          "n": 18
+        },
+        "decisive_edit": {
+          "a_direct": 0.8667,
+          "control": 0.8667,
+          "n": 15
+        },
+        "discrepancy_fixed": {
+          "a_direct": 1.0,
+          "control": 1.0,
+          "n": 8
+        },
+        "exception_removed": {
+          "a_direct": 0.5,
+          "control": 0.5,
+          "n": 10
+        },
+        "exception_salient": {
+          "a_direct": 1.0,
+          "control": 1.0,
+          "n": 6
+        },
+        "resolution": {
+          "a_direct": 0.75,
+          "control": 0.8125,
+          "n": 16
+        }
+      },
+      "control_agreement_with_jev": 0.881,
+      "covered": {
+        "k": 79,
+        "n": 92,
+        "rate": 0.8587
+      },
+      "mean_p_jev_decision_control": 0.7698,
+      "mean_p_jev_decision_with": 0.8013,
+      "n_scored": 84,
+      "n_simulations": 114,
+      "normalized_simulatability_gain": -0.1,
+      "simulator_parse": {
+        "k": 92,
+        "n": 114,
+        "rate": 0.807
+      }
+    },
+    "explainer_gemini/structured": {
+      "a_direct_agreement_when_covered": 0.8851,
+      "a_direct_agreement_with_jev": 0.8235,
+      "a_direct_vs_a_executed_agreement": 0.9556,
+      "a_executed_agreement_with_jev": 0.8444,
+      "basis_decidable": {
+        "k": 90,
+        "n": 94,
+        "rate": 0.9574
+      },
+      "by_variant_kind": {
+        "correction": {
+          "a_direct": 1.0,
+          "control": 1.0,
+          "n": 13
+        },
+        "cue_edit": {
+          "a_direct": 1.0,
+          "control": 1.0,
+          "n": 17
+        },
+        "decisive_edit": {
+          "a_direct": 0.8667,
+          "control": 0.8667,
+          "n": 15
+        },
+        "discrepancy_fixed": {
+          "a_direct": 1.0,
+          "control": 1.0,
+          "n": 9
+        },
+        "exception_removed": {
+          "a_direct": 0.2,
+          "control": 0.5,
+          "n": 10
+        },
+        "exception_salient": {
+          "a_direct": 1.0,
+          "control": 1.0,
+          "n": 7
+        },
+        "resolution": {
+          "a_direct": 0.6429,
+          "control": 0.8571,
+          "n": 14
+        }
+      },
+      "control_agreement_with_jev": 0.8941,
+      "covered": {
+        "k": 87,
+        "n": 94,
+        "rate": 0.9255
+      },
+      "mean_p_jev_decision_control": 0.7827,
+      "mean_p_jev_decision_with": 0.7882,
+      "n_scored": 85,
+      "n_simulations": 114,
+      "normalized_simulatability_gain": -0.6667,
+      "simulator_parse": {
+        "k": 94,
+        "n": 114,
+        "rate": 0.8246
+      }
+    },
+    "explainer_open/free_form": {
+      "a_direct_agreement_when_covered": 0.9178,
+      "a_direct_agreement_with_jev": 0.8824,
+      "a_direct_vs_a_executed_agreement": 0.9663,
+      "a_executed_agreement_with_jev": 0.8764,
+      "basis_decidable": {
+        "k": 89,
+        "n": 92,
+        "rate": 0.9674
+      },
+      "by_variant_kind": {
+        "correction": {
+          "a_direct": 1.0,
+          "control": 1.0,
+          "n": 11
+        },
+        "cue_edit": {
+          "a_direct": 1.0,
+          "control": 1.0,
+          "n": 18
+        },
+        "decisive_edit": {
+          "a_direct": 0.8571,
+          "control": 0.8571,
+          "n": 14
+        },
+        "discrepancy_fixed": {
+          "a_direct": 1.0,
+          "control": 1.0,
+          "n": 9
+        },
+        "exception_removed": {
+          "a_direct": 0.6,
+          "control": 0.5,
+          "n": 10
+        },
+        "exception_salient": {
+          "a_direct": 1.0,
+          "control": 1.0,
+          "n": 7
+        },
+        "resolution": {
+          "a_direct": 0.75,
+          "control": 0.8125,
+          "n": 16
+        }
+      },
+      "control_agreement_with_jev": 0.8824,
+      "covered": {
+        "k": 73,
+        "n": 92,
+        "rate": 0.7935
+      },
+      "mean_p_jev_decision_control": 0.7753,
+      "mean_p_jev_decision_with": 0.804,
+      "n_scored": 85,
+      "n_simulations": 114,
+      "normalized_simulatability_gain": 0.0,
+      "simulator_parse": {
+        "k": 92,
+        "n": 114,
+        "rate": 0.807
+      }
+    },
+    "explainer_open/structured": {
+      "a_direct_agreement_when_covered": 0.9529,
+      "a_direct_agreement_with_jev": 0.9241,
+      "a_direct_vs_a_executed_agreement": 0.907,
+      "a_executed_agreement_with_jev": 0.8721,
+      "basis_decidable": {
+        "k": 86,
+        "n": 88,
+        "rate": 0.9773
+      },
+      "by_variant_kind": {
+        "correction": {
+          "a_direct": 1.0,
+          "control": 1.0,
+          "n": 17
+        },
+        "cue_edit": {
+          "a_direct": 1.0,
+          "control": 1.0,
+          "n": 17
+        },
+        "decisive_edit": {
+          "a_direct": 0.8667,
+          "control": 0.8667,
+          "n": 15
+        },
+        "discrepancy_fixed": {
+          "a_direct": 1.0,
+          "control": 1.0,
+          "n": 6
+        },
+        "exception_removed": {
+          "a_direct": 0.5,
+          "control": 0.5,
+          "n": 8
+        },
+        "exception_salient": {
+          "a_direct": 1.0,
+          "control": 1.0,
+          "n": 4
+        },
+        "resolution": {
+          "a_direct": 1.0,
+          "control": 0.9167,
+          "n": 12
+        }
+      },
+      "control_agreement_with_jev": 0.9114,
+      "covered": {
+        "k": 85,
+        "n": 88,
+        "rate": 0.9659
+      },
+      "mean_p_jev_decision_control": 0.7881,
+      "mean_p_jev_decision_with": 0.8748,
+      "n_scored": 79,
+      "n_simulations": 99,
+      "normalized_simulatability_gain": 0.1429,
+      "simulator_parse": {
+        "k": 88,
+        "n": 99,
+        "rate": 0.8889
+      }
+    },
+    "none/decision_probabilities": {
+      "a_direct_agreement_when_covered": 0.9836,
+      "a_direct_agreement_with_jev": 0.899,
+      "a_direct_vs_a_executed_agreement": 0.9167,
+      "a_executed_agreement_with_jev": 0.8426,
+      "basis_decidable": {
+        "k": 108,
+        "n": 109,
+        "rate": 0.9908
+      },
+      "by_variant_kind": {
+        "correction": {
+          "a_direct": 1.0,
+          "control": 1.0,
+          "n": 21
+        },
+        "cue_edit": {
+          "a_direct": 1.0,
+          "control": 1.0,
+          "n": 19
+        },
+        "decisive_edit": {
+          "a_direct": 0.8889,
+          "control": 0.8889,
+          "n": 18
+        },
+        "discrepancy_fixed": {
+          "a_direct": 1.0,
+          "control": 1.0,
+          "n": 9
+        },
+        "exception_removed": {
+          "a_direct": 0.7,
+          "control": 0.5,
+          "n": 10
+        },
+        "exception_salient": {
+          "a_direct": 1.0,
+          "control": 1.0,
+          "n": 7
+        },
+        "resolution": {
+          "a_direct": 0.6667,
+          "control": 0.8,
+          "n": 15
+        }
+      },
+      "control_agreement_with_jev": 0.899,
+      "covered": {
+        "k": 61,
+        "n": 109,
+        "rate": 0.5596
+      },
+      "mean_p_jev_decision_control": 0.7807,
+      "mean_p_jev_decision_with": 0.8002,
+      "n_scored": 99,
+      "n_simulations": 114,
+      "normalized_simulatability_gain": 0.0,
+      "simulator_parse": {
+        "k": 109,
+        "n": 114,
+        "rate": 0.9561
+      }
+    }
+  },
+  "faithfulness_on_policy_departures": {
+    "explainer_gemini/free_form": {
+      "a_direct": {
+        "k": 1,
+        "n": 9,
+        "rate": 0.1111
+      },
+      "control": {
+        "k": 1,
+        "n": 9,
+        "rate": 0.1111
+      }
+    },
+    "explainer_gemini/structured": {
+      "a_direct": {
+        "k": 3,
+        "n": 10,
+        "rate": 0.3
+      },
+      "control": {
+        "k": 3,
+        "n": 10,
+        "rate": 0.3
+      }
+    },
+    "explainer_open/free_form": {
+      "a_direct": {
+        "k": 4,
+        "n": 11,
+        "rate": 0.3636
+      },
+      "control": {
+        "k": 3,
+        "n": 11,
+        "rate": 0.2727
+      }
+    },
+    "explainer_open/structured": {
+      "a_direct": {
+        "k": 6,
+        "n": 10,
+        "rate": 0.6
+      },
+      "control": {
+        "k": 3,
+        "n": 10,
+        "rate": 0.3
+      }
+    },
+    "none/decision_probabilities": {
+      "a_direct": {
+        "k": 5,
+        "n": 11,
+        "rate": 0.4545
+      },
+      "control": {
+        "k": 3,
+        "n": 11,
+        "rate": 0.2727
+      }
+    }
+  },
+  "jev_explainer_disagreement": {
+    "explainer_gemini": {
+      "disagreement_with_jev": {
+        "all": {
+          "k": 16,
+          "n": 188,
+          "rate": 0.0851
+        },
+        "originals": {
+          "k": 5,
+          "n": 74,
+          "rate": 0.0676
+        },
+        "variants": {
+          "k": 11,
+          "n": 114,
+          "rate": 0.0965
+        }
+      },
+      "explainer_policy_agreement": 0.9947,
+      "explainer_tied_variants": 0,
+      "explainer_unanimous_share": 0.9521,
+      "parse": {
+        "k": 564,
+        "n": 564,
+        "rate": 1.0
+      }
+    },
+    "explainer_open": {
+      "disagreement_with_jev": {
+        "all": {
+          "k": 21,
+          "n": 188,
+          "rate": 0.1117
+        },
+        "originals": {
+          "k": 12,
+          "n": 74,
+          "rate": 0.1622
+        },
+        "variants": {
+          "k": 9,
+          "n": 114,
+          "rate": 0.0789
+        }
+      },
+      "explainer_policy_agreement": 0.9255,
+      "explainer_tied_variants": 0,
+      "explainer_unanimous_share": 0.8936,
+      "parse": {
+        "k": 564,
+        "n": 564,
+        "rate": 1.0
+      }
+    }
+  },
+  "model_versions": {
+    "gemini-3.1-flash-lite": 712,
+    "openai.gpt-oss-120b-1:0": 669,
+    "us.meta.llama4-maverick-17b-instruct-v1:0": 712
+  },
+  "n_explainer_decisions": 1128,
+  "n_explanations": 370,
+  "n_simulations": 669,
+  "option_b_structured_executed": {
+    "explainer_gemini": {
+      "decidable": 0.9649,
+      "executed_agreement_with_jev": 0.8364,
+      "n_variants": 114
+    },
+    "explainer_open": {
+      "decidable": 0.9798,
+      "executed_agreement_with_jev": 0.8763,
+      "n_variants": 99
+    }
+  },
+  "simulations_repaired": 0
+}

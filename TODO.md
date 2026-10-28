@@ -24,7 +24,7 @@ Open decisions and setup tasks. Every model in [configs/models.yaml](configs/mod
 - [x] **Case writers:** Qwen3 235B (`case_writer`) and Mistral Large 3 (`case_writer_2`) on Bedrock.
 - [x] **Explainers:** Gemini 3.1 Flash-Lite (Vertex AI) and Llama 4 Maverick (Bedrock; also the stretch goal's open-weight model). Claude Haiku 5.5 (Bedrock) was the first choice and stays configured as `explainer_bedrock`, but is blocked on this AWS account; Llama replaced it in Pilot 1 on 2026-10-28.
 - [x] **Simulator and judge:** gpt-oss-120b on Bedrock, flex tier, reasoning effort `low`.
-- [x] **Second decision model for Experiment 6:** Amazon Nova Lite on Bedrock.
+- [x] **Second decision model for Experiment 8:** Amazon Nova Lite on Bedrock.
 - [x] **Prices** from AWS's official Price List files (us-east-2, published 2026-10-12) and Google's pricing page (checked 2026-10-27). Re-check before large runs.
 
 ## Benchmark and experiments
@@ -33,22 +33,25 @@ Open decisions and setup tasks. Every model in [configs/models.yaml](configs/mod
 - [x] **Step 7:** live Pilot 0 run on refund_v0 (`pilot0-v0-2026-10-28`, $0.0137): no-go, 6 customer-harming wrong decisions of 60 (20 needed).
 - [x] **refund_v1** frozen 2026-10-28: 24 incorrect-input cases with the receipt and condition corruptions Jev follows.
 - [x] **Step 7b:** Pilot 0 on refund_v1 (`pilot0-v1-2026-10-28`, $0.0160): go, 24 customer-harming wrong decisions.
-- [ ] **Missing-receipt cases:** Jev answered "undetermined" in only 7 of 12 samples where the receipt status is missing. Note for Experiment 5 (abstention).
+- [ ] **Missing-receipt cases:** Jev answered "undetermined" in only 7 of 12 samples where the receipt status is missing. Note for Experiment 6 (abstention).
 - [x] **Stability threshold** for go / no-go: at least 90% of variants unanimous across repeats (set 2026-10-28; both runs ≈ 97%).
 - [x] **E0 write-up** with figures: [research_analyses/E0_jev_characterization/](research_analyses/E0_jev_characterization/README.md).
-- [ ] **Jev's date-window errors** (approves requests up to 52 days old against a 30-day window): decide whether to study them as their own category, e.g. in Experiment 5.
+- [ ] **Jev's date-window errors** (approves requests up to 52 days old against a 30-day window): decide whether to study them as their own category, e.g. in Experiment 6.
 - [ ] **Step 6b:** build the natural-language realization with the case writer, frozen as `refund_v2` (≈ $0.10).
 - [x] **Pilot 1 harness** built 2026-10-27, dry run passed; preflight passed 2026-10-28. Ready for the live run.
 - [x] **First live Pilot 1 attempt** (`pilot1-v1-2026-10-28`, $0.13 by the ledger) halted during explainer decisions; keep it as a record, don't resume it.
   - Llama 4 Maverick parsed only 239 of 564 decisions: it reasoned step by step past the 64-token cap, mostly on edited variants. Fixed with an answer-only system message on every explainer decision (10/10 failed variants then parsed); the preflight now tests one decision per variant kind.
   - Gemini stopped at 462 decisions with `429 RESOURCE_EXHAUSTED`: the `GEMINI_API_KEY` project is on the **free tier** (500 requests per day for gemini-3.1-flash-lite), so the GCP credits weren't in use. The ledger still charged those calls at paid prices, so it overstates GCP spend by about $0.05.
 - [x] **Gemini moved to Vertex AI** (2026-10-28): AI Studio rejected the education billing account, so the key couldn't leave the free tier. Gemini preflight through Vertex passed (`preflight-20261028T064016Z`, 8/8 decisions, $0.0022).
-- [ ] **Launch Pilot 1** under a new run ID: `pilot1-v1b-2026-10-28`.
+- [x] **Pilot 1 live** (`pilot1-v1b-2026-10-28`, clean commit `7c85d56`, $0.41): written up in [research_analyses/E1_pilot1/](research_analyses/E1_pilot1/README.md). Ceiling effect: the no-explanation control predicts Jev on 90% of hidden variants; only 11 variants separate Jev from its policy.
+  - [x] gpt-oss writes some probabilities as `0. nine`; the simulator parser and the analysis repair that pattern only and flag repaired replies (`--no-repair` to exclude them).
+- [ ] **Policy-departure variants** for E1: a purchase-window sweep (about 25–65 days) so Jev's own threshold decides many hidden variants; freeze as a new benchmark version.
+- [ ] **LLM judge** for contestability scoring (does the explanation name the corrupted field?), and for coding explanations that justify wrong decisions (10 of 12 did in Pilot 1).
 - [x] **Pilot 1:** how a frozen explanation's implied decision on each hidden variant is obtained (decided 2026-10-27): a simulator model with a structured response, scored against a no-explanation control, plus a structured-explanation condition run directly against the records. See [research_docs/12](research_docs/12_first_experiments_roadmap.md#how-an-explanations-implied-decision-is-obtained).
 - [ ] **Pilot 1 contestability scoring** against the verified defects, with the judge.
 - [ ] **Re-estimate costs** from Pilot 0 and Pilot 1's measured costs before each later experiment, against the allocations in [configs/budget.yaml](configs/budget.yaml).
 - [ ] **Small-run option** (`--max-cases`) for trying a few cases before a full run (offered, not built).
-- [ ] **Within-run Jev query reuse** for Experiment 2 (planned in research_docs/11 *Project budget*).
+- [ ] **Within-run Jev query reuse** for Experiments 3–4 (planned in research_docs/11 *Project budget*).
 
 ## Setup and verification
 

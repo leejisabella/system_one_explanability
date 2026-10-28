@@ -1,0 +1,26 @@
+{
+  "explainer_gemini": {
+    "Jev follows the policy": {
+      "agree_policy": 0.9191919191919192,
+      "agree_jev": 0.9191919191919192,
+      "n": 99
+    },
+    "Jev departs": {
+      "agree_policy": 0.9090909090909091,
+      "agree_jev": 0.09090909090909091,
+      "n": 11
+    }
+  },
+  "explainer_open": {
+    "Jev follows the policy": {
+      "agree_policy": 0.9534883720930233,
+      "agree_jev": 0.9534883720930233,
+      "n": 86
+    },
+    "Jev departs": {
+      "agree_policy": 0.7272727272727273,
+      "agree_jev": 0.2727272727272727,
+      "n": 11
+    }
+  }
+}

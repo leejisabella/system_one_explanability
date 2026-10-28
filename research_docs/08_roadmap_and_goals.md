@@ -39,10 +39,11 @@ Test whether current methods identify legitimate grounds for review, and charact
 
 **Concrete steps**
 1. Implement baselines: no-query NL explanation; decision+probabilities; random perturbation; LIME-style; Anchors; *Walk the Talk?*-style concept counterfactuals; uncertainty-based active sampling; direct policy checker.
-2. Run Experiment 1 (faithfulness vs. contestability) and Experiment 3 (socially sensitive interventions).
-3. *(Stretch)* Run S1 (rationalization baseline) — shares the no-query NL explainer infrastructure.
+2. Build the benchmark version with policy-departure variants (a purchase-window sweep) and the LLM judge, which Experiments 1–3 share.
+3. Run Experiment 1 (Jev vs. explainer: faithfulness vs. contestability), Experiment 2 (distinguishing similar targets) and Experiment 3 (information ablation).
+4. *(Stretch)* Run S1 (rationalization baseline) — shares the no-query NL explainer infrastructure. Pilot 1 already saw it: 10 of 12 explanations of Jev's wrong approvals justified them.
 
-**Deliverable:** Empirical report on whether faithfulness predicts contestability (RQ1) and disclosure of sensitive cues (RQ3).
+**Deliverable:** Empirical report on whether faithfulness predicts contestability (RQ1), whether explanations track the target or tell the same story (RQ1), and how fidelity and unsupported claims change with information (RQ1, RQ2, RQ5).
 
 ### Stage III — Method development
 Implement adaptive counterfactual probing, evidence verification, calibrated claim generation, and uncertainty-aware abstention.
@@ -53,7 +54,7 @@ Implement adaptive counterfactual probing, evidence verification, calibrated cla
 3. Implement claim verification (behavioral / factual / policy) and evidence package schema.
 4. Implement constrained explanation generation from evidence packages.
 5. Implement abstention / insufficient-evidence output.
-6. Run Experiment 2 (budget sweep vs. baselines) and Experiment 5 (robustness and abstention).
+6. Run Experiment 4 (CAPE budget sweep vs. baselines) and Experiment 6 (robustness and abstention).
 7. *(Stretch)* Run S2, S3 (pressure factorial, user-harm behaviors) and S5 (CAPE mitigation).
 
 **Deliverable:** CAPE implementation + comparative results (RQ2, RQ5).
@@ -62,12 +63,13 @@ Implement adaptive counterfactual probing, evidence verification, calibrated cla
 Evaluate multiple decision-model families, investigate identifiability and query-efficiency results, and establish the limits of black-box-only methods.
 
 **Concrete steps**
-1. Construct indistinguishable-world examples; attempt formal identifiability statements (Experiment 4).
-2. Run Experiment 6 on open-weight / API classifiers and LLM decision pipelines.
-3. Evaluate predictive multiplicity where multiple plausible models exist.
-4. *(Stretch, conditional)* Run S4 spillover on open-weight explainers if S1–S3 show non-trivial harmful justification.
+1. Construct indistinguishable-world examples; attempt formal identifiability statements (Experiment 5).
+2. Run Experiment 7 (socially sensitive interventions) once Dataset C is ready.
+3. Run Experiment 8 on open-weight / API classifiers and LLM decision pipelines.
+4. Evaluate predictive multiplicity where multiple plausible models exist.
+5. *(Stretch, conditional)* Run S4 spillover on open-weight explainers if S1–S3 show non-trivial harmful justification.
 
-**Deliverable:** Theory results (RQ4) + generalization results.
+**Deliverable:** Theory results (RQ4), socially sensitive disclosure (RQ3) + generalization results.
 
 ### Stage V — Broader validation
 Extend to additional human-authored datasets and, if appropriate in future research, evaluate whether affected users can use the resulting evidence to contest decisions more effectively.
@@ -98,11 +100,14 @@ Status as of 2026-10-21. For where the project stands and what to do next, see [
 - [ ] Benchmark v1 (Dataset A, natural-language text) with evaluator
 - [ ] Datasets B and C prepared; missing citations added (Landes audit, REAL-AAE)
 - [ ] Baselines implemented
-- [ ] Experiments 1 & 3 complete
+- [x] Pilot 1 (Experiment 1 pilot) — see [research_analyses/E1_pilot1](../research_analyses/E1_pilot1/README.md)
+- [ ] Benchmark version with policy-departure variants; LLM judge
+- [ ] Experiments 1, 2 & 3 complete
 - [ ] CAPE implemented
-- [ ] Experiments 2 & 5 complete
-- [ ] Experiment 4 (theory + constructions) complete
-- [ ] Experiment 6 complete
+- [ ] Experiments 4 & 6 complete
+- [ ] Experiment 5 (theory + constructions) complete
+- [ ] Experiment 7 (Dataset C) complete
+- [ ] Experiment 8 complete
 - [ ] *(Stretch)* S1 complete
 - [ ] *(Stretch)* S2, S3, S5 complete
 - [ ] *(Stretch, conditional)* S4 complete

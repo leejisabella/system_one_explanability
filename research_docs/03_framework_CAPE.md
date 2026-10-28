@@ -91,7 +91,7 @@ where:
 
 - How to estimate $\mathbb{E}[\Delta V_{\mathrm{contest}}]$ efficiently (e.g., expected information gain over a hypothesis set of defect types; value-of-information relative to the review/no-review decision).
 - How to select admissible interventions (semantic validity, single-variable changes).
-- How it compares with simpler active-learning and black-box explanation strategies (Experiment 2).
+- How it compares with simpler active-learning and black-box explanation strategies (Experiment 4; Experiment 3's probe rungs are a first, small version).
 
 ### Hypothesis loop (sketch)
 

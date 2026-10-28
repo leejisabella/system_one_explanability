@@ -244,13 +244,13 @@ def fig_setup(out):
     ]
     uses = [
         "E1 / Pilot 1: faithfulness vs.\ncontestability (reuses decisions)",
-        "E2: CAPE vs. baselines under\na fixed query budget",
-        "E3: socially sensitive cues\n(needs Dataset C)",
-        "E4: identifiability: record errors\nvs. policy misapplication",
-        "E5: robustness and abstention",
+        "E2–E4: similar targets, information\nablation, CAPE under a budget",
+        "E7: socially sensitive cues\n(needs Dataset C)",
+        "E5: identifiability: record errors\nvs. policy misapplication",
+        "E6: robustness and abstention",
         "Stretch S1–S3: harmful\njustification of wrong denials",
     ]
-    links = {0: [0, 1, 5], 1: [0, 1], 2: [0, 1, 2], 3: [3, 4], 4: [4], 5: [2], 6: [0, 1, 5]}
+    links = {0: [0, 1, 5], 1: [0, 1], 2: [0, 1, 2], 3: [1, 3, 4], 4: [4], 5: [2], 6: [0, 1, 5]}
     fig, ax = plt.subplots(figsize=(11, 6.2))
     ax.set_axis_off()
     ax.set_xlim(0, 11)

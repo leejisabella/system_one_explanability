@@ -19,9 +19,12 @@ project_caps_usd:
 # Planning allocation per experiment (research_docs/12). Not enforced: re-estimate from
 # measured costs before each experiment and compare against what is left.
 allocations_usd:
-  pilots_and_experiment_1: {bedrock: 6.00,  gemini: 4.00, typesafe: 0.20}
-  experiment_2:            {bedrock: 12.00, gemini: 8.00, typesafe: 2.50}
-  experiments_3_to_5:      {bedrock: 7.00,  gemini: 6.00, typesafe: 0.80}
-  experiment_6:            {bedrock: 5.00,  gemini: 3.00, typesafe: 0.20}
-  stretch_s1_s3_s5:        {bedrock: 12.00, gemini: 9.00, typesafe: 0.30}
-  reserve:                 {bedrock: 8.00,  gemini: 20.00, typesafe: 1.00}
+# Experiments numbered as in research_docs/05 (renumbered 2026-10-28).
+  pilots_and_experiment_1: {bedrock: 6.00,  gemini: 4.00,  typesafe: 0.20}  # Jev vs. explainer
+  experiment_2:            {bedrock: 2.50,  gemini: 2.50,  typesafe: 0.20}  # distinguishing similar targets
+  experiment_3:            {bedrock: 2.50,  gemini: 2.50,  typesafe: 0.50}  # information ablation
+  experiment_4:            {bedrock: 9.00,  gemini: 6.00,  typesafe: 1.80}  # CAPE budget sweep (was 2)
+  experiments_5_to_7:      {bedrock: 7.00,  gemini: 6.00,  typesafe: 0.80}  # identifiability, robustness, socially sensitive
+  experiment_8:            {bedrock: 5.00,  gemini: 3.00,  typesafe: 0.20}  # generalization beyond Jev
+  stretch_s1_s3_s5:        {bedrock: 12.00, gemini: 9.00,  typesafe: 0.30}
+  reserve:                 {bedrock: 6.00,  gemini: 17.00, typesafe: 1.00}

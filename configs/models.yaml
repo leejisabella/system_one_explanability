@@ -9,7 +9,7 @@
 # Roles keep model families apart (chosen 2026-10-27, research_docs/12): the case writers
 # differ from every explainer, and the simulator and judge differ from every explainer
 # they score. Families: Jev (TypeSafe), Anthropic, Google, Meta (explainers), OpenAI
-# (simulator, judge), Qwen and Mistral (case writers), Amazon (Experiment 6).
+# (simulator, judge), Qwen and Mistral (case writers), Amazon (Experiment 8).
 
 jev:
   # TypeSafe's native API, which returns a probability for every option.
@@ -67,6 +67,6 @@ judge:
   reasoning_effort: low
 
 decision_alt:
-  # A second decision model for Experiment 6 (generalization beyond Jev). Amazon family.
+  # A second decision model for Experiment 8 (generalization beyond Jev). Amazon family.
   provider: bedrock
   model: amazon.nova-lite-v1:0

@@ -1,6 +1,6 @@
 # 01 — Research Questions and Hypotheses
 
-The main research program is organized around five research questions (RQ1–RQ5). Stretch-goal questions (SQ1–SQ5) are listed at the end and fully specified in [07_stretch_goal_explainer_misalignment.md](07_stretch_goal_explainer_misalignment.md).
+The main research program is organized around five research questions (RQ1–RQ5), tested by Experiments 1–8 ([05_experiments.md](05_experiments.md); renumbered 2026-10-28). Stretch-goal questions (SQ1–SQ5) are listed at the end and fully specified in [07_stretch_goal_explainer_misalignment.md](07_stretch_goal_explainer_misalignment.md).
 
 **Guiding question:** *What evidence would help determine whether this decision should be challenged, and how can an explanation system obtain that evidence efficiently?*
 
@@ -14,7 +14,7 @@ We will investigate whether faithfulness and contestability are positively corre
 
 **Hypothesis H1:** Methods optimized for feature attribution or behavioral faithfulness may overlook policy-relevant errors and evidence needed to establish whether a decision is justified.
 
-- *Tested by:* Experiment 1 ([05_experiments.md](05_experiments.md))
+- *Tested by:* Experiment 1 ([05_experiments.md](05_experiments.md)); also Experiment 2 (does the explanation track the target?) and Experiment 3 (fidelity as the explainer gets more information)
 - *Key metrics:* faithfulness metrics (§7.1) vs. contestability metrics (§7.2) in [06_evaluation_metrics.md](06_evaluation_metrics.md)
 
 ## RQ2: Can limited black-box probing uncover verifiable grounds for contestation?
@@ -23,7 +23,7 @@ Given an original decision, access to a limited number of model queries, and pos
 
 **Hypothesis H2:** Contestability-aware, adaptive probing will identify more verified decision defects per query than conventional feature attribution and nonadaptive perturbation methods.
 
-- *Tested by:* Experiment 2
+- *Tested by:* Experiment 4 (CAPE vs. equally budgeted baselines), with Experiment 3's probe rungs as the small, fixed-budget version
 - *Key metrics:* verified appeal-evidence precision/recall, query cost to first valid ground
 
 ## RQ3: When do explanations conceal or mischaracterize socially sensitive influences?
@@ -34,7 +34,7 @@ When a model's decision changes under controlled perturbations of linguistic or 
 
 We will distinguish **model sensitivity** from **normative bias**: observing that a cue changes the model's output is not, by itself, sufficient to establish unfairness.
 
-- *Tested by:* Experiment 3 (with Dataset C)
+- *Tested by:* Experiment 7 (with Dataset C); template-level name and detail swaps in Experiment 2
 
 ## RQ4: What can and cannot be inferred from black-box decision access?
 
@@ -44,7 +44,7 @@ Can a system distinguish a legitimate decision from an erroneous one using only 
 
 We aim to characterize these limits formally and experimentally.
 
-- *Tested by:* Experiment 4 (indistinguishable-world constructions; information-theoretic arguments)
+- *Tested by:* Experiment 5 (indistinguishable-world constructions; information-theoretic arguments)
 
 ## RQ5: Can a system recognize when the evidence is insufficient?
 
@@ -54,7 +54,7 @@ We will therefore investigate whether an explanation method can selectively abst
 
 **Hypothesis H5:** Evidence verification and uncertainty-aware abstention can substantially reduce false accusations without eliminating the value of explanatory auditing.
 
-- *Tested by:* Experiment 5
+- *Tested by:* Experiment 6; unsupported claims are also measured in Experiment 3
 
 ---
 

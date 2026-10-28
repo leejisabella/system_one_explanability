@@ -339,3 +339,31 @@ def test_scores_on_known_rows():
     d = s["jev_explainer_disagreement"]["e"]["disagreement_with_jev"]
     assert d["originals"] == {"n": 1, "k": 1, "rate": 1.0}
     assert d["variants"] == {"n": 2, "k": 1, "rate": 0.5}
+
+
+def test_spelled_out_digits_are_repaired_and_flagged():
+    # gpt-oss-120b wrote "0. nine" for 0.9 in 87 of 669 replies (pilot1-v1b-2026-10-28).
+    from sysone.explain.jsonout import repair_spelled_digits
+
+    assert repair_spelled_digits('{"a": 0. nine, "b": 0.05, "c": "one. two"}') == '{"a": 0.9, "b": 0.05, "c": "one. two"}'
+    assert repair_spelled_digits("version 1.2 none") == "version 1.2 none"
+    reply = ('{"predicted_decision": "approve", "probabilities": {"approve": 0. nine, "deny": 0.05, '
+             '"undetermined": 0.05}, "basis": {"rules": [], "default_outcome": "approve"}, "covered": true}')
+    response = ChatResponse(reply, Usage(0, 0), 0.0, "fake", "m", "m", None, {})
+    sim = parse_simulation(response, "k")
+    assert sim.parse_ok and sim.repaired and sim.probabilities["approve"] == 0.9
+    clean = parse_simulation(ChatResponse(reply.replace("0. nine", "0.9"), Usage(0, 0), 0.0, "fake", "m", "m",
+                                          None, {}), "k")
+    assert clean.parse_ok and not clean.repaired
+
+
+def test_saved_replies_are_reparsed_unless_repair_is_off():
+    from sysone.analysis.pilot1 import reparse_simulations
+
+    reply = ('{"predicted_decision": "deny", "probabilities": {"approve": 0.05, "deny": 0. nine, '
+             '"undetermined": 0.05}, "basis": {"rules": [], "default_outcome": "deny"}, "covered": false}')
+    row = {"status": "ok", "parse_ok": False, "raw_text": reply, "request_key": "k"}
+    fixed, = reparse_simulations([row])
+    assert fixed["parse_ok"] and fixed["repaired"] and fixed["predicted_decision"] == "deny"
+    assert reparse_simulations([row], repair=False) == [row]
+    assert not reparse_simulations([fixed], repair=False)[0]["parse_ok"]

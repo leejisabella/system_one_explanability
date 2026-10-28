@@ -1,0 +1,58 @@
+{
+  "explainer_gemini/free_form": {
+    "n": 11,
+    "simulator": {
+      "explainer": 8,
+      "jev": 3
+    },
+    "control": {
+      "explainer": 8,
+      "jev": 3
+    },
+    "explainer_policy_agree": 11
+  },
+  "explainer_gemini/structured": {
+    "n": 11,
+    "simulator": {
+      "explainer": 7,
+      "jev": 4
+    },
+    "control": {
+      "explainer": 8,
+      "jev": 3
+    },
+    "explainer_policy_agree": 11,
+    "rules": {
+      "explainer": 10,
+      "jev": 1
+    }
+  },
+  "explainer_open/free_form": {
+    "n": 9,
+    "simulator": {
+      "explainer": 4,
+      "jev": 5
+    },
+    "control": {
+      "explainer": 4,
+      "jev": 5
+    },
+    "explainer_policy_agree": 7
+  },
+  "explainer_open/structured": {
+    "n": 9,
+    "simulator": {
+      "jev": 7,
+      "explainer": 2
+    },
+    "control": {
+      "explainer": 4,
+      "jev": 5
+    },
+    "explainer_policy_agree": 7,
+    "rules": {
+      "explainer": 6,
+      "jev": 3
+    }
+  }
+}

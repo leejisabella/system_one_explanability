@@ -361,6 +361,7 @@ def run_pilot1(config: Pilot1Config, run: Run, clients: dict[str, GuardedClient]
                     "probabilities": result.probabilities, "basis": result.basis_raw,
                     "basis_ok": result.basis is not None, "basis_error": result.basis_error,
                     "covered": result.covered, "parse_ok": result.parse_ok, "parse_error": result.parse_error,
+                    "repaired": result.repaired,
                     "raw_text": result.response.text, **_response_fields(result.response, result.request_key),
                     "ts": now_iso(),
                 })
