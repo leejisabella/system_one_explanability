@@ -17,31 +17,56 @@ uv run pytest         # offline tests; no network calls, no cost
 
 ### Credentials
 
+Put keys in `.env` (gitignored; copy [.env.example](.env.example)). The experiment runners and the smoke test load it; variables already set in your shell take precedence.
+
 | Provider | Used for | How to configure |
 |----------|----------|------------------|
 | TypeSafe | Jev (`jev-latest`, native API) | `TYPESAFE_API_KEY` |
-| Amazon Bedrock (us-east-2) | Case writer (Claude Opus 4.5), Bedrock explainers | Standard AWS credentials (`AWS_PROFILE`, or `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`). Claude Opus 4.5 model access must be enabled in the Bedrock console for us-east-2. |
-| Google Gemini | Gemini explainers, judge | `GEMINI_API_KEY` (or a Vertex AI project; see TODO.md) |
+| Amazon Bedrock (us-east-2) | Case writers (Qwen3 235B, Mistral Large 3), explainers (Claude Haiku 5.5, Llama 4 Maverick), simulator and judge (gpt-oss-120b), Experiment 6 decision model (Nova Lite) | `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`, or `AWS_PROFILE`. IAM policy below. Claude also needs Anthropic's one-time use-case form in the Bedrock console. |
+| Google Gemini API | Gemini explainer (Gemini 3.1 Flash-Lite) | `GEMINI_API_KEY` |
 
-Keep keys in your shell or a `.env` file (gitignored). Never commit them.
+Never commit keys.
 
-### Pilot 0 (first experiment)
+IAM policy for the Bedrock user. The `aws-marketplace` actions are needed only for the first call to a Marketplace-sold model (here, Claude), when Bedrock subscribes the account automatically:
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": [
+      "bedrock:InvokeModel",
+      "bedrock:ListFoundationModels",
+      "bedrock:ListInferenceProfiles",
+      "bedrock:GetFoundationModelAvailability",
+      "aws-marketplace:Subscribe",
+      "aws-marketplace:Unsubscribe",
+      "aws-marketplace:ViewSubscriptions"
+    ],
+    "Resource": "*"
+  }]
+}
+```
+
+### Pilot 0 and Pilot 1
 
 ```bash
-uv run python -m sysone.experiments.pilot0 --dry-run   # fake Jev, no network, no cost
+uv run python -m sysone.experiments.pilot0 --dry-run                          # fake Jev, no network, no cost
+uv run python -m sysone.experiments.pilot1 --dry-run --pilot0-run <pilot0 id> # fake explainers and simulator
 ```
 
 Results go to `results/runs/<run_id>/` (kept locally, not in git). See [research_docs/12_first_experiments_roadmap.md](research_docs/12_first_experiments_roadmap.md).
 
-### Live smoke test
+### Live checks
 
 ```bash
+uv run python scripts/preflight.py                # one real request of every kind the pilots make; projects full-run cost
 uv run python scripts/smoke_test.py jev           # TypeSafe: one yes/no question
-uv run python scripts/smoke_test.py case_writer   # Bedrock: a one-word reply
+uv run python scripts/smoke_test.py <alias>       # any chat model in configs/models.yaml: a one-word reply
 ```
 
-Each makes one short real request (well under $0.01) and prints the cost and the path of the spending log. For Jev it also prints the exact version that answered.
+Each makes one short real request (well under $0.01) and prints the cost, the service tier served, the project spend so far, and the path of the spending log. For Jev it also prints the exact version that answered.
 
 ## Cost limits
 
-Every outside API request is capped at **$2.00** and every experiment run at **$25.00** ([configs/budget.yaml](configs/budget.yaml)). Requests that could exceed either limit are refused before they are sent. Models with placeholder IDs (`TODO...`) or no price entry are never called. Spending logs go to `results/runs/<run_id>/ledger.jsonl`; see the harness doc for details.
+Every outside API request is capped at **$2.00**, every experiment run at **$25.00**, and the whole project at **$50 on AWS, $50 on GCP and $5 on TypeSafe**, summed across all runs ([configs/budget.yaml](configs/budget.yaml)). Requests that could exceed any limit are refused before they are sent. Models with placeholder IDs (`TODO...`) or no price entry are never called. Spending logs go to `results/runs/<run_id>/ledger.jsonl`; see the harness doc for details.

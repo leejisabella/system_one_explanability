@@ -1,6 +1,7 @@
 # USD per 1M tokens, keyed by provider then model ID.
 # The cost guard refuses to call any model that is not listed here.
-# Output prices must cover reasoning/thinking tokens (all three providers bill them as output).
+# Output prices must cover reasoning/thinking tokens (every provider here bills them as output).
+# A model entry may also list service-tier prices, e.g. flex: {input: ..., output: ...}.
 #
 # When a published price is scheduled to rise, the higher price is used so the
 # worst-case estimate stays conservative. Re-verify prices before large runs.
@@ -14,20 +15,31 @@ typesafe:
   jev-1.13.0: {input: 0.042, output: 0.0}
 
 openrouter:
-  # No models in use. For OpenRouter, these numbers are also sent as
-  # provider.max_price, so OpenRouter refuses to route to anything more expensive.
+  # For OpenRouter, these numbers are also sent as provider.max_price, so OpenRouter
+  # refuses to route to anything more expensive. No model uses OpenRouter at the moment.
 
 bedrock:
-  # Claude Opus 4.5. Anthropic first-party list price is $5 / $25; Bedrock regional
-  # ("us.") profiles carry a 10% premium over global ones, hence $5.50 / $27.50.
-  # TODO: verify against https://aws.amazon.com/bedrock/pricing/ for us-east-2.
-  us.anthropic.claude-opus-4-5-20251101-v1:0: {input: 5.50, output: 27.50}
+  # Official AWS Price List files for us-east-2 (AmazonBedrock and AmazonBedrockFoundationModels
+  # offers, publication date 2026-10-12, read 2026-10-27), standard on-demand tier.
+  # Cross-Region profiles (us., global.) are billed at these prices. Claude is billed
+  # through AWS Marketplace; the others by Bedrock itself.
+  # Claude Haiku 5.5 charges 5x more above its long-context threshold; our prompts are a
+  # few thousand tokens, far below it.
+  global.anthropic.claude-haiku-5-5:          {input: 0.10, output: 0.50}
+  qwen.qwen3-235b-a22b-2507-v1:0:             {input: 0.22, output: 0.88}
+  mistral.mistral-large-3-675b-instruct:      {input: 0.50, output: 1.50}
+  us.meta.llama4-maverick-17b-instruct-v1:0:  {input: 0.24, output: 0.97}
+  amazon.nova-lite-v1:0:                      {input: 0.06, output: 0.24}
+  # Flex is charged only when Bedrock's response confirms the flex tier served the call;
+  # otherwise the standard price is charged.
+  openai.gpt-oss-120b-1:0:                    {input: 0.15, output: 0.60, flex: {input: 0.075, output: 0.30}}
 
 gemini:
-  # Paid-tier Gemini API prices from ai.google.dev/gemini-api/docs/pricing (checked 2026-10-21).
+  # Paid-tier Gemini API prices from ai.google.dev/gemini-api/docs/pricing (checked 2026-10-21,
+  # re-checked 2026-10-27).
   # Where a price rises on Dec 1, 2026 or Jan 1, 2027, the later price is listed.
   # Gemini 2.5 Pro and 3.1 Pro charge more above 200k input tokens; the higher tier is listed.
-  # Vertex AI pricing may differ. TODO: re-check if we use Vertex credits instead of the Gemini API.
+  # The project uses the Gemini API, not Vertex AI (whose prices may differ).
   gemini-4-argon:          {input: 4.00, output: 20.00}
   gemini-3.1-pro-preview:  {input: 4.00, output: 18.00}
   gemini-3.8-flash:        {input: 1.50, output: 7.50}

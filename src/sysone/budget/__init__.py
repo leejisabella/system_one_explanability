@@ -3,6 +3,7 @@ from sysone.budget.guard import (
     CircuitBreakerTripped,
     CostGuard,
     PerCallCapExceeded,
+    ProjectBudgetExceeded,
     RunBudgetExceeded,
 )
 from sysone.budget.ledger import Ledger
@@ -15,6 +16,7 @@ __all__ = [
     "Ledger",
     "PerCallCapExceeded",
     "Price",
+    "ProjectBudgetExceeded",
     "PriceTable",
     "RunBudgetExceeded",
     "UnknownPrice",

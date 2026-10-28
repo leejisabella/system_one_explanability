@@ -10,6 +10,13 @@ from sysone.clients.base import Provider, ProviderError
 from sysone.types import ChatRequest, ProviderResult, Usage
 
 
+# Output-cap headroom for thinking when a request sets a thinking level but no budget.
+# Gemini counts thinking against max_output_tokens, so without it a short reply (such as
+# a 64-token decision) can be cut off or come back empty. The worst-case estimate already
+# assumes reasoning_allowance_tokens of thinking, which is larger.
+THINKING_LEVEL_HEADROOM_TOKENS = 1024
+
+
 class GeminiProvider(Provider):
     name = "gemini"
     # Gemini thinking models think by default; 32,768 is the largest Gemini 2.5 thinking budget.
@@ -36,10 +43,13 @@ class GeminiProvider(Provider):
     def build_config(self, request: ChatRequest) -> Any:
         from google.genai import types
 
+        thinking = request.reasoning_max_tokens
+        if thinking is None and request.reasoning_effort is not None:
+            thinking = THINKING_LEVEL_HEADROOM_TOKENS
         kwargs: dict[str, Any] = {
             # Gemini counts thinking tokens against max_output_tokens, so the total cap
-            # is visible output plus the reasoning budget.
-            "max_output_tokens": request.max_output_tokens + (request.reasoning_max_tokens or 0),
+            # is visible output plus the reasoning budget (or headroom for a thinking level).
+            "max_output_tokens": request.max_output_tokens + (thinking or 0),
         }
         if request.system:
             kwargs["system_instruction"] = request.system
@@ -47,8 +57,14 @@ class GeminiProvider(Provider):
             kwargs["temperature"] = request.temperature
         if request.seed is not None:
             kwargs["seed"] = request.seed
-        if request.reasoning_max_tokens is not None:
+        if request.reasoning_effort is not None:
+            # Gemini 3 models take a thinking level ("minimal", "low", ...); a budget is still
+            # added to max_output_tokens above if one is set, since thinking counts against it.
+            kwargs["thinking_config"] = types.ThinkingConfig(thinking_level=request.reasoning_effort.upper())
+        elif request.reasoning_max_tokens is not None:
             kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=request.reasoning_max_tokens)
+        if request.service_tier is not None:
+            raise ProviderError("service tiers are not wired up for Gemini", retryable=False, billed="no")
         if request.json_schema is not None:
             kwargs["response_mime_type"] = "application/json"
             kwargs["response_json_schema"] = request.json_schema

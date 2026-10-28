@@ -28,25 +28,39 @@ class Price:
 
 
 class PriceTable:
-    def __init__(self, prices: dict[str, dict[str, Price]]):
+    """Standard prices per provider and model, plus any service-tier prices (e.g. Bedrock's
+    "flex"), listed under the tier's name in the model's entry."""
+
+    def __init__(self, prices: dict[str, dict[str, Price]], tiers: dict[str, dict[str, dict[str, Price]]] | None = None):
         self._prices = prices
+        self._tiers = tiers or {}
 
     @classmethod
     def load(cls, path: str | Path) -> PriceTable:
         data = yaml.safe_load(Path(path).read_text()) or {}
         prices: dict[str, dict[str, Price]] = {}
+        tiers: dict[str, dict[str, dict[str, Price]]] = {}
         for provider, models in data.items():
-            prices[provider] = {
-                model: Price(float(p["input"]), float(p["output"]))
-                for model, p in (models or {}).items()
-            }
-        return cls(prices)
+            prices[provider], tiers[provider] = {}, {}
+            for model, p in (models or {}).items():
+                prices[provider][model] = Price(float(p["input"]), float(p["output"]))
+                tiers[provider][model] = {
+                    tier: Price(float(t["input"]), float(t["output"]))
+                    for tier, t in p.items() if isinstance(t, dict)
+                }
+        return cls(prices, tiers)
 
     def lookup(self, provider: str, model: str) -> Price:
         try:
             return self._prices[provider][model]
         except KeyError:
             raise UnknownPrice(f"no price for {provider}/{model} in pricing table") from None
+
+    def lookup_tier(self, provider: str, model: str, tier: str) -> Price:
+        try:
+            return self._tiers[provider][model][tier]
+        except KeyError:
+            raise UnknownPrice(f"no {tier} price for {provider}/{model} in pricing table") from None
 
 
 # Real tokenizers average ~4 characters per English token. Dividing by 3

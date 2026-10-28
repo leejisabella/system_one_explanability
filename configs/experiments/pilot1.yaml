@@ -1,0 +1,14 @@
+# Pilot 1: Experiment 1 pilot (Jev vs. explainer). See research_docs/12_first_experiments_roadmap.md.
+
+pilot0_run: null               # run_id of a completed Pilot 0 run; or pass --pilot0-run
+explainers: [explainer_bedrock, explainer_gemini]   # aliases in configs/models.yaml
+conditions: [free_form, structured, decision_probabilities]
+simulator: simulator           # must not be Jev, an explainer, or from an explainer's model family
+explainer_decision_samples: 3  # independent explainer decisions per variant, like Jev's 3 in Pilot 0
+explainer_temperature: null    # null = provider default
+explainer_reasoning_max_tokens: null   # no thinking budget; Gemini's thinking level is set in configs/models.yaml
+simulator_temperature: null    # provider default
+simulator_reasoning_max_tokens: 2048   # cap on gpt-oss reasoning tokens (added to its output cap); effort is in models.yaml
+simulator_seed: null           # Bedrock's Converse API has no seed parameter
+use_cache: false               # true would reuse answers from earlier runs
+max_consecutive_errors: 10     # stop the run if this many requests in a row fail

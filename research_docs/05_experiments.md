@@ -21,6 +21,18 @@ Experiments 1–6 address the main research questions. Stretch-goal experiments 
 - Measure both (a) fidelity to the target model's observed behavior and (b) ability to identify independently verified decision defects.
 - Investigate whether highly faithful explanations can still fail to identify contestable decisions.
 
+**Protocol (Jev vs. explainer):**
+
+1. **Query Jev and the explainer model independently.** Each model decides the same cases on its own, without seeing the other's answer.
+2. **Freeze the explanation.** Give the explainer Jev's decision on the original case and have it explain that decision. Once written, the explanation is frozen and not revised.
+3. **Evaluate the frozen explanation on a fixed set of hidden counterfactual variants.** The variants are fixed in advance and are not shown to the explainer while it writes the explanation. For each variant, record the decision the explanation implies.
+4. **Separately collect Jev's and the explainer's independent decisions on those same variants.** These come from separate queries, not from the explanation.
+
+**Measures:**
+
+- **Explanation-implied agreement with Jev:** how often the decision implied by the frozen explanation matches Jev's actual decision on each hidden variant. This is the fidelity measure (a). The implied decision comes from a separate simulator model that reads the explanation and answers in a fixed structure (predicted decision, the rule it took from the explanation as an ordered list of rules that can be run against the record, and whether the explanation covers the variant). It is scored as the gain over the same simulator without the explanation. Explainers asked for structured explanations are also scored by running them directly against each variant's record. Details in [12_first_experiments_roadmap.md](12_first_experiments_roadmap.md#how-an-explanations-implied-decision-is-obtained).
+- **Disagreement between Jev and the explainer:** how often the two models' independent decisions differ, on the original cases and on the variants. This shows whether the explainer is explaining a decision it would have made differently itself.
+
 **Expected contribution:** A systematic separation of behavioral explanation quality from evidence usefulness.
 
 ## Experiment 2: Active probing under a fixed query budget

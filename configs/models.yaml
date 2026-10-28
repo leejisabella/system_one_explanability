@@ -2,6 +2,14 @@
 # Any model ID starting with "TODO" is a placeholder: the client refuses to call it.
 #
 # Every alias needs a matching price in configs/pricing.yaml, or calls are refused.
+# Optional per-model request settings:
+#   service_tier: a provider tier such as Bedrock's "flex"; it also needs a tier price.
+#   reasoning_effort: the model's reasoning level (Gemini thinking_level, gpt-oss reasoning_effort).
+#
+# Roles keep model families apart (chosen 2026-10-27, research_docs/12): the case writers
+# differ from every explainer, and the simulator and judge differ from every explainer
+# they score. Families: Jev (TypeSafe), Anthropic, Google, Meta (explainers), OpenAI
+# (simulator, judge), Qwen and Mistral (case writers), Amazon (Experiment 6).
 
 jev:
   # TypeSafe's native API, which returns a probability for every option.
@@ -13,23 +21,50 @@ jev:
   model: jev-latest
 
 case_writer:
-  # Writes natural-language realizations of synthetic benchmark cases.
-  # Deliberately a different model from Jev, so the generator is not the model judged.
-  # "us." is the US cross-region inference profile, required for this model in us-east-2.
+  # Writes natural-language realizations of the synthetic benchmark cases (step 6b).
+  # Qwen, so it is neither Jev nor from any explainer's family.
   provider: bedrock
-  model: us.anthropic.claude-opus-4-5-20251101-v1:0
+  model: qwen.qwen3-235b-a22b-2507-v1:0
 
-# TODO: choose explainer models (Bedrock and Gemini). Placeholders below.
-explainer_bedrock:
+case_writer_2:
+  # A second, independent generation procedure for the benchmark text (Risk 2).
   provider: bedrock
-  model: TODO_BEDROCK_EXPLAINER_MODEL_ID
+  model: mistral.mistral-large-3-675b-instruct
+
+explainer_bedrock:
+  # Claude Haiku 5.5 through the global cross-Region profile (10% cheaper than us.).
+  provider: bedrock
+  model: global.anthropic.claude-haiku-5-5
 
 explainer_gemini:
+  # Gemini API (GEMINI_API_KEY). Google doesn't document turning thinking fully off for
+  # 3.1 Flash-Lite, so it runs at the lowest level; thinking tokens are billed as output.
   provider: gemini
-  model: TODO_GEMINI_EXPLAINER_MODEL_ID
+  model: gemini-3.1-flash-lite
+  reasoning_effort: minimal
 
-# TODO: choose the LLM judge for free-text stretch-goal scoring. It should come
-# from a different model family than the explainer being scored.
+explainer_open:
+  # Open-weight explainer for the stretch goal (several families and sizes).
+  provider: bedrock
+  model: us.meta.llama4-maverick-17b-instruct-v1:0
+
+simulator:
+  # Pilot 1 faithfulness scoring: predicts Jev's decision on hidden variants from a frozen
+  # explanation. OpenAI family, unlike every explainer. Flex tier: half price, slower.
+  provider: bedrock
+  model: openai.gpt-oss-120b-1:0
+  service_tier: flex
+  reasoning_effort: low
+
 judge:
-  provider: gemini
-  model: TODO_JUDGE_MODEL_ID
+  # LLM judge for free-text scoring (Pilot 2 onward). Same model as the simulator, which
+  # the design allows: it is from a different family than every explainer it scores.
+  provider: bedrock
+  model: openai.gpt-oss-120b-1:0
+  service_tier: flex
+  reasoning_effort: low
+
+decision_alt:
+  # A second decision model for Experiment 6 (generalization beyond Jev). Amazon family.
+  provider: bedrock
+  model: amazon.nova-lite-v1:0

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import threading
 import time
 from abc import ABC, abstractmethod
@@ -11,7 +12,7 @@ from typing import Callable, Literal
 from sysone.budget.guard import CostGuard
 from sysone.budget.pricing import Price, worst_case_cost
 from sysone.clients.cache import ResponseCache
-from sysone.types import ChatResponse, ProviderResult, Request
+from sysone.types import ChatRequest, ChatResponse, ProviderResult, Request
 
 
 class ModelNotConfigured(RuntimeError):
@@ -85,7 +86,14 @@ class ModelSpec:
     alias: str
     provider: str
     model: str
+    # Standard price. Worst-case estimates always use it, even when a cheaper tier is requested.
     price: Price | None
+    # Per-model request settings from configs/models.yaml, applied to chat requests that
+    # don't set them: the service tier (e.g. "flex") and the reasoning level.
+    service_tier: str | None = None
+    reasoning_effort: str | None = None
+    # Price of service_tier, charged only when the provider reports serving that tier.
+    tier_price: Price | None = None
 
     @property
     def is_placeholder(self) -> bool:
@@ -120,6 +128,21 @@ class GuardedClient:
         self.backoff_s = backoff_s
         self._sleep = sleep
 
+    def prepare(self, request: Request) -> Request:
+        """The request as sent: chat requests get this model's settings from models.yaml.
+        Applied before the cache key, so answers from different settings never mix."""
+        if not isinstance(request, ChatRequest):
+            return request
+        return dataclasses.replace(
+            request,
+            service_tier=request.service_tier or self.spec.service_tier,
+            reasoning_effort=request.reasoning_effort or self.spec.reasoning_effort,
+        )
+
+    def request_key(self, request: Request) -> str:
+        """The cache key of the request as sent, which result rows record to join to the cache."""
+        return ResponseCache.key(self.spec.provider, self.spec.model, self.prepare(request))
+
     def complete(self, request: Request) -> ChatResponse:
         if self.spec.is_placeholder:
             raise ModelNotConfigured(
@@ -128,7 +151,11 @@ class GuardedClient:
             )
         if self.spec.price is None:
             raise ModelNotConfigured(f"no price for {self.spec.provider}/{self.spec.model}")
-
+        if self.spec.service_tier is not None and self.spec.tier_price is None:
+            raise ModelNotConfigured(
+                f"no {self.spec.service_tier} price for {self.spec.provider}/{self.spec.model}"
+            )
+        request = self.prepare(request)
         key = ResponseCache.key(self.spec.provider, self.spec.model, request)
         if self.cache is not None and (hit := self.cache.get(key)) is not None:
             if self.version_lock is not None:
@@ -169,12 +196,16 @@ class GuardedClient:
                 )
                 raise
 
+            requested_tier = request.service_tier if isinstance(request, ChatRequest) else None
             if result.reported_cost_usd is not None:
                 cost, source = result.reported_cost_usd, "provider_reported"
             elif result.usage.input_tokens == 0 and result.usage.output_tokens == 0:
                 # No usage data came back, so the real cost is unknown: charge the worst case.
                 cost, source = worst_case, "worst_case_missing_usage"
+            elif requested_tier is not None and result.service_tier == requested_tier and self.spec.tier_price:
+                cost, source = self.spec.tier_price.cost(result.usage), f"price_table_{requested_tier}"
             else:
+                # Includes a requested tier the provider didn't confirm serving: charged at standard.
                 cost, source = price.cost(result.usage), "price_table"
             self.guard.settle(
                 reservation,
@@ -187,6 +218,8 @@ class GuardedClient:
                 output_tokens=result.usage.output_tokens,
                 reasoning_tokens=result.usage.reasoning_tokens,
                 finish_reason=result.finish_reason,
+                service_tier_requested=requested_tier,
+                service_tier_served=result.service_tier,
             )
             # Checked after the spending log is written, so a mismatched call is still
             # accounted for, and before caching, so its answer is never reused.
@@ -201,6 +234,7 @@ class GuardedClient:
                 model_used=result.model_used,
                 finish_reason=result.finish_reason,
                 raw=result.raw,
+                service_tier=result.service_tier,
             )
             if self.cache is not None:
                 self.cache.put(key, response)

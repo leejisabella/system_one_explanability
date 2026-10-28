@@ -69,6 +69,55 @@ class FakeDecisionProvider(Provider):
         return typesafe_result(answers, model=f"{self.version}-next" if moved else self.version)
 
 
+class FakeChatProvider(Provider):
+    """Stands in for the explainers and the simulator in dry runs.
+
+    Answers in the format each Pilot 1 step expects, chosen by the request's "step" and
+    "condition" tags.
+    Replies depend only on a hash of the request, so they carry no signal about the
+    case. Bases are the refund policy with some of its last rules dropped, so they
+    always run. A small share of replies are malformed, to exercise parsing.
+    """
+
+    name = "fake"
+
+    def __init__(self, *, malformed_every: int = 50, version: str = "fake-chat-1.0"):
+        self.malformed_every = malformed_every
+        self.version = version
+        self.calls = 0
+
+    def send(self, model: str, request: Request, price: Price) -> ProviderResult:
+        from sysone.explain.basis import policy_basis
+
+        if isinstance(request, SystemOneRequest):
+            raise TypeError("the fake chat model takes ChatRequest")
+        self.calls += 1
+        payload = json.dumps([model, request.messages[-1].content, request.sample_index])
+        digest = hashlib.sha256(payload.encode()).digest()
+        if self.malformed_every and digest[0] % self.malformed_every == 0:
+            return ok_result("I can't answer that in the requested format.", model=self.version)
+        labels = ("approve", "deny", "undetermined")
+        label = labels[digest[1] % 3]
+        full = policy_basis()
+        basis = {**full.to_dict(), "rules": full.to_dict()["rules"][: len(full.rules) - digest[2] % 4]}
+        step = request.tags.get("step")
+        if step == "explainer_decision":
+            reply: Any = {"decision": label}
+        elif step == "explanation" and request.tags.get("condition") == "free_form":
+            reply = f"The system decided this way because of the facts in the case file (fake explanation {digest[3]})."
+        elif step == "explanation":
+            reply = {"basis": basis, "summary": f"Fake structured explanation {digest[3]}."}
+        elif step == "simulation":
+            weights = [digest[4 + i] + 1 for i in range(3)]
+            probs = [round(w / sum(weights), 2) for w in weights[:2]]
+            probs.append(round(1 - sum(probs), 2))
+            reply = {"predicted_decision": label, "probabilities": dict(zip(labels, probs)),
+                     "basis": basis, "covered": bool(digest[5] % 2)}
+        else:
+            reply = f"echo: {request.messages[-1].content}"
+        return ok_result(reply if isinstance(reply, str) else json.dumps(reply), model=self.version)
+
+
 def _fake_answer(question: dict[str, Any], digest: bytes, malformed: bool) -> dict[str, Any]:
     kind = question["type"]
     if kind == "noul":

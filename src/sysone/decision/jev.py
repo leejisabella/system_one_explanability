@@ -22,7 +22,6 @@ from dataclasses import dataclass
 from typing import Any
 
 from sysone.clients.base import GuardedClient
-from sysone.clients.cache import ResponseCache
 from sysone.types import ChatResponse, SystemOneRequest
 
 # "undetermined" matches the benchmark's outcome name for cases the policy can't decide.
@@ -169,6 +168,6 @@ class JevDecisionModel:
             budget.spend()
         request = self.build_request(policy, case_text, sample_index=sample_index, tags=tags)
         response = self.client.complete(request)
-        key = ResponseCache.key(self.client.spec.provider, self.client.spec.model, request)
+        key = self.client.request_key(request)
         order = tuple(request.questions[QUESTION]["criteria"])
         return DecisionResult(parse_response(response), response, key, order)

@@ -5,7 +5,12 @@ We separate four classes of metrics for the main program. Stretch-goal metrics a
 ## 7.1 Behavioral faithfulness
 
 - Precision and recall of cited influential factors, relative to validated interventions.
-- Agreement with held-out counterfactual model behavior.
+- Agreement with held-out counterfactual model behavior. In Experiment 1 this is the agreement between the decisions a frozen explanation implies on hidden counterfactual variants and Jev's actual decisions on those variants (see [05_experiments.md](05_experiments.md#experiment-1-faithfulness-versus-contestability)).
+  - **Simulator-predicted agreement (A-direct):** the decision a separate simulator model predicts from the explanation, scored as the gain over the same simulator without the explanation (the Normalized Simulatability Gain below). The main faithfulness score.
+  - **Executed agreement (A-executed):** the rule the simulator took from the explanation, run against the variant's structured record. Its agreement with A-direct checks whether the simulator relied on the explanation rather than its own reasoning.
+  - **Covered rate:** the fraction of hidden variants an explanation determines at all, as reported by the simulator. A measure of explanation completeness.
+  - **Structured-explanation executed agreement (Option B):** for explainers asked for structured explanations, the explanation run directly against each variant's record. Deterministic, with no simulator. These scores are reported separately, never blended. Details in [12_first_experiments_roadmap.md](12_first_experiments_roadmap.md#how-an-explanations-implied-decision-is-obtained).
+- **Jev–explainer disagreement:** the rate at which Jev's and the explainer's independent decisions differ on the same cases and variants.
 - **Normalized Simulatability Gain** (Mayne et al., 2026).
 - Frequency of unsupported explanatory claims.
 

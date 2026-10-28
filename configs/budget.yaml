@@ -1,7 +1,27 @@
 # Cost limits enforced by sysone.budget.guard.CostGuard.
 # "Per call" means per individual API request to an outside provider
-# (OpenRouter, Bedrock, Google). Every retry attempt is its own call.
+# (TypeSafe, Bedrock, Google, OpenRouter). Every retry attempt is its own call.
 
 per_call_cap_usd: 2.00   # a request whose worst-case cost exceeds this is never sent
 run_cap_usd: 25.00       # total spend allowed for one experiment run (one run_id)
 max_retries: 2           # extra attempts after the first, each checked against both caps
+
+# Total spend allowed per provider for the whole project, summed over every run's
+# ledger under results/runs (including smoke tests). A call whose worst case would cross
+# its provider's cap is refused, as is any provider not listed. Deleting run folders
+# makes this undercount, so the AWS and GCP consoles stay the authoritative record.
+project_caps_usd:
+  bedrock: 50.00     # AWS
+  gemini: 50.00      # GCP (Gemini API)
+  typesafe: 5.00     # Jev
+  openrouter: 0.00   # not used
+
+# Planning allocation per experiment (research_docs/12). Not enforced: re-estimate from
+# measured costs before each experiment and compare against what is left.
+allocations_usd:
+  pilots_and_experiment_1: {bedrock: 6.00,  gemini: 4.00, typesafe: 0.20}
+  experiment_2:            {bedrock: 12.00, gemini: 8.00, typesafe: 2.50}
+  experiments_3_to_5:      {bedrock: 7.00,  gemini: 6.00, typesafe: 0.80}
+  experiment_6:            {bedrock: 5.00,  gemini: 3.00, typesafe: 0.20}
+  stretch_s1_s3_s5:        {bedrock: 12.00, gemini: 9.00, typesafe: 0.30}
+  reserve:                 {bedrock: 8.00,  gemini: 20.00, typesafe: 1.00}

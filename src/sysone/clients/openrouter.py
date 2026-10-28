@@ -1,4 +1,4 @@
-"""OpenRouter chat-completions adapter (used for Jev)."""
+"""OpenRouter chat-completions adapter. No model uses it at the moment; kept for later experiments."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 class OpenRouterProvider(Provider):
     name = "openrouter"
-    # Routed models (such as jev-router) may pick a reasoning effort on their own.
+    # Routed models may pick a reasoning effort on their own.
     reasoning_allowance_tokens = 32_768
 
     def __init__(self, api_key: str | None = None, *, http: httpx.Client | None = None, timeout_s: float = 120):
@@ -40,8 +40,12 @@ class OpenRouterProvider(Provider):
             body["temperature"] = request.temperature
         if request.seed is not None:
             body["seed"] = request.seed
-        if request.reasoning_max_tokens is not None:
+        if request.reasoning_effort is not None:
+            body["reasoning"] = {"effort": request.reasoning_effort}
+        elif request.reasoning_max_tokens is not None:
             body["reasoning"] = {"max_tokens": request.reasoning_max_tokens}
+        if request.service_tier is not None:
+            raise ProviderError("service tiers are not wired up for OpenRouter", retryable=False, billed="no")
         if request.json_schema is not None:
             body["response_format"] = {
                 "type": "json_schema",

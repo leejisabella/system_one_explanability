@@ -98,9 +98,89 @@ def test_bedrock_thinking_budget_fits_inside_max_tokens():
     assert body["thinking"] == {"type": "enabled", "budget_tokens": 2000}
 
 
-def test_bedrock_rejects_non_claude_models():
+def test_bedrock_claude_body_rejects_converse_models():
     with pytest.raises(ProviderError):
         BedrockProvider(client=object()).build_body("meta.llama-x", req())
+
+
+class FakeConverse:
+    def __init__(self, payload):
+        self.payload = payload
+        self.kwargs = None
+
+    def converse(self, **kwargs):
+        self.kwargs = kwargs
+        return {**self.payload, "ResponseMetadata": {"HTTPStatusCode": 200}}
+
+
+CONVERSE_REPLY = {
+    "output": {"message": {"role": "assistant", "content": [
+        {"reasoningContent": {"reasoningText": {"text": "thinking..."}}},
+        {"text": '{"decision": "deny"}'},
+    ]}},
+    "stopReason": "end_turn",
+    "usage": {"inputTokens": 30, "outputTokens": 12, "totalTokens": 42},
+    "serviceTier": {"type": "flex"},
+}
+
+
+def test_bedrock_converse_request_and_response():
+    fake = FakeConverse(CONVERSE_REPLY)
+    request = req(reasoning_max_tokens=200, reasoning_effort="low", service_tier="flex", temperature=0.2)
+    result = BedrockProvider(client=fake).send("openai.gpt-oss-120b-1:0", request, PRICE)
+    kw = fake.kwargs
+    assert kw["modelId"] == "openai.gpt-oss-120b-1:0"
+    assert kw["messages"] == [{"role": "user", "content": [{"text": "hello"}]}]
+    assert kw["system"] == [{"text": "be brief"}]
+    # The reasoning budget sits inside maxTokens, which caps reasoning for gpt-oss.
+    assert kw["inferenceConfig"] == {"maxTokens": 250, "temperature": 0.2}
+    assert kw["additionalModelRequestFields"] == {"reasoning_effort": "low"}
+    assert kw["serviceTier"] == {"type": "flex"}
+    # Only the answer text is kept; reasoning is billed in outputTokens.
+    assert result.text == '{"decision": "deny"}'
+    assert result.usage.input_tokens == 30 and result.usage.output_tokens == 12
+    assert result.service_tier == "flex" and result.model_used == "openai.gpt-oss-120b-1:0"
+    assert "ResponseMetadata" not in result.raw
+
+
+def test_bedrock_converse_plain_model_sends_no_extras():
+    fake = FakeConverse({**CONVERSE_REPLY, "serviceTier": None})
+    result = BedrockProvider(client=fake).send("us.meta.llama4-maverick-17b-instruct-v1:0", req(), PRICE)
+    assert set(fake.kwargs) == {"modelId", "messages", "system", "inferenceConfig"}
+    assert result.service_tier is None
+
+
+@pytest.mark.parametrize("model,kwargs", [
+    ("us.meta.llama4-maverick-17b-instruct-v1:0", {"reasoning_effort": "low"}),  # not an OpenAI model
+    ("qwen.qwen3-235b-a22b-2507-v1:0", {"reasoning_max_tokens": 100}),
+    ("openai.gpt-oss-120b-1:0", {"seed": 0}),  # Converse has no seed
+    ("openai.gpt-oss-120b-1:0", {"json_schema": {"type": "object"}}),
+    ("global.anthropic.claude-haiku-5-5", {"service_tier": "flex"}),  # tiers only via Converse
+    ("global.anthropic.claude-haiku-5-5", {"reasoning_effort": "low"}),
+])
+def test_bedrock_refuses_settings_it_would_drop(model, kwargs):
+    # Refused before sending, so an unsupported setting is never silently ignored.
+    with pytest.raises(ProviderError) as exc:
+        BedrockProvider(client=FakeConverse(CONVERSE_REPLY)).send(model, req(**kwargs), PRICE)
+    assert exc.value.billed == "no"
+
+
+def test_bedrock_local_validation_errors_are_not_billed():
+    from botocore.exceptions import ParamValidationError
+
+    class Rejecting:
+        def converse(self, **kwargs):
+            raise ParamValidationError(report="bad field")
+
+    with pytest.raises(ProviderError) as exc:
+        BedrockProvider(client=Rejecting()).send("openai.gpt-oss-120b-1:0", req(), PRICE)
+    assert exc.value.billed == "no"
+
+
+def test_bedrock_routes_global_claude_through_invoke_model():
+    fake = FakeBedrock({"content": [{"type": "text", "text": "ok"}], "usage": {"input_tokens": 5, "output_tokens": 1}})
+    BedrockProvider(client=fake).send("global.anthropic.claude-haiku-5-5", req(), PRICE)
+    assert fake.kwargs["modelId"] == "global.anthropic.claude-haiku-5-5"
 
 
 class FakeGeminiModels:
@@ -129,6 +209,28 @@ def test_gemini_counts_thinking_as_output():
     assert config.system_instruction == "be brief"
     assert result.usage.output_tokens == 10 and result.usage.reasoning_tokens == 4
     assert result.model_used == "gemini-2.5-flash-001"
+
+
+def test_gemini_thinking_level_takes_precedence_over_a_budget():
+    models = FakeGeminiModels()
+    GeminiProvider(client=SimpleNamespace(models=models)).send(
+        "gemini-3.1-flash-lite", req(reasoning_effort="minimal"), PRICE)
+    thinking = models.kwargs["config"].thinking_config
+    assert thinking.thinking_level.value == "MINIMAL" and thinking.thinking_budget is None
+    # Headroom so thinking can't use up a short reply's cap.
+    assert models.kwargs["config"].max_output_tokens == 50 + 1024
+
+
+def test_openrouter_sends_reasoning_effort():
+    seen = {}
+
+    def handler(request):
+        seen["body"] = json.loads(request.content)
+        return httpx.Response(200, json={"model": "m", "choices": [{"message": {"content": "hi"}}],
+                                         "usage": {"prompt_tokens": 1, "completion_tokens": 1}})
+
+    openrouter(handler).send("m", req(reasoning_effort="low", reasoning_max_tokens=10), PRICE)
+    assert seen["body"]["reasoning"] == {"effort": "low"}
 
 
 # --- TypeSafe (native Jev API) ---

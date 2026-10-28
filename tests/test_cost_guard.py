@@ -1,3 +1,5 @@
+import dataclasses
+
 import pytest
 
 from sysone.budget import (
@@ -222,3 +224,100 @@ def test_cached_answer_from_another_version_is_refused(tmp_path):
     client.version_lock = VersionLock("jev-1.14.0")
     with pytest.raises(ModelVersionChanged):
         client.complete(s1_req())
+
+
+# --- Project caps per provider ---
+
+
+def test_project_cap_counts_other_runs_and_refuses_before_sending(tmp_path):
+    from sysone.budget import ProjectBudgetExceeded
+
+    guard = CostGuard(Ledger.for_run(tmp_path, "now"), per_call_cap_usd=2.0, run_cap_usd=25.0,
+                      project_caps_usd={"bedrock": 5.0}, other_runs_spent_usd={"bedrock": 4.5})
+    guard.reserve(0.4, provider="bedrock", model="m", tags={})
+    with pytest.raises(ProjectBudgetExceeded):
+        guard.reserve(0.2, provider="bedrock", model="m", tags={})
+    # Providers are capped separately, and unlisted ones are refused.
+    with pytest.raises(ProjectBudgetExceeded, match="no project cap"):
+        guard.reserve(0.01, provider="gemini", model="m", tags={})
+    # Offline fakes are never capped.
+    guard.reserve(0.5, provider="fake", model="m", tags={})
+
+
+def test_project_cap_includes_this_runs_ledger_on_resume(tmp_path):
+    from sysone.budget import ProjectBudgetExceeded
+
+    for _ in range(5):
+        Ledger.for_run(tmp_path, "now").append(provider="typesafe", cost_usd=0.98)
+    guard = CostGuard(Ledger.for_run(tmp_path, "now"), per_call_cap_usd=2.0, run_cap_usd=25.0,
+                      project_caps_usd={"typesafe": 5.0})
+    assert guard.project_spent_usd("typesafe") == pytest.approx(4.9)
+    with pytest.raises(ProjectBudgetExceeded):
+        guard.reserve(0.2, provider="typesafe", model="jev", tags={})
+
+
+def test_released_and_settled_calls_free_their_project_reservation(tmp_path):
+    guard = CostGuard(Ledger.for_run(tmp_path, "now"), per_call_cap_usd=2.0, run_cap_usd=25.0,
+                      project_caps_usd={"bedrock": 1.0})
+    r = guard.reserve(0.9, provider="bedrock", model="m", tags={})
+    guard.release(r, status="error")
+    r = guard.reserve(0.9, provider="bedrock", model="m", tags={})
+    guard.settle(r, cost_usd=0.1, cost_source="price_table")
+    assert guard.project_spent_usd("bedrock") == pytest.approx(0.1)
+    guard.reserve(0.9, provider="bedrock", model="m", tags={})
+
+
+# --- Service tiers ---
+
+
+def tier_client(tmp_path, served):
+    flex = Price(input_per_m=5.0, output_per_m=25.0)
+    spec = ModelSpec("sim", "fake", "m", PRICE, service_tier="flex", reasoning_effort="low", tier_price=flex)
+    result = ok_result(input_tokens=1000, output_tokens=1000)
+    provider = FakeProvider([dataclasses.replace(result, service_tier=served)])
+    return GuardedClient(spec, provider, make_guard(tmp_path), sleep=lambda s: None), provider
+
+
+def test_flex_price_only_when_the_provider_confirms_flex(tmp_path):
+    client, provider = tier_client(tmp_path, "flex")
+    response = client.complete(ChatRequest.from_prompt("x", max_output_tokens=10))
+    sent = provider.calls[0][1]
+    assert sent.service_tier == "flex" and sent.reasoning_effort == "low"
+    assert response.cost_usd == pytest.approx((1000 * 5.0 + 1000 * 25.0) / 1e6)
+    entry = client.guard.ledger.entries()[-1]
+    assert entry["cost_source"] == "price_table_flex" and entry["service_tier_served"] == "flex"
+
+
+@pytest.mark.parametrize("served", ["default", None])
+def test_unconfirmed_flex_is_charged_at_the_standard_price(tmp_path, served):
+    client, _ = tier_client(tmp_path / str(served), served)
+    response = client.complete(ChatRequest.from_prompt("x", max_output_tokens=10))
+    assert response.cost_usd == pytest.approx((1000 * 10.0 + 1000 * 50.0) / 1e6)
+
+
+def test_worst_case_uses_the_standard_price_even_for_flex(tmp_path):
+    client, _ = tier_client(tmp_path, "flex")
+    client.complete(ChatRequest.from_prompt("x", max_output_tokens=10))
+    entry = client.guard.ledger.entries()[-1]
+    request = ChatRequest.from_prompt("x", max_output_tokens=10, service_tier="flex", reasoning_effort="low")
+    assert entry["worst_case_usd"] == pytest.approx(worst_case_cost(request, PRICE))
+
+
+def test_a_tier_without_a_price_is_refused(tmp_path):
+    spec = ModelSpec("sim", "fake", "m", PRICE, service_tier="flex", tier_price=None)
+    provider = FakeProvider()
+    with pytest.raises(ModelNotConfigured):
+        GuardedClient(spec, provider, make_guard(tmp_path)).complete(ChatRequest.from_prompt("x", max_output_tokens=5))
+    assert provider.calls == []
+
+
+def test_recorded_request_key_matches_the_cache_after_model_settings(tmp_path):
+    from sysone.explain.simulator import Simulator
+
+    spec = ModelSpec("sim", "fake", "m", PRICE, service_tier="flex", reasoning_effort="low",
+                     tier_price=Price(input_per_m=5.0, output_per_m=25.0))
+    cache = ResponseCache(tmp_path / "cache.sqlite")
+    client = GuardedClient(spec, FakeProvider(), make_guard(tmp_path), cache, sleep=lambda s: None)
+    sim = Simulator(client)
+    result = sim.simulate("P", "O", "deny", None, "V")
+    assert cache.get(result.request_key) is not None

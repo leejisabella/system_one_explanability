@@ -39,6 +39,7 @@ from sysone.clients.base import (
 )
 from sysone.clients.fake import FakeDecisionProvider
 from sysone.decision.jev import JevDecisionModel
+from sysone.env import load_env
 from sysone.registry import CONFIG_DIR, REPO_ROOT, RESULTS_DIR, Registry
 from sysone.runs import Run, git_info, now_iso
 
@@ -193,6 +194,7 @@ def run_pilot0(config: Pilot0Config, run: Run, client: GuardedClient, *, benchma
 
 
 def main() -> None:
+    load_env()
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--config", default=str(CONFIG_DIR / "experiments" / "pilot0.yaml"))
     parser.add_argument("--run-id")
@@ -215,6 +217,10 @@ def main() -> None:
             raise SystemExit(f"{e}\nUse --dry-run to test the pipeline without a key.") from None
 
     run = Run(run_id, args.results_dir)
+    # Spend across all runs so far, per provider, against the project caps in configs/budget.yaml.
+    project = registry.project_status()
+    run.update_manifest(project_spend_at_start=project)
+    print("project spend so far: " + ", ".join(f"{p} ${v['spent_usd']:.4f} of ${v['cap_usd']:.2f}" for p, v in project.items()))
     status = run_pilot0(config, run, client, benchmark_dir=REPO_ROOT / config.benchmark)
     summary = analyze_run(run.dir)
     print(f"run {run_id}: {status}")

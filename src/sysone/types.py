@@ -25,6 +25,13 @@ class ChatRequest:
     # Cap on reasoning/thinking tokens, for providers that bill them separately.
     # Worst-case cost assumes up to max_output_tokens + reasoning_max_tokens output tokens.
     reasoning_max_tokens: int | None = None
+    # Reasoning level for models that take one instead of (or as well as) a token budget:
+    # Gemini's thinking_level ("minimal", "low", ...), gpt-oss's reasoning_effort ("low", ...).
+    # Usually set per model in configs/models.yaml rather than by the caller.
+    reasoning_effort: str | None = None
+    # Provider service tier, e.g. Bedrock's "flex" (discounted, slower). Set per model in
+    # configs/models.yaml; the cost is charged at the tier the provider reports serving.
+    service_tier: str | None = None
     # JSON Schema for structured output, where the provider supports it.
     json_schema: dict[str, Any] | None = None
     # Distinguishes repeated samples of the same request, so stability sampling
@@ -99,6 +106,8 @@ class ProviderResult:
     raw: dict[str, Any]
     # Cost the provider itself reported (OpenRouter does), else None.
     reported_cost_usd: float | None = None
+    # The service tier the provider says served the request, where it reports one.
+    service_tier: str | None = None
 
 
 @dataclass(frozen=True)
@@ -116,3 +125,4 @@ class ChatResponse:
     finish_reason: str | None
     raw: dict[str, Any]
     cached: bool = False
+    service_tier: str | None = None
