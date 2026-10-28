@@ -1,16 +1,21 @@
 """One tiny live request to a configured model alias, to check credentials and cost logging.
 
-Usage:  uv run python scripts/smoke_test.py case_writer
-Spends real money (well under $0.01 for a short reply). Bypasses the cache.
+Usage:
+  uv run python scripts/smoke_test.py jev           # TypeSafe: one yes/no question
+  uv run python scripts/smoke_test.py case_writer   # Bedrock: a one-word reply
+
+Spends real money (well under $0.01). Bypasses the cache. For Jev it prints the exact
+version that answered, which is what an experiment run will lock to.
 """
 
 from __future__ import annotations
 
+import json
 import sys
 from datetime import datetime, timezone
 
 from sysone.registry import Registry
-from sysone.types import ChatRequest
+from sysone.types import ChatRequest, SystemOneRequest
 
 
 def main(alias: str) -> None:
@@ -18,14 +23,21 @@ def main(alias: str) -> None:
     registry = Registry(run_id)
     client = registry.client(alias)
     client.cache = None
-    request = ChatRequest.from_prompt(
-        "Reply with the single word: ready", max_output_tokens=16, tags={"experiment": "smoke"}
-    )
+    tags = {"experiment": "smoke"}
+    if client.spec.provider == "typesafe":
+        request = SystemOneRequest(
+            state="The customer writes: I was charged twice for my order this month.",
+            questions={"billing": {"type": "noul", "instructions": "Is this message about billing?"}},
+            tags=tags,
+        )
+    else:
+        request = ChatRequest.from_prompt("Reply with the single word: ready", max_output_tokens=16, tags=tags)
     response = client.complete(request)
-    print(f"model_used={response.model_used} text={response.text!r}")
+    print(f"model_requested={client.spec.model} model_used={response.model_used}")
+    print(f"answer={json.dumps(response.raw.get('answers')) if response.raw.get('answers') else repr(response.text)}")
     print(f"tokens in/out={response.usage.input_tokens}/{response.usage.output_tokens} cost=${response.cost_usd:.6f}")
     print(f"ledger: {registry.guard.ledger.path}")
 
 
 if __name__ == "__main__":
-    main(sys.argv[1] if len(sys.argv) > 1 else "case_writer")
+    main(sys.argv[1] if len(sys.argv) > 1 else "jev")

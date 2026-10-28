@@ -1,10 +1,10 @@
 # Project Status — start here
 
-Last updated: 2026-10-21 (after a bug review; see the review notes below). Read this first when picking the project back up.
+Last updated: 2026-10-26 (Jev moved to TypeSafe's native API). Read this first when picking the project back up.
 
 ## In one paragraph
 
-We study whether explanations of opaque AI decisions give people verifiable grounds to contest those decisions (main question), and whether LLMs asked to explain Jev's decisions can be pushed into justifying bad or user-harmful decisions (stretch goal). The research plan is written up in [research_docs/](research_docs/README.md). The code so far is the infrastructure for the **first experiment, Pilot 0**: a frozen benchmark of 60 synthetic refund cases, a cost-capped harness for calling outside models, a wrapper that asks Jev for decisions, and a runner and analysis script that save and summarize results. Everything has been tested offline with a fake Jev. **No live model has been called yet**, because the Jev model ID hasn't been chosen.
+We study whether explanations of opaque AI decisions give people verifiable grounds to contest those decisions (main question), and whether LLMs asked to explain Jev's decisions can be pushed into justifying bad or user-harmful decisions (stretch goal). The research plan is written up in [research_docs/](research_docs/README.md). The code so far is the infrastructure for the **first experiment, Pilot 0**: a frozen benchmark of 60 synthetic refund cases, a cost-capped harness for calling outside models, a wrapper that asks Jev for typed decisions through TypeSafe's native API, and a runner and analysis script that save and summarize results. Jev is called as `jev-latest`; each run records the full probabilities and the exact version on every call, and halts if the version changes. Everything has been tested offline with a fake Jev. **No live model has been called yet.**
 
 ## What exists
 
@@ -13,10 +13,10 @@ We study whether explanations of opaque AI decisions give people verifiable grou
 | Research plan (questions, framework, datasets, experiments, metrics, stretch goal, risks, references) | [research_docs/00–10](research_docs/README.md) | Written |
 | Harness design and cost controls | [research_docs/11_harness_and_infrastructure.md](research_docs/11_harness_and_infrastructure.md) | Written |
 | Roadmap to the first experiments, Pilot 0 design, results layout | [research_docs/12_first_experiments_roadmap.md](research_docs/12_first_experiments_roadmap.md) | Written |
-| Provider clients (OpenRouter, Bedrock, Gemini), cost guard, spending log, cache | [src/sysone/clients/](src/sysone/clients/), [src/sysone/budget/](src/sysone/budget/) | Built, tested offline |
+| Provider clients (TypeSafe, OpenRouter, Bedrock, Gemini), cost guard, version lock, spending log, cache | [src/sysone/clients/](src/sysone/clients/), [src/sysone/budget/](src/sysone/budget/) | Built, tested offline |
 | Benchmark generator, refund policy, renderer | [src/sysone/benchmark/](src/sysone/benchmark/) | Built, tested |
 | Benchmark v0 (60 cases, 160 variants, template text) | [benchmarks/refund_v0/](benchmarks/refund_v0/) | Frozen |
-| Jev decision wrapper | [src/sysone/decision/jev.py](src/sysone/decision/jev.py) | Built, tested with a fake Jev |
+| Jev decision wrapper (typed choice question, full probabilities) | [src/sysone/decision/jev.py](src/sysone/decision/jev.py) | Built, tested with a fake Jev |
 | Pilot 0 runner and analysis | [src/sysone/experiments/pilot0.py](src/sysone/experiments/pilot0.py), [src/sysone/analysis/pilot0.py](src/sysone/analysis/pilot0.py) | Built, dry run passed |
 | Open decisions and setup tasks | [TODO.md](TODO.md) | Up to date |
 
@@ -26,7 +26,7 @@ Not built yet: the natural-language version of the cases (step 6b), the access l
 
 ```bash
 uv sync                                                   # install
-uv run pytest                                             # 79 offline tests; no network, no cost
+uv run pytest                                             # 108 offline tests; no network, no cost
 uv run python -m sysone.experiments.pilot0 --dry-run      # whole Pilot 0 pipeline with a fake Jev, no cost
 ```
 
@@ -36,9 +36,9 @@ The dry run writes a folder under `results/runs/`. It contains random decisions 
 
 In order:
 
-1. **Choose the Jev model ID** and add its price. This is the only blocker for the first live experiment. Details in [TODO.md](TODO.md).
-2. **Set credentials**: `OPENROUTER_API_KEY`, and AWS credentials for us-east-2 with Claude Opus 4.5 access enabled. Run `uv run python scripts/smoke_test.py case_writer` to check Bedrock (costs well under $0.01).
-3. **Run Pilot 0 live**: `uv run python -m sysone.experiments.pilot0 --run-id pilot0-v0-<date>` (480 Jev calls, capped at $25). The report is printed and saved in the run folder.
+1. **Set the TypeSafe key**: `TYPESAFE_API_KEY`. Run `uv run python scripts/smoke_test.py jev` to check it and see which version `jev-latest` resolves to (costs a tiny fraction of a cent).
+2. **Run Pilot 0 live**: `uv run python -m sysone.experiments.pilot0 --run-id pilot0-v0-<date>` (480 Jev calls, capped at $25, expected to cost well under $0.01). The report is printed and saved in the run folder. Its probability-noise table gives a first noise floor.
+3. **Set AWS credentials** for us-east-2 with Claude Opus 4.5 access enabled, only when step 5 needs the case writer. `uv run python scripts/smoke_test.py case_writer` checks them.
 4. **Decide go / no-go** for Experiment 1 from the report (criteria in [research_docs/12](research_docs/12_first_experiments_roadmap.md)).
 5. **Step 6b**: have the case writer rewrite the cases as natural text, freeze as `refund_v1` (≈ $1.50). This can happen any time, independently of 1–4.
 6. **Choose the explainer models and the judge**, then build Pilot 1 (Experiment 1) and Pilot 2 (stretch goal S1).
@@ -46,6 +46,7 @@ In order:
 ## Things that are easy to forget
 
 - **Cost limits:** $2 per API request and $25 per run, set in [configs/budget.yaml](configs/budget.yaml). Calls that could exceed either are refused before sending; if any call actually costs more than $2, the run stops.
+- **Jev version lock:** `jev-latest` moves when TypeSafe ships a release. A run locks to the first version that answers (saved as `model_version` in its manifest) and halts on any answer from another version, including on resume. To keep using a version after the alias moves, set the fixed ID (e.g. `jev-1.14.0`) in [configs/models.yaml](configs/models.yaml), or set `expected_model_version` in the experiment config.
 - **Placeholders:** any model ID starting with `TODO` in [configs/models.yaml](configs/models.yaml) is refused, as is any model missing from [configs/pricing.yaml](configs/pricing.yaml).
 - **`results/` stays local.** It is gitignored and not backed up anywhere. Write down the `run_id` of each run that matters.
 - **Benchmarks are frozen.** Never edit `benchmarks/refund_v0/` by hand: loading checks a hash and will refuse an edited file. To change cases, freeze a new version under a new name.

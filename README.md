@@ -19,7 +19,7 @@ uv run pytest         # offline tests; no network calls, no cost
 
 | Provider | Used for | How to configure |
 |----------|----------|------------------|
-| OpenRouter | Jev | `OPENROUTER_API_KEY` |
+| TypeSafe | Jev (`jev-latest`, native API) | `TYPESAFE_API_KEY` |
 | Amazon Bedrock (us-east-2) | Case writer (Claude Opus 4.5), Bedrock explainers | Standard AWS credentials (`AWS_PROFILE`, or `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`). Claude Opus 4.5 model access must be enabled in the Bedrock console for us-east-2. |
 | Google Gemini | Gemini explainers, judge | `GEMINI_API_KEY` (or a Vertex AI project; see TODO.md) |
 
@@ -36,10 +36,11 @@ Results go to `results/runs/<run_id>/` (kept locally, not in git). See [research
 ### Live smoke test
 
 ```bash
-uv run python scripts/smoke_test.py case_writer
+uv run python scripts/smoke_test.py jev           # TypeSafe: one yes/no question
+uv run python scripts/smoke_test.py case_writer   # Bedrock: a one-word reply
 ```
 
-This makes one short real request (well under $0.01) and prints the cost and the path of the spending log.
+Each makes one short real request (well under $0.01) and prints the cost and the path of the spending log. For Jev it also prints the exact version that answered.
 
 ## Cost limits
 

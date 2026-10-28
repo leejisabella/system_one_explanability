@@ -5,11 +5,17 @@
 # When a published price is scheduled to rise, the higher price is used so the
 # worst-case estimate stays conservative. Re-verify prices before large runs.
 
+typesafe:
+  # From docs.typesafe.ai/models (checked 2026-10-26): Jev 1.13 and 1.14 cost $42 per
+  # billion input tokens ($0.042 per 1M). Output tokens are free. If jev-latest moves
+  # to a release with a different price, update this entry.
+  jev-latest: {input: 0.042, output: 0.0}
+  jev-1.14.0: {input: 0.042, output: 0.0}
+  jev-1.13.0: {input: 0.042, output: 0.0}
+
 openrouter:
-  # TODO: set once the Jev model ID is chosen. For OpenRouter, these numbers are
-  # also sent as provider.max_price, so OpenRouter refuses to route the request
-  # to anything more expensive. (Whether max_price applies to jev-router is unverified.)
-  # TODO_JEV_MODEL_ID: {input: 0.0, output: 0.0}
+  # No models in use. For OpenRouter, these numbers are also sent as
+  # provider.max_price, so OpenRouter refuses to route to anything more expensive.
 
 bedrock:
   # Claude Opus 4.5. Anthropic first-party list price is $5 / $25; Bedrock regional

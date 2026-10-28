@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import json
 import math
 from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
 
-from sysone.types import ChatRequest, Usage
+from sysone.types import Request, SystemOneRequest, Usage
 
 
 class UnknownPrice(KeyError):
@@ -55,7 +56,11 @@ _PER_MESSAGE_OVERHEAD = 10
 _PER_REQUEST_OVERHEAD = 50
 
 
-def estimate_input_tokens(request: ChatRequest) -> int:
+def estimate_input_tokens(request: Request) -> int:
+    if isinstance(request, SystemOneRequest):
+        # State, question names, instructions and criteria are all billed as input.
+        chars = len(json.dumps(request.state)) + len(json.dumps(request.questions))
+        return math.ceil(chars / _CHARS_PER_TOKEN) + _PER_REQUEST_OVERHEAD
     chars = len(request.system or "") + sum(len(m.content) for m in request.messages)
     if request.json_schema is not None:
         chars += len(str(request.json_schema))
@@ -66,12 +71,14 @@ def estimate_input_tokens(request: ChatRequest) -> int:
     )
 
 
-def worst_case_cost(request: ChatRequest, price: Price, reasoning_allowance: int = 0) -> float:
+def worst_case_cost(request: Request, price: Price, reasoning_allowance: int = 0) -> float:
     """Upper bound on what one request can cost, assuming every output token is used.
 
     reasoning_allowance is the reasoning-token bound assumed when the request sets no
     reasoning_max_tokens, for providers whose models may reason anyway.
     """
+    if isinstance(request, SystemOneRequest):
+        return price.cost(Usage(input_tokens=estimate_input_tokens(request), output_tokens=request.max_output_tokens))
     reasoning = request.reasoning_max_tokens if request.reasoning_max_tokens is not None else reasoning_allowance
     max_output = request.max_output_tokens + reasoning
     return price.cost(Usage(input_tokens=estimate_input_tokens(request), output_tokens=max_output))

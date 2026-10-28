@@ -16,7 +16,8 @@ from sysone.clients.bedrock import BedrockProvider
 from sysone.clients.cache import ResponseCache
 from sysone.clients.fake import FakeDecisionProvider, FakeProvider, ok_result
 from sysone.clients.gemini import GeminiProvider
-from sysone.decision.jev import parse_decision
+from sysone.clients.fake import choice_answer
+from sysone.decision.jev import parse_answer
 from sysone.experiments.pilot0 import Pilot0Config, run_pilot0
 from sysone.registry import REPO_ROOT
 from sysone.runs import Run
@@ -68,7 +69,11 @@ def test_reasoning_allowance_counts_toward_worst_case(tmp_path):
 
 
 def test_bool_confidence_is_rejected():
-    assert not parse_decision('{"decision": "approve", "confidence": true}').parse_ok
+    valid = {"approve": 1.0, "deny": 0.0, "undetermined": 0.0}
+    assert parse_answer(choice_answer(valid, confidence=1.0)).parse_ok
+    assert not parse_answer(choice_answer(valid, confidence=True)).parse_ok
+    # The same applies to probabilities: True is not 1.0.
+    assert not parse_answer(choice_answer({**valid, "approve": True}, confidence=1.0)).parse_ok
 
 
 def test_bedrock_rejects_temperature_with_thinking():

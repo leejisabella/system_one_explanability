@@ -25,7 +25,21 @@ def test_case_writer_is_opus_45_on_bedrock_and_priced(registry):
     assert spec.price is not None
 
 
-@pytest.mark.parametrize("alias", ["jev", "explainer_bedrock", "explainer_gemini", "judge"])
+def test_jev_is_typesafe_latest_and_priced(registry):
+    spec = registry.spec("jev")
+    assert spec.provider == "typesafe" and spec.model == "jev-latest"
+    # Input tokens only; output is free.
+    assert spec.price is not None and spec.price.input_per_m > 0 and spec.price.output_per_m == 0
+
+
+def test_jev_client_builds_the_typesafe_provider(tmp_path):
+    built = []
+    registry = Registry("test-run", results_dir=tmp_path, provider_factory=lambda name: built.append(name) or FakeProvider())
+    registry.client("jev")
+    assert built == ["typesafe"]
+
+
+@pytest.mark.parametrize("alias", ["explainer_bedrock", "explainer_gemini", "judge"])
 def test_todo_aliases_refuse_to_run(tmp_path, alias):
     built = []
     registry = Registry("test-run", results_dir=tmp_path, provider_factory=lambda name: built.append(name) or FakeProvider())

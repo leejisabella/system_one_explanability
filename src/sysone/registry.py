@@ -19,6 +19,10 @@ RESULTS_DIR = REPO_ROOT / "results"
 
 
 def _default_provider(name: str) -> Provider:
+    if name == "typesafe":
+        from sysone.clients.typesafe import TypeSafeProvider
+
+        return TypeSafeProvider()
     if name == "openrouter":
         from sysone.clients.openrouter import OpenRouterProvider
 

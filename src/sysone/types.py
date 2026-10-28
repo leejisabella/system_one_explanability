@@ -49,6 +49,37 @@ class ChatRequest:
 
 
 @dataclass(frozen=True)
+class SystemOneRequest:
+    """One call to a System One decision model (TypeSafe's Jev): typed questions about a state.
+
+    `state` is the content every question refers to: a string, or a JSON object with
+    named parts (TypeSafe recommends an object). `questions` maps question names to
+    question objects, e.g. {"type": "choice", "instructions": ..., "criteria": {...}}.
+    """
+
+    state: Any
+    questions: dict[str, dict[str, Any]]
+    # Not sent to the provider. Distinguishes repeated samples of the same input, so
+    # repeats make real calls instead of hitting the cache.
+    sample_index: int = 0
+    # The API has no output-length parameter, and output tokens are currently free.
+    # This bound only feeds the worst-case cost estimate, in case output is ever billed.
+    max_output_tokens: int = 1024
+    tags: dict[str, str] = field(default_factory=dict, compare=False)
+
+    def __post_init__(self) -> None:
+        if not self.questions:
+            raise ValueError("a request needs at least one question")
+        for name, question in self.questions.items():
+            if "type" not in question:
+                raise ValueError(f"question '{name}' has no type")
+
+
+# Every request type a client can send.
+Request = ChatRequest | SystemOneRequest
+
+
+@dataclass(frozen=True)
 class Usage:
     input_tokens: int
     # All billed output tokens, including reasoning/thinking tokens.
@@ -72,6 +103,9 @@ class ProviderResult:
 
 @dataclass(frozen=True)
 class ChatResponse:
+    """A completed request. For System One requests, `text` is the answers as JSON and
+    `raw` is the provider's full response, including per-option probabilities."""
+
     text: str
     usage: Usage
     cost_usd: float
