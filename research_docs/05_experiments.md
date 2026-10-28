@@ -18,7 +18,7 @@ Experiments 1–8 address the main research questions. Stretch-goal experiments 
 Reordered on 2026-10-28, after Pilot 1 ([research_analyses/E1_pilot1](../research_analyses/E1_pilot1/README.md)), to put the questions Pilot 1 sharpened first. Experiments 1–3 are this phase.
 
 1. **Shared prerequisites for Experiments 1–3:**
-   - **A benchmark version with policy-departure variants.** In Pilot 1 the refund policy alone predicted Jev on 90% of hidden variants, and only 11 of 114 separated Jev from its policy. A purchase-window sweep (about 25–65 days, net of carrier delay, on cases whose other rules pass) makes Jev's own threshold decide many hidden variants.
+   - **A benchmark version with policy-departure variants.** In Pilot 1 the refund policy alone predicted Jev on 90% of hidden variants, and only 11 of 114 separated Jev from its policy. A purchase-window sweep (about 25–65 days, net of carrier delay, on cases whose other rules pass) makes Jev's own threshold decide many hidden variants. *Built 2026-10-28:* `refund_v1_1` (refund_v1's case mix plus 30 threshold-sweep cases, 150 sweep variants), and the same sweep in five new domains ([04](04_datasets_and_benchmark.md#domains-built-2026-10-28)). Jev's behaviour on them is not measured yet.
    - **The LLM judge** (configured: gpt-oss-120b), for contestability and unsupported-claims scoring.
 2. **Experiments 1–3** then run on that benchmark. Experiment 2's rule-based targets need no Jev calls, so it can start as soon as the targets exist; Experiment 3's lower rungs are Experiment 1's conditions.
 3. **Experiment 4** scales Experiment 3's "probes it picks" rungs into CAPE versus equally budgeted baselines, so it waits until Experiment 3 shows whether chosen probes help at all.
@@ -62,7 +62,7 @@ Earlier documents, results and run notes written before 2026-10-28 use the old n
 
 **Pilot 1 (2026-10-28):** the protocol runs end to end ($0.41). The no-explanation control already predicts Jev on 90% of hidden variants, so explanations add almost nothing (Normalized Simulatability Gain −0.64 to +0.22). Where the explainer would decide differently from Jev, Gemini's explanations predict Gemini (its rules alone, 10 of 11). Explanations restate the policy, and 10 of 12 explanations of Jev's past-window approvals justify them with false or invented premises. Contestability is not scored yet.
 
-**Next:** rerun on the benchmark version with policy-departure variants, with the LLM judge, and with Claude Haiku 5.5 as a third explainer if AWS unblocks it.
+**Next:** rerun on the benchmark version with policy-departure variants (`refund_v1_1`, then the other domains where Jev departs from the policy), with the LLM judge, and with Claude Haiku 5.5 as a third explainer if AWS unblocks it.
 
 **Expected contribution:** A systematic separation of behavioral explanation quality from evidence usefulness.
 
@@ -83,6 +83,8 @@ Earlier documents, results and run notes written before 2026-10-28 use the old n
 - **Swap stability:** whether the explanation's reasons and implied decisions change under swaps that shouldn't matter, and change under swaps that should.
 
 **What Pilot 1 already shows:** Jev and its written policy act as two targets that differ in one rule, and the explanations told the policy's story for Jev (structured rules matched Jev on 1–3 of the 11 variants where the two differ). Name swaps changed nothing, for Jev (E0) or for the simulator.
+
+**Other domains:** each new domain has a numeric threshold in its params (report count, spend multiple, table rows, urgency score, income limit; [04](04_datasets_and_benchmark.md#domains-built-2026-10-28)), so the same one-rule pairs exist outside refunds.
 
 **Cost:** the rule-based targets are free to query; explainer and simulator calls are about Pilot 1's per target.
 
@@ -180,6 +182,7 @@ This behavior should be **evaluated rather than automatically penalized** as an 
 - To establish broader relevance, also evaluate selected **open-weight or API-accessible classification models** and **LLM-based decision pipelines**.
 - Determines whether observed failures result from Jev-specific behavior or general properties of black-box explanation systems.
 - Experiment 2's rule-based targets are a first, fully controlled step beyond Jev; the second decision model (Amazon Nova Lite) is configured for this experiment.
+- **Beyond refunds:** five more decision domains (content moderation, fraud screening, tool selection, agent routing, benefit eligibility) share the refund benchmark's case types, so each finding can be checked across tasks with different option sets, not only across decision models.
 
 ---
 

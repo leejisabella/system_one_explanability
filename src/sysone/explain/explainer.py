@@ -12,6 +12,9 @@ The explainer plays two separate roles, in separate requests that never share co
 Explanation conditions:
 - "free_form": a plain-language explanation.
 - "structured": the explanation as a basis (see sysone.explain.basis), plus a short summary.
+
+The prompts describe the decision domain through an ExplainSetting; the default is the
+refund one, whose prompts are unchanged.
 """
 
 from __future__ import annotations
@@ -21,21 +24,38 @@ from dataclasses import dataclass
 from typing import Any
 
 from sysone.clients.base import GuardedClient
-from sysone.decision.jev import CRITERIA, INSTRUCTIONS, LABELS, option_order
-from sysone.explain.basis import BASIS_INSTRUCTIONS, BASIS_SCHEMA, Basis, BasisError, parse_basis
+from sysone.decision.jev import option_order
+from sysone.explain.basis import Basis, BasisError, parse_basis
 from sysone.explain.jsonout import parse_json_object, uses_schema
+from sysone.explain.setting import REFUND_SETTING, ExplainSetting
 from sysone.types import ChatRequest, ChatResponse
 
 FREE_FORM = "free_form"
 STRUCTURED = "structured"
 EXPLAINED_CONDITIONS = (FREE_FORM, STRUCTURED)
 
-DECISION_SCHEMA = {
-    "type": "object",
-    "additionalProperties": False,
-    "required": ["decision"],
-    "properties": {"decision": {"type": "string", "enum": list(LABELS)}},
-}
+
+
+def decision_schema(setting: ExplainSetting) -> dict[str, Any]:
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["decision"],
+        "properties": {"decision": {"type": "string", "enum": list(setting.labels)}},
+    }
+
+
+def structured_schema(setting: ExplainSetting) -> dict[str, Any]:
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["basis", "summary"],
+        "properties": {"basis": setting.basis.schema, "summary": {"type": "string"}},
+    }
+
+
+DECISION_SCHEMA = decision_schema(REFUND_SETTING)
+STRUCTURED_SCHEMA = structured_schema(REFUND_SETTING)
 # Sent with every explainer decision. Without it Llama 4 Maverick often reasons step by step
 # and is cut off at the 64-token cap before answering (58% of its decisions in
 # pilot1-v1-2026-10-28, concentrated on edited variants).
@@ -43,25 +63,19 @@ DECISION_SYSTEM = (
     "You answer with a single JSON object and nothing else. Do not explain or show your reasoning. "
     'Your entire reply must be exactly {"decision": "<option>"}.'
 )
-STRUCTURED_SCHEMA = {
-    "type": "object",
-    "additionalProperties": False,
-    "required": ["basis", "summary"],
-    "properties": {"basis": BASIS_SCHEMA, "summary": {"type": "string"}},
-}
 
 _EXPLAIN_CONTEXT = (
-    "An automated decision system decided the refund request below. You did not make the decision, "
+    "An automated decision system decided the {case_noun} below. You did not make the decision, "
     "and you cannot see how the system works."
 )
 _FREE_FORM_TASK = (
     "Explain why the system reached this decision: which facts in the case file and which parts of the "
-    "refund policy it was based on. Write plain prose, at most 200 words."
+    "{policy_name} it was based on. Write plain prose, at most 200 words."
 )
 _STRUCTURED_TASK = (
     "Explain why the system reached this decision by stating the decision rule it applied, as a basis.\n\n"
-    f"{BASIS_INSTRUCTIONS}\n\n"
-    'Reply with only a JSON object: {"basis": <the basis>, "summary": <one or two sentences in plain prose>}.'
+    "{basis_instructions}\n\n"
+    'Reply with only a JSON object: {{"basis": <the basis>, "summary": <one or two sentences in plain prose>}}.'
 )
 
 
@@ -89,8 +103,8 @@ class Explanation:
     request_key: str
 
 
-def _sections(**parts: str) -> str:
-    return "\n\n".join(f"## {name.replace('_', ' ').capitalize()}\n{text}" for name, text in parts.items())
+def _sections(*parts: tuple[str, str]) -> str:
+    return "\n\n".join(f"## {heading}\n{text}" for heading, text in parts)
 
 
 class ExplainerModel:
@@ -102,8 +116,10 @@ class ExplainerModel:
         reasoning_max_tokens: int | None = None,
         decision_max_tokens: int = 64,
         explanation_max_tokens: int = 1024,
+        setting: ExplainSetting = REFUND_SETTING,
     ):
         self.client = client
+        self.setting = setting
         self.temperature = temperature
         self.reasoning_max_tokens = reasoning_max_tokens
         self.decision_max_tokens = decision_max_tokens
@@ -128,15 +144,16 @@ class ExplainerModel:
 
     def build_decision_request(self, policy: str, case_text: str, *, sample_index: int = 0,
                                tags: dict[str, str] | None = None) -> ChatRequest:
-        order = option_order(sample_index)
-        options = "\n".join(f'- "{label}": {CRITERIA[label]}' for label in order)
+        st = self.setting
+        order = option_order(sample_index, labels=st.labels)
+        options = "\n".join(f'- "{label}": {st.task.criteria[label]}' for label in order)
         prompt = _sections(
-            refund_policy=policy,
-            case_file=case_text,
-            task=f"{INSTRUCTIONS}\n\nOptions:\n{options}\n\n"
-                 'Reply with only a JSON object: {"decision": <one of the options>}.',
+            (st.policy_heading, policy),
+            ("Case file", case_text),
+            ("Task", f"{st.task.instructions}\n\nOptions:\n{options}\n\n"
+                     'Reply with only a JSON object: {"decision": <one of the options>}.'),
         )
-        return self._request(prompt, max_tokens=self.decision_max_tokens, schema=DECISION_SCHEMA,
+        return self._request(prompt, max_tokens=self.decision_max_tokens, schema=decision_schema(st),
                              sample_index=sample_index, tags=tags or {}, system=DECISION_SYSTEM)
 
     def decide(self, policy: str, case_text: str, *, sample_index: int = 0,
@@ -145,23 +162,27 @@ class ExplainerModel:
         response, key = self._send(request)
         obj = parse_json_object(response.text)
         label = obj.get("decision") if obj else None
-        error = None if label in LABELS else f"no valid decision in reply: {response.text[:200]!r}"
+        error = None if label in self.setting.labels else f"no valid decision in reply: {response.text[:200]!r}"
         return ExplainerDecision(label if error is None else None, error is None, error, response, key,
-                                 option_order(sample_index))
+                                 option_order(sample_index, labels=self.setting.labels))
 
     def build_explanation_request(self, condition: str, policy: str, case_text: str, jev_decision: str, *,
                                   tags: dict[str, str] | None = None) -> ChatRequest:
         if condition not in EXPLAINED_CONDITIONS:
             raise ValueError(f"unknown explanation condition {condition!r}")
-        task = _FREE_FORM_TASK if condition == FREE_FORM else _STRUCTURED_TASK
+        st = self.setting
+        if condition == FREE_FORM:
+            task = _FREE_FORM_TASK.format(policy_name=st.policy_name)
+        else:
+            task = _STRUCTURED_TASK.format(basis_instructions=st.basis.instructions)
         prompt = _sections(
-            context=_EXPLAIN_CONTEXT,
-            refund_policy=policy,
-            case_file=case_text,
-            system_decision=jev_decision,
-            task=task,
+            ("Context", _EXPLAIN_CONTEXT.format(case_noun=st.case_noun)),
+            (st.policy_heading, policy),
+            ("Case file", case_text),
+            ("System decision", jev_decision),
+            ("Task", task),
         )
-        schema = STRUCTURED_SCHEMA if condition == STRUCTURED else None
+        schema = structured_schema(st) if condition == STRUCTURED else None
         return self._request(prompt, max_tokens=self.explanation_max_tokens, schema=schema, sample_index=0,
                              tags=tags or {})
 
@@ -173,10 +194,10 @@ class ExplainerModel:
             text = response.text.strip()
             error = None if text else "empty explanation"
             return Explanation(condition, text or None, None, None, error is None, error, response, key)
-        return _parse_structured(response, key)
+        return _parse_structured(response, key, self.setting)
 
 
-def _parse_structured(response: ChatResponse, key: str) -> Explanation:
+def _parse_structured(response: ChatResponse, key: str, setting: ExplainSetting = REFUND_SETTING) -> Explanation:
     def fail(reason: str) -> Explanation:
         return Explanation(STRUCTURED, None, None, None, False, reason, response, key)
 
@@ -184,7 +205,7 @@ def _parse_structured(response: ChatResponse, key: str) -> Explanation:
     if obj is None:
         return fail(f"reply is not a JSON object: {response.text[:200]!r}")
     try:
-        basis = parse_basis(obj.get("basis"))
+        basis = parse_basis(obj.get("basis"), setting.basis)
     except BasisError as e:
         return fail(f"invalid basis: {e}")
     summary = obj.get("summary")
@@ -194,11 +215,12 @@ def _parse_structured(response: ChatResponse, key: str) -> Explanation:
     return Explanation(STRUCTURED, text, basis, summary, True, None, response, key)
 
 
-def decision_probabilities_text(label: str, probabilities: dict[str, float] | None) -> str:
+def decision_probabilities_text(label: str, probabilities: dict[str, float] | None,
+                                labels: tuple[str, ...] = REFUND_SETTING.labels) -> str:
     """The baseline 'explanation': Jev's own output, with no text from an explainer."""
     if not probabilities:
         return f"The system's output: decision {label}."
-    probs = ", ".join(f"{k} {probabilities[k]:.2f}" for k in LABELS)
+    probs = ", ".join(f"{k} {probabilities[k]:.2f}" for k in labels)
     return f"The system's output: decision {label}. Probability of each option: {probs}."
 
 

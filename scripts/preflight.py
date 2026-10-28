@@ -4,6 +4,7 @@ Usage:
   uv run python scripts/preflight.py                  # every role: jev, Pilot 1's explainers, simulator
   uv run python scripts/preflight.py --only jev       # just Jev (e.g. before AWS is ready)
   uv run python scripts/preflight.py --dry-run        # fake models: no network, no cost
+  uv run python scripts/preflight.py --benchmark benchmarks/fraud_v1   # another benchmark (default: Pilot 0's)
 
 Sends: one Jev decision; per explainer, one decision per variant kind (8), one free-form and one structured
 explanation; and two simulations (the no-explanation control and one with the structured
@@ -22,8 +23,7 @@ from datetime import datetime, timezone
 
 import yaml
 
-from sysone.benchmark.refund_policy import PolicyParams, policy_text
-from sysone.benchmark.render import render_case_text
+from sysone.benchmark.adapter import adapter_for
 from sysone.benchmark.store import load_benchmark
 from sysone.budget.guard import BudgetError
 from sysone.budget.pricing import Price
@@ -44,13 +44,16 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--only", nargs="+", choices=ROLES, default=list(ROLES))
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--benchmark", help="benchmark directory (default: the one in configs/experiments/pilot0.yaml)")
     args = parser.parse_args()
     load_env()
 
     p1 = yaml.safe_load((CONFIG_DIR / "experiments" / "pilot1.yaml").read_text())
     p0 = yaml.safe_load((CONFIG_DIR / "experiments" / "pilot0.yaml").read_text())
-    cases, meta = load_benchmark(REPO_ROOT / p0["benchmark"])
-    policy = policy_text(PolicyParams(**meta["policy"]))
+    cases, meta = load_benchmark(REPO_ROOT / (args.benchmark or p0["benchmark"]))
+    adapter = adapter_for(meta)
+    policy, setting, render_case_text = adapter.policy, adapter.setting, adapter.render
+    print(f"benchmark {meta['name']} (domain {adapter.domain})")
     # A case with hidden variants, so the simulator has a real variant to predict.
     case = next(c for c in cases if len(c.variants) > 1)
     original, variant = render_case_text(case.original), render_case_text(case.variants[1])
@@ -90,10 +93,12 @@ def main() -> None:
               + (f"  {error}" if error else ""))
         costs[f"{alias}/{kind}"].append(response.cost_usd)
 
-    jev_label, structured_text = "deny", None
+    # Used if Jev isn't asked: any option exercises the explainer and simulator prompts.
+    jev_label, structured_text = adapter.labels[0], None
     try:
         if "jev" in args.only:
-            d = JevDecisionModel(client("jev")).decide(policy, original, tags={"experiment": "preflight"})
+            d = JevDecisionModel(client("jev"), task=adapter.task).decide(policy, original,
+                                                                          tags={"experiment": "preflight"})
             report("jev", "decision", d.decision.parse_ok, d.response, d.decision.parse_error)
             print(f"  {'':18} version {d.response.model_used}, probabilities {d.decision.probabilities}")
             jev_label = d.decision.label or jev_label
@@ -101,7 +106,7 @@ def main() -> None:
             if alias not in args.only:
                 continue
             explainer = ExplainerModel(client(alias), temperature=p1["explainer_temperature"],
-                                       reasoning_max_tokens=p1["explainer_reasoning_max_tokens"])
+                                       reasoning_max_tokens=p1["explainer_reasoning_max_tokens"], setting=setting)
             tags = {"experiment": "preflight", "explainer": alias}
             # Several variant kinds and option orders: one decision passing hid a 42% parse rate once.
             for i, v in enumerate(decision_variants):
@@ -116,7 +121,8 @@ def main() -> None:
                     structured_text = e.text
         if "simulator" in args.only:
             sim = Simulator(client("simulator"), temperature=p1["simulator_temperature"],
-                            reasoning_max_tokens=p1["simulator_reasoning_max_tokens"], seed=p1["simulator_seed"])
+                            reasoning_max_tokens=p1["simulator_reasoning_max_tokens"], seed=p1["simulator_seed"],
+                            setting=setting)
             for kind, text in (("simulation:control", None), ("simulation:explained", structured_text or "No explanation.")):
                 s = sim.simulate(policy, original, jev_label, text, variant,
                                  tags={"experiment": "preflight", "step": "simulation"})

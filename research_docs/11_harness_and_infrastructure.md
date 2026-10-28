@@ -112,8 +112,10 @@ src/sysone/
   registry.py       builds guarded clients from configs, one guard per run; project spend totals
   env.py            loads secrets from .env (gitignored)
   benchmark/        records, refund policy, generator, renderer, frozen-benchmark store
-  decision/         Jev decision wrapper (typed choice question, probabilities, query budget B)
-  explain/          explainer and simulator wrappers, structured basis and its executor
+    domains/        moderation, fraud, tool selection, routing, eligibility on one shared generator
+    adapter.py      one interface to any benchmark's domain, for the runners and analyses
+  decision/         Jev decision wrapper (typed choice question per domain, probabilities, query budget B)
+  explain/          explainer and simulator wrappers (prompts set per domain), structured basis and its executor
   runs.py           per-run manifest and append-only JSONL outputs
   experiments/      experiment runners (pilot0, pilot1)
   analysis/         metrics computed from saved runs (pilot0, pilot1)

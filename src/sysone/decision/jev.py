@@ -1,4 +1,7 @@
-"""Jev as the black-box decision model f: one typed choice question about a refund case.
+"""Jev as the black-box decision model f: one typed choice question about a case.
+
+The question defaults to the refund decision. Other benchmark domains pass their own
+DecisionTask (sysone.benchmark.domains); the refund requests are unchanged by this.
 
 The state holds the refund policy and the case file as named parts, which is how
 TypeSafe recommends laying out a decision that compares a record against rules. Jev
@@ -38,13 +41,35 @@ CRITERIA = {
 }
 
 
-def option_order(sample_index: int, *, rotate: bool = True) -> tuple[str, ...]:
+
+
+@dataclass(frozen=True)
+class DecisionTask:
+    """The choice question Jev answers, and the name of the state part holding the policy."""
+
+    question: str
+    instructions: str
+    # One description per option, in the canonical option order.
+    criteria: dict[str, str]
+    policy_key: str
+
+    @property
+    def labels(self) -> tuple[str, ...]:
+        return tuple(self.criteria)
+
+
+REFUND_TASK = DecisionTask(QUESTION, INSTRUCTIONS, CRITERIA, "refund_policy")
+
+
+def option_order(sample_index: int, *, rotate: bool = True, labels: tuple[str, ...] = LABELS) -> tuple[str, ...]:
     """The order options are listed in for one sample. Rotating by the sample index
     lists each option first equally often across repeats."""
     if not rotate:
-        return LABELS
-    k = sample_index % len(LABELS)
-    return LABELS[k:] + LABELS[:k]
+        return labels
+    k = sample_index % len(labels)
+    return labels[k:] + labels[:k]
+
+
 # Probabilities come rounded to two decimals, so their sum can be off by a little.
 PROBABILITY_SUM_TOLERANCE = 0.02
 
@@ -83,14 +108,15 @@ class Decision:
 
     @property
     def p_approve(self) -> float | None:
-        return None if self.probabilities is None else self.probabilities["approve"]
+        """P(approve), for refund decisions; None for a question without an approve option."""
+        return None if self.probabilities is None else self.probabilities.get("approve")
 
 
 def _is_unit_number(x: Any) -> bool:
     return not isinstance(x, bool) and isinstance(x, (int, float)) and 0 <= x <= 1
 
 
-def parse_answer(answer: Any) -> Decision:
+def parse_answer(answer: Any, labels: tuple[str, ...] = LABELS) -> Decision:
     """Validate one choice answer from Jev."""
 
     def fail(reason: str) -> Decision:
@@ -103,26 +129,26 @@ def parse_answer(answer: Any) -> Decision:
     probs = answer.get("probabilities")
     if not isinstance(probs, dict):
         return fail("answer has no probabilities")
-    if set(probs) != set(LABELS):
-        return fail(f"probabilities cover {sorted(probs)}, expected {sorted(LABELS)}")
+    if set(probs) != set(labels):
+        return fail(f"probabilities cover {sorted(probs)}, expected {sorted(labels)}")
     if not all(_is_unit_number(p) for p in probs.values()):
         return fail(f"probabilities {probs!r} are not all numbers in [0, 1]")
     if abs(sum(probs.values()) - 1) > PROBABILITY_SUM_TOLERANCE:
         return fail(f"probabilities sum to {sum(probs.values()):.3f}, not 1")
     label = answer.get("choice")
-    if label not in LABELS:
-        return fail(f"choice {label!r} not in {LABELS}")
+    if label not in labels:
+        return fail(f"choice {label!r} not in {labels}")
     confidence = answer.get("confidence")
     if not _is_unit_number(confidence):
         return fail(f"confidence {confidence!r} not a number in [0, 1]")
-    return Decision(label, {k: float(probs[k]) for k in LABELS}, float(confidence), True, None, answer)
+    return Decision(label, {k: float(probs[k]) for k in labels}, float(confidence), True, None, answer)
 
 
-def parse_response(response: ChatResponse) -> Decision:
+def parse_response(response: ChatResponse, task: DecisionTask = REFUND_TASK) -> Decision:
     answers = response.raw.get("answers")
-    if not isinstance(answers, dict) or QUESTION not in answers:
-        return Decision(None, None, None, False, f"no answer to '{QUESTION}'", answers)
-    return parse_answer(answers[QUESTION])
+    if not isinstance(answers, dict) or task.question not in answers:
+        return Decision(None, None, None, False, f"no answer to '{task.question}'", answers)
+    return parse_answer(answers[task.question], task.labels)
 
 
 @dataclass(frozen=True)
@@ -135,21 +161,23 @@ class DecisionResult:
 
 
 class JevDecisionModel:
-    def __init__(self, client: GuardedClient, *, rotate_options: bool = True):
+    def __init__(self, client: GuardedClient, *, rotate_options: bool = True, task: DecisionTask = REFUND_TASK):
         self.client = client
         self.rotate_options = rotate_options
+        self.task = task
 
     def build_request(
         self, policy: str, case_text: str, *, sample_index: int = 0, tags: dict[str, str] | None = None
     ) -> SystemOneRequest:
-        order = option_order(sample_index, rotate=self.rotate_options)
+        task = self.task
+        order = option_order(sample_index, rotate=self.rotate_options, labels=task.labels)
         return SystemOneRequest(
-            state={"refund_policy": policy, "case_file": case_text},
-            questions={QUESTION: {
+            state={task.policy_key: policy, "case_file": case_text},
+            questions={task.question: {
                 "type": "choice",
-                "instructions": INSTRUCTIONS,
+                "instructions": task.instructions,
                 # The API keeps this order, so it is the order Jev sees.
-                "criteria": {label: CRITERIA[label] for label in order},
+                "criteria": {label: task.criteria[label] for label in order},
             }},
             sample_index=sample_index,
             tags=tags or {},
@@ -169,5 +197,5 @@ class JevDecisionModel:
         request = self.build_request(policy, case_text, sample_index=sample_index, tags=tags)
         response = self.client.complete(request)
         key = self.client.request_key(request)
-        order = tuple(request.questions[QUESTION]["criteria"])
-        return DecisionResult(parse_response(response), response, key, order)
+        order = tuple(request.questions[self.task.question]["criteria"])
+        return DecisionResult(parse_response(response, self.task), response, key, order)

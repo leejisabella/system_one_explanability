@@ -1,0 +1,37 @@
+{
+  "case_type_counts": {
+    "ambiguous": 10,
+    "correct": 10,
+    "hard_negative": 10,
+    "ignored_evidence": 10,
+    "incorrect_input": 10,
+    "irrelevant_cue": 10,
+    "threshold_sweep": 10
+  },
+  "counts": {},
+  "domain": "eligibility",
+  "generator_version": "eligibility-gen-0.1",
+  "id_prefix": "eligibility_v1",
+  "n_cases": 70,
+  "n_variants": 210,
+  "name": "eligibility_v1",
+  "per_type": 10,
+  "policy": {
+    "base_limit_usd": 2400,
+    "per_person_usd": 600,
+    "policy_id": "eligibility_v1"
+  },
+  "seed": 0,
+  "sha256": "fa61e51b93f89c6cf8bd5afca9251215a392340c5e7803f90f94829960359fe4",
+  "task": {
+    "criteria": {
+      "eligible": "The eligibility rules make this household eligible for the program.",
+      "ineligible": "The eligibility rules make this household ineligible for the program.",
+      "undetermined": "The decision cannot be determined: the case file is missing information the eligibility rules need to decide this application."
+    },
+    "instructions": "Decide this application by applying the program's eligibility rules to the case file.",
+    "policy_key": "eligibility_policy",
+    "question": "eligibility_decision"
+  },
+  "text": "template"
+}

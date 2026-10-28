@@ -1,5 +1,8 @@
 """Pilot 0: query Jev on every variant of every benchmark case, several samples each.
 
+Works on any frozen benchmark: its meta names the domain (refund by default), which sets
+the policy, the case text and Jev's question (sysone.benchmark.adapter).
+
 Usage:
   uv run python -m sysone.experiments.pilot0 --dry-run          # fake Jev, no network, no cost
   uv run python -m sysone.experiments.pilot0 --run-id <id>      # live run (needs TYPESAFE_API_KEY)
@@ -24,8 +27,7 @@ from typing import Any
 import yaml
 
 from sysone.analysis.pilot0 import analyze_run
-from sysone.benchmark.refund_policy import PolicyParams, evaluate, policy_text
-from sysone.benchmark.render import render_case_text
+from sysone.benchmark.adapter import adapter_for
 from sysone.benchmark.store import load_benchmark
 from sysone.budget.guard import BudgetError
 from sysone.budget.pricing import Price
@@ -79,8 +81,8 @@ def row_key(row: dict[str, Any]) -> tuple[str, str, int]:
 def run_pilot0(config: Pilot0Config, run: Run, client: GuardedClient, *, benchmark_dir: Path) -> str:
     """Run (or resume) Pilot 0 and return the final run status."""
     cases, meta = load_benchmark(benchmark_dir)
-    params = PolicyParams(**meta["policy"])
-    policy = policy_text(params)
+    adapter = adapter_for(meta)
+    policy = adapter.policy
     if not config.use_cache:
         client.cache = None
 
@@ -93,7 +95,7 @@ def run_pilot0(config: Pilot0Config, run: Run, client: GuardedClient, *, benchma
         )
     lock = VersionLock(locked or config.expected_model_version, on_lock=lambda v: run.update_manifest(model_version=v))
     client.version_lock = lock
-    jev = JevDecisionModel(client, rotate_options=config.rotate_option_order)
+    jev = JevDecisionModel(client, rotate_options=config.rotate_option_order, task=adapter.task)
     writer = run.writer("decisions")
     # Only successful rows count as done, so failed requests are retried on resume.
     done = {row_key(r) for r in writer.rows() if r["status"] == "ok"}
@@ -105,6 +107,7 @@ def run_pilot0(config: Pilot0Config, run: Run, client: GuardedClient, *, benchma
         started_at=run.manifest().get("started_at", now_iso()),
         resumed_at=now_iso() if done else None,
         benchmark={"path": str(benchmark_dir), "name": meta["name"], "sha256": meta["sha256"]},
+        domain=adapter.domain,
         config=dataclasses.asdict(config),
         model={
             "alias": spec.alias,
@@ -123,10 +126,10 @@ def run_pilot0(config: Pilot0Config, run: Run, client: GuardedClient, *, benchma
     try:
         for case in cases:
             for variant in case.variants:
-                case_text = render_case_text(variant)
+                case_text = adapter.render(variant)
                 # The rule that decides this variant's record (the case's decisive_rule
                 # is the one that decides the true record).
-                variant_rule = evaluate(variant.record, params).rule
+                variant_rule = adapter.rule(variant.record)
                 for sample in range(config.samples_per_variant):
                     if (case.case_id, variant.variant_id, sample) in done:
                         continue
@@ -142,6 +145,8 @@ def run_pilot0(config: Pilot0Config, run: Run, client: GuardedClient, *, benchma
                         "presented_outcome": str(case.presented_outcome),
                         "decisive_rule": case.decisive_rule,
                         "variant_rule": variant_rule,
+                        # The decision that would harm the person the case is about, if any.
+                        "harmful_decision": str(case.harmful_decision) if case.harmful_decision else None,
                         "model_requested": spec.model,
                     }
                     tags = {"experiment": EXPERIMENT, "case_id": case.case_id,

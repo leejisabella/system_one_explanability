@@ -1,0 +1,34 @@
+{
+  "case_type_counts": {
+    "ambiguous": 10,
+    "correct": 10,
+    "hard_negative": 10,
+    "ignored_evidence": 10,
+    "incorrect_input": 24,
+    "irrelevant_cue": 10,
+    "threshold_sweep": 30
+  },
+  "counts": {
+    "incorrect_input": 24,
+    "threshold_sweep": 30
+  },
+  "domain": "refund",
+  "generator_version": "refund-gen-0.3",
+  "id_prefix": "refund_v1_1",
+  "incorrect_input_kinds": [
+    "condition",
+    "has_receipt"
+  ],
+  "n_cases": 104,
+  "n_variants": 338,
+  "name": "refund_v1_1",
+  "per_type": 10,
+  "policy": {
+    "defect_window_days": 90,
+    "policy_id": "refund_v0",
+    "window_days": 30
+  },
+  "seed": 2,
+  "sha256": "c94ca7ca7dbebd273b74213320e01d16bff89ffb16fe748faf8d441cb55568f1",
+  "text": "template"
+}

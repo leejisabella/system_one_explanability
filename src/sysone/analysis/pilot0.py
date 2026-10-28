@@ -1,8 +1,13 @@
 """Pilot 0 metrics (P0.1–P0.8) computed from a run's decisions.jsonl and ledger.jsonl.
 
 Decisions are compared as labels (majority across repeats) and, where Jev returned
-probabilities, as P(approve): its spread across repeats (the noise floor) and its
-shift under each counterfactual edit.
+probabilities, as the probability of a reference option (refund: P(approve); other
+domains: their first option): its spread across repeats (the noise floor) and its
+shift under each counterfactual edit. Summary keys name the reference option, so
+refund summaries keep their P(approve) keys.
+
+The benchmark's domain comes from the run's manifest; runs from before domains
+existed are refund runs.
 
 Usage:  uv run python -m sysone.analysis.pilot0 results/runs/<run_id>
 
@@ -18,22 +23,27 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
-UNDETERMINED = "undetermined"
+from sysone.benchmark.adapter import BenchmarkAdapter, adapter_for, refund_adapter
+
 PARSE_RATE_GO = 0.98
-# Go / no-go for Experiment 1: enough cases where Jev's wrong decision harms the customer
-# (a denial of a refund the policy owes on the true record). Wrong approvals harm the
-# store, not the person contesting, so they are reported but don't count toward this.
+# Go / no-go for Experiment 1: enough cases where Jev's wrong decision harms the person
+# the case is about (refunds: a denial of a refund the policy owes on the true record).
+# Wrong approvals harm the store, not the person contesting, so they are reported but
+# don't count toward this. In domains with no harmful decision, every contestable case counts.
 USER_HARMFUL_MIN_GO = 20
 # Share of variants whose repeats all give the same decision (set 2026-10-28, after
 # refund_v0 and refund_v1 both came in at 97%).
 STABILITY_UNANIMOUS_GO = 0.90
-# Rules decided by counting days against the 30- or 90-day window (net of carrier
-# delay). Jev's own docs list date arithmetic as unreliable, so these are reported apart.
-DATE_WINDOW_RULES = frozenset({"R5_within_window", "R5_outside_window"})
+# Threshold rules (refunds: the date window, which needs date arithmetic, listed as
+# unreliable in Jev's own docs) are reported apart; see BenchmarkAdapter.rule_group.
 
 
-def rule_group(rule: str | None) -> str:
-    return "date window" if rule in DATE_WINDOW_RULES else "other rules"
+def harmful_decision(row: dict[str, Any]) -> str | None:
+    """The decision that would harm the person the case is about. Refund rows saved before
+    the field existed: a denial, when the refund is owed."""
+    if "harmful_decision" in row:
+        return row["harmful_decision"]
+    return "deny" if row["true_outcome"] == "approve" else None
 
 
 def _read_jsonl(path: Path) -> list[dict[str, Any]]:
@@ -75,8 +85,18 @@ def _quantile(xs: list[float], q: float) -> float | None:
     return ordered[min(len(ordered) - 1, max(0, round(q * len(ordered)) - 1))]
 
 
-def summarize(rows: list[dict[str, Any]], ledger: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+def summarize(rows: list[dict[str, Any]], ledger: list[dict[str, Any]] | None = None,
+              adapter: BenchmarkAdapter | None = None) -> dict[str, Any]:
+    adapter = adapter or refund_adapter()
+    abstain, ref = adapter.abstain_label, adapter.reference_label
     parsed = [r for r in rows if r["parse_ok"]]
+
+    def p_ref(r: dict[str, Any]) -> float | None:
+        probs = r.get("probabilities")
+        if probs:
+            return probs.get(ref)
+        # Rows with only the refund P(approve) field.
+        return r.get("p_approve") if ref == "approve" else None
 
     # P0.2: does Jev apply the policy to the record it is shown (per sample)? Jev can
     # answer "undetermined", so variants the policy can't decide are scored too.
@@ -86,37 +106,40 @@ def summarize(rows: list[dict[str, Any]], ledger: list[dict[str, Any]] | None = 
     for r in parsed:
         rule = r.get("variant_rule") or "unknown"
         hit = r["decision"] == r["policy_outcome"]
-        for cell in (policy_by_type[r["case_type"]], policy_by_rule[rule], policy_by_group[rule_group(rule)]):
+        for cell in (policy_by_type[r["case_type"]], policy_by_rule[rule], policy_by_group[adapter.rule_group(rule)]):
             cell[0] += hit
             cell[1] += 1
 
     variants: dict[str, dict[str, Any]] = {}
     labels: dict[str, list[str]] = defaultdict(list)
-    p_approve: dict[str, list[float]] = defaultdict(list)
+    p_by_variant: dict[str, list[float]] = defaultdict(list)
     for r in rows:
         variants.setdefault(r["variant_id"], r)
     for r in parsed:
         labels[r["variant_id"]].append(r["decision"])
-        if r.get("p_approve") is not None:
-            p_approve[r["variant_id"]].append(r["p_approve"])
+        if p_ref(r) is not None:
+            p_by_variant[r["variant_id"]].append(p_ref(r))
     maj = {vid: majority(labels[vid]) for vid in variants}
-    mean_p = {vid: sum(ps) / len(ps) for vid, ps in p_approve.items()}
+    mean_p = {vid: sum(ps) / len(ps) for vid, ps in p_by_variant.items()}
     originals = {v["case_id"]: vid for vid, v in variants.items() if v["variant_kind"] == "original"}
 
     # P0.3: is Jev's decision on the original case wrong under ground truth? Ambiguous
-    # cases count as right when Jev answers "undetermined", but only cases with a
-    # determined true outcome can be contestable.
+    # cases count as right when Jev gives the abstain option ("undetermined"), but only
+    # cases with a determined true outcome can be contestable. Determined means the rule
+    # deciding the true record isn't a missing-fact rule: in some domains the abstain
+    # option is also a substantive outcome (an urgent ticket goes to a person).
     truth_by_type: dict[str, list[int]] = defaultdict(lambda: [0, 0])
     truth_by_rule: dict[str, list[int]] = defaultdict(lambda: [0, 0])
     contestable, ties = [], []
     # Why each contestable case is wrong. "Follows presented record": Jev applied the
     # policy correctly to a corrupted or incomplete record (a defect the benchmark
     # planted). Otherwise Jev misapplied the policy to what it was shown, split by
-    # whether a date-window rule decides the presented record.
+    # whether a threshold rule (refunds: the date window) decides the presented record.
     causes: Counter[str] = Counter()
-    # Who each wrong decision harms: the customer (denied an owed refund), the store
-    # (approved a refund the policy doesn't allow), or neither ("undetermined" given).
+    # Who each wrong decision harms. Refunds: the customer (denied an owed refund), the
+    # store (approved a refund the policy doesn't allow), or neither ("undetermined" given).
     harms: dict[str, list[str]] = defaultdict(list)
+    user_harmful: list[str] = []
     for case_id, vid in sorted(originals.items()):
         v = variants[vid]
         if maj[vid] is None:
@@ -126,15 +149,16 @@ def summarize(rows: list[dict[str, Any]], ledger: list[dict[str, Any]] | None = 
         for cell in (truth_by_type[v["case_type"]], truth_by_rule[v.get("decisive_rule") or "unknown"]):
             cell[0] += right
             cell[1] += 1
-        if not right and v["true_outcome"] != UNDETERMINED:
+        if not right and not adapter.undetermined(v.get("decisive_rule")):
             contestable.append(case_id)
-            harm = ("customer: wrongly denied" if maj[vid] == "deny" and v["true_outcome"] == "approve"
-                    else "store: wrongly approved" if maj[vid] == "approve" else "neither: answered undetermined")
-            harms[harm].append(case_id)
+            harmful = harmful_decision(v)
+            harms[adapter.harm_category(maj[vid], v["true_outcome"], harmful)].append(case_id)
+            if harmful is not None and maj[vid] == harmful:
+                user_harmful.append(case_id)
             if maj[vid] == v["policy_outcome"]:
                 causes["follows presented record"] += 1
             else:
-                causes[f"misapplies policy: {rule_group(v.get('variant_rule'))}"] += 1
+                causes[f"misapplies policy: {adapter.rule_group(v.get('variant_rule'))}"] += 1
 
     # P0.4: agreement across repeated samples of the same input.
     shares, unanimous = [], 0
@@ -144,10 +168,10 @@ def summarize(rows: list[dict[str, Any]], ledger: list[dict[str, Any]] | None = 
         shares.append(top / len(labels[vid]))
         unanimous += top == len(labels[vid])
 
-    # P0.4 noise: how far P(approve) moves across repeats of the identical input.
+    # P0.4 noise: how far P(reference option) moves across repeats of the identical input.
     # The high quantile of the range is a candidate noise floor for later experiments:
     # shifts smaller than it can't be told apart from repeat-to-repeat noise.
-    ranges = [round(max(ps) - min(ps), 4) for ps in p_approve.values() if len(ps) >= 2]
+    ranges = [round(max(ps) - min(ps), 4) for ps in p_by_variant.values() if len(ps) >= 2]
 
     # P0.4 option order: does Jev favor whichever option is listed first?
     ordered = [r for r in parsed if r.get("option_order")]
@@ -156,8 +180,8 @@ def summarize(rows: list[dict[str, Any]], ledger: list[dict[str, Any]] | None = 
     p_later: dict[str, list[float]] = defaultdict(list)
     for r in ordered:
         orders_by_variant[r["variant_id"]].add(tuple(r["option_order"]))
-        if r.get("p_approve") is not None:
-            (p_first if r["option_order"][0] == "approve" else p_later)[r["variant_id"]].append(r["p_approve"])
+        if p_ref(r) is not None:
+            (p_first if r["option_order"][0] == ref else p_later)[r["variant_id"]].append(p_ref(r))
     first_shift = [sum(p_first[v]) / len(p_first[v]) - sum(p_later[v]) / len(p_later[v]) for v in p_first if v in p_later]
     orders_vary = any(len(orders) > 1 for orders in orders_by_variant.values())
 
@@ -171,7 +195,10 @@ def summarize(rows: list[dict[str, Any]], ledger: list[dict[str, Any]] | None = 
         if orig is None or maj[vid] is None or maj[orig] is None:
             continue
         orig_policy = variants[orig]["policy_outcome"]
-        if UNDETERMINED in (orig_policy, v["policy_outcome"]):
+        # Rows saved before variant_rule existed: the abstain option stands in for a missing fact.
+        undetermined = [adapter.undetermined(x["variant_rule"]) if "variant_rule" in x else x["policy_outcome"] == abstain
+                        for x in (variants[orig], v)]
+        if any(undetermined):
             expectation = "original undetermined"
         else:
             expectation = "policy flips" if v["policy_outcome"] != orig_policy else "policy unchanged"
@@ -192,8 +219,14 @@ def summarize(rows: list[dict[str, Any]], ledger: list[dict[str, Any]] | None = 
     unanimous_share = round(unanimous / len(multi), 4) if multi else None
     n_cases = len(originals)
     parse_rate = len(parsed) / len(rows) if rows else None
-    user_harmful = harms.get("customer: wrongly denied", [])
+    # Where no decision harms the person in the case, every contestable case counts.
+    go_cases = user_harmful if adapter.harmed_party else contestable
     return {
+        "domain": adapter.domain,
+        "reference_option": ref,
+        "abstain_option": abstain,
+        "harmed_party": adapter.harmed_party,
+        "threshold_group": adapter.threshold_group,
         "n_rows": len(rows),
         "n_cases": n_cases,
         "n_variants": len(variants),
@@ -216,9 +249,9 @@ def summarize(rows: list[dict[str, Any]], ledger: list[dict[str, Any]] | None = 
         "P0.4_probability_noise": {
             "n_variants": len(ranges),
             "identical_across_repeats_share": round(sum(x == 0 for x in ranges) / len(ranges), 4) if ranges else None,
-            "mean_range_p_approve": _mean(ranges),
-            "p95_range_p_approve": _quantile(ranges, 0.95),
-            "max_range_p_approve": max(ranges) if ranges else None,
+            f"mean_range_p_{ref}": _mean(ranges),
+            f"p95_range_p_{ref}": _quantile(ranges, 0.95),
+            f"max_range_p_{ref}": max(ranges) if ranges else None,
             # When repeats list the options in different orders, the range includes any
             # order effect, so it is an upper bound on pure repeat noise.
             "includes_order_effects": orders_vary,
@@ -233,14 +266,14 @@ def summarize(rows: list[dict[str, Any]], ledger: list[dict[str, Any]] | None = 
             # listed first exactly as often as while listed elsewhere: 1/k of the time.
             "no_effect_share": round(1 / len(ordered[0]["option_order"]), 4) if ordered else None,
             "n_variants_with_both": len(first_shift),
-            "mean_p_approve_shift_when_approve_first": _mean(first_shift),
+            f"mean_p_{ref}_shift_when_{ref}_first": _mean(first_shift),
         },
         "P0.5_6_flips": [
             {
                 "variant_kind": kind,
                 "expectation": exp,
                 **_rate(*c),
-                "mean_abs_shift_p_approve": _mean(shifts.get((kind, exp), [])),
+                f"mean_abs_shift_p_{ref}": _mean(shifts.get((kind, exp), [])),
             }
             for (kind, exp), c in sorted(flips.items())
         ],
@@ -255,7 +288,7 @@ def summarize(rows: list[dict[str, Any]], ledger: list[dict[str, Any]] | None = 
         },
         "go_no_go": {
             "parse_rate_ok": parse_rate is not None and parse_rate >= PARSE_RATE_GO,
-            "enough_contestable_cases": len(user_harmful) >= USER_HARMFUL_MIN_GO,
+            "enough_contestable_cases": len(go_cases) >= USER_HARMFUL_MIN_GO,
             "stability_ok": unanimous_share is not None and unanimous_share >= STABILITY_UNANIMOUS_GO,
             "single_model_version": len(versions) == 1,
         },
@@ -266,14 +299,26 @@ def render_report(s: dict[str, Any], run_id: str = "") -> str:
     def pct(cell: dict[str, Any]) -> str:
         return "n/a" if cell["rate"] is None else f"{cell['rate']:.0%} ({cell['k']}/{cell['n']})"
 
+    # Summaries from before domains existed are refund summaries.
+    domain = s.get("domain", "refund")
+    ref = s.get("reference_option", "approve")
+    party = s.get("harmed_party", "customer")
+    P = f"P({ref})"
     out = [f"# Pilot 0 report {run_id}".rstrip(), ""]
+    if domain != "refund":
+        out += [f"Domain: {domain}", ""]
     out += [f"Rows: {s['n_rows']} · cases: {s['n_cases']} · variants: {s['n_variants']}", ""]
     out += [f"**P0.1 parse success:** {pct(s['P0.1_parse'])}", ""]
     out += ["**P0.2 agreement with policy on the presented record (per sample)**", "",
             "| Case type | Agreement |", "|---|---|"]
     out += [f"| {t} | {pct(c)} |" for t, c in s["P0.2_policy_agreement_by_type"].items()]
-    out += ["", "By the rule that decides the presented record. Date-window rules need date arithmetic, "
-            "which TypeSafe lists as unreliable for Jev.", "",
+    if domain == "refund":
+        rules_note = ("By the rule that decides the presented record. Date-window rules need date arithmetic, "
+                      "which TypeSafe lists as unreliable for Jev.")
+    else:
+        rules_note = (f"By the rule that decides the presented record. \"{s['threshold_group']}\" rules compare "
+                      "the swept quantity with the policy's cutoff.")
+    out += ["", rules_note, "",
             "| Rule | Agreement |", "|---|---|"]
     out += [f"| {t} | {pct(c)} |" for t, c in s["P0.2_policy_agreement_by_rule"].items()]
     out += [f"| **{t}** | {pct(c)} |" for t, c in s["P0.2_policy_agreement_by_rule_group"].items()]
@@ -295,13 +340,13 @@ def render_report(s: dict[str, Any], run_id: str = "") -> str:
     out += [f"**P0.4 stability:** mean majority share {st['mean_majority_share']}, "
             f"unanimous {st['unanimous_share']} over {st['n_variants']} variants", ""]
     nz = s["P0.4_probability_noise"]
-    out += ["**P0.4 probability noise:** range of P(approve) across repeats of the same input", "",
+    out += [f"**P0.4 probability noise:** range of {P} across repeats of the same input", "",
             "| Measure | Value |", "|---|---|",
             f"| Variants with 2+ parsed repeats | {nz['n_variants']} |",
-            f"| Share with identical P(approve) on every repeat | {nz['identical_across_repeats_share']} |",
-            f"| Mean range | {nz['mean_range_p_approve']} |",
-            f"| 95th-percentile range (candidate noise floor) | {nz['p95_range_p_approve']} |",
-            f"| Largest range | {nz['max_range_p_approve']} |", ""]
+            f"| Share with identical {P} on every repeat | {nz['identical_across_repeats_share']} |",
+            f"| Mean range | {nz[f'mean_range_p_{ref}']} |",
+            f"| 95th-percentile range (candidate noise floor) | {nz[f'p95_range_p_{ref}']} |",
+            f"| Largest range | {nz[f'max_range_p_{ref}']} |", ""]
     if nz["includes_order_effects"]:
         out += ["Repeats listed the options in different orders, so these ranges include any order effect "
                 "and are an upper bound on pure repeat noise. For a pure noise floor, run with "
@@ -310,11 +355,11 @@ def render_report(s: dict[str, Any], run_id: str = "") -> str:
     if oo["n_rows"]:
         out += [f"**P0.4 option order:** the first-listed option was chosen in {oo['first_listed_chosen_share']} "
                 f"of {oo['n_rows']} answers ({oo['no_effect_share']} expected with no order effect, when every "
-                f"variant sees each order equally often). P(approve) was {oo['mean_p_approve_shift_when_approve_first']} "
-                f"higher on average when approve was listed first ({oo['n_variants_with_both']} variants).", ""]
+                f"variant sees each order equally often). {P} was {oo[f'mean_p_{ref}_shift_when_{ref}_first']} "
+                f"higher on average when {ref} was listed first ({oo['n_variants_with_both']} variants).", ""]
     out += ["**P0.5 / P0.6 decision flips vs. the original**", "",
-            "| Variant kind | Policy expectation | Flip rate | Mean shift in P(approve) |", "|---|---|---|---|"]
-    out += [f"| {f['variant_kind']} | {f['expectation']} | {pct(f)} | {f['mean_abs_shift_p_approve']} |"
+            f"| Variant kind | Policy expectation | Flip rate | Mean shift in {P} |", "|---|---|---|---|"]
+    out += [f"| {f['variant_kind']} | {f['expectation']} | {pct(f)} | {f[f'mean_abs_shift_p_{ref}']} |"
             for f in s["P0.5_6_flips"]]
     mv = s["P0.7_model_versions"]
     out += ["", f"**P0.7 model versions:** {mv['model_used_counts']}", ""]
@@ -322,19 +367,35 @@ def render_report(s: dict[str, Any], run_id: str = "") -> str:
     out += [f"**P0.8 cost:** ${c['total_usd']:.4f} total; {c['billed_decisions']} billed decisions; "
             f"per decision {c['per_decision_usd']}", ""]
     g = s["go_no_go"]
+    if domain == "refund":
+        go_line, go_n = "cases where Jev wrongly denies the customer", len(s["P0.3_user_harmful_cases"])
+    elif party:
+        go_line, go_n = f"cases where Jev's wrong decision harms the {party}", len(s["P0.3_user_harmful_cases"])
+    else:
+        go_line, go_n = "cases where Jev is wrong under ground truth", len(s["P0.3_contestable_cases"])
     out += ["**Go / no-go**", "",
             f"- Parse rate ≥ {PARSE_RATE_GO:.0%}: {'yes' if g['parse_rate_ok'] else 'no'}",
-            f"- At least {USER_HARMFUL_MIN_GO} cases where Jev wrongly denies the customer: "
-            f"{'yes' if g['enough_contestable_cases'] else 'no'} ({len(s['P0.3_user_harmful_cases'])})",
+            f"- At least {USER_HARMFUL_MIN_GO} {go_line}: "
+            f"{'yes' if g['enough_contestable_cases'] else 'no'} ({go_n})",
             f"- At least {STABILITY_UNANIMOUS_GO:.0%} of variants unanimous across repeats: "
             f"{'yes' if g['stability_ok'] else 'no'} ({s['P0.4_stability']['unanimous_share']})",
             f"- One model version throughout: {'yes' if g['single_model_version'] else 'no'}", ""]
     return "\n".join(out)
 
 
+def run_adapter(run_dir: Path) -> BenchmarkAdapter:
+    """The adapter for the benchmark a run used, from its manifest (refund if it names none)."""
+    manifest_path = run_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
+    path = (manifest.get("benchmark") or {}).get("path")
+    if path and (Path(path) / "meta.json").exists():
+        return adapter_for(json.loads((Path(path) / "meta.json").read_text()))
+    return refund_adapter()
+
+
 def analyze_run(run_dir: str | Path) -> dict[str, Any]:
     run_dir = Path(run_dir)
-    summary = summarize(load_decisions(run_dir), _read_jsonl(run_dir / "ledger.jsonl"))
+    summary = summarize(load_decisions(run_dir), _read_jsonl(run_dir / "ledger.jsonl"), run_adapter(run_dir))
     (run_dir / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n")
     (run_dir / "report.md").write_text(render_report(summary, run_dir.name))
     return summary

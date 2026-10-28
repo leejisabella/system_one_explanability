@@ -75,8 +75,10 @@ class FakeChatProvider(Provider):
     Answers in the format each Pilot 1 step expects, chosen by the request's "step" and
     "condition" tags.
     Replies depend only on a hash of the request, so they carry no signal about the
-    case. Bases are the refund policy with some of its last rules dropped, so they
-    always run. A small share of replies are malformed, to exercise parsing.
+    case. The options come from the request's JSON schema (the refund options without
+    one). Refund bases are the refund policy with some of its last rules dropped, and
+    other domains' bases are a default outcome alone, so they always run. A small share
+    of replies are malformed, to exercise parsing.
     """
 
     name = "fake"
@@ -96,10 +98,13 @@ class FakeChatProvider(Provider):
         digest = hashlib.sha256(payload.encode()).digest()
         if self.malformed_every and digest[0] % self.malformed_every == 0:
             return ok_result("I can't answer that in the requested format.", model=self.version)
-        labels = ("approve", "deny", "undetermined")
-        label = labels[digest[1] % 3]
-        full = policy_basis()
-        basis = {**full.to_dict(), "rules": full.to_dict()["rules"][: len(full.rules) - digest[2] % 4]}
+        labels = _schema_labels(request.json_schema) or ("approve", "deny", "undetermined")
+        label = labels[digest[1] % len(labels)]
+        if labels == ("approve", "deny", "undetermined"):
+            full = policy_basis()
+            basis = {**full.to_dict(), "rules": full.to_dict()["rules"][: len(full.rules) - digest[2] % 4]}
+        else:
+            basis = {"rules": [], "default_outcome": label}
         step = request.tags.get("step")
         if step == "explainer_decision":
             reply: Any = {"decision": label}
@@ -108,14 +113,26 @@ class FakeChatProvider(Provider):
         elif step == "explanation":
             reply = {"basis": basis, "summary": f"Fake structured explanation {digest[3]}."}
         elif step == "simulation":
-            weights = [digest[4 + i] + 1 for i in range(3)]
-            probs = [round(w / sum(weights), 2) for w in weights[:2]]
+            weights = [digest[4 + i] + 1 for i in range(len(labels))]
+            probs = [round(w / sum(weights), 2) for w in weights[:-1]]
             probs.append(round(1 - sum(probs), 2))
             reply = {"predicted_decision": label, "probabilities": dict(zip(labels, probs)),
                      "basis": basis, "covered": bool(digest[5] % 2)}
         else:
             reply = f"echo: {request.messages[-1].content}"
         return ok_result(reply if isinstance(reply, str) else json.dumps(reply), model=self.version)
+
+
+def _schema_labels(schema: dict[str, Any] | None) -> tuple[str, ...] | None:
+    """The options in an explainer-decision, structured-explanation or simulation schema,
+    if the request has one."""
+    props = (schema or {}).get("properties", {})
+    for key in ("decision", "predicted_decision"):
+        if "enum" in props.get(key, {}):
+            return tuple(props[key]["enum"])
+    if "basis" in props:
+        return tuple(props["basis"]["properties"]["rules"]["items"]["properties"]["outcome"]["enum"])
+    return None
 
 
 def _fake_answer(question: dict[str, Any], digest: bytes, malformed: bool) -> dict[str, Any]:

@@ -32,11 +32,18 @@ def freeze_benchmark(cases: list[Case], out_dir: str | Path, meta: dict[str, Any
 
 
 def load_benchmark(path: str | Path) -> tuple[list[Case], dict[str, Any]]:
-    """Load a frozen benchmark, refusing it if the cases file no longer matches its recorded hash."""
+    """Load a frozen benchmark, refusing it if the cases file no longer matches its recorded hash.
+
+    Benchmarks whose meta names a domain other than refund load as DomainCase."""
     path = Path(path)
     body = (path / "cases.jsonl").read_text()
     meta = json.loads((path / "meta.json").read_text())
     digest = hashlib.sha256(body.encode()).hexdigest()
     if digest != meta["sha256"]:
         raise ValueError(f"{path}: cases.jsonl hash {digest} does not match meta.json {meta['sha256']}")
-    return [Case.from_dict(json.loads(line)) for line in body.splitlines() if line.strip()], meta
+    case_cls = Case
+    if meta.get("domain", "refund") != "refund":
+        from sysone.benchmark.domains.base import DomainCase
+
+        case_cls = DomainCase
+    return [case_cls.from_dict(json.loads(line)) for line in body.splitlines() if line.strip()], meta

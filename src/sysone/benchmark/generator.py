@@ -8,6 +8,9 @@ before IDs are assigned, so a case's ID carries no information about its type.
 Version 0.2 adds options without changing what the defaults generate, so refund_v0
 (built with 0.1) still regenerates byte for byte: a count per case type, which
 corruptions incorrect-input cases use, and a case-ID prefix.
+
+Version 0.3 adds threshold-sweep cases (refund_v1.1). Their count defaults to 0 and
+they are built after every other type, so earlier benchmarks still regenerate.
 """
 
 from __future__ import annotations
@@ -20,7 +23,7 @@ from sysone.benchmark.cases import Case, CaseType, Defect, EvidenceItem, Variant
 from sysone.benchmark.records import Condition, Outcome, Record
 from sysone.benchmark.refund_policy import PolicyParams, evaluate
 
-GENERATOR_VERSION = "refund-gen-0.2"
+GENERATOR_VERSION = "refund-gen-0.3"
 
 ITEMS = [
     ("ceramic table lamp", "lighting", (35, 120)),
@@ -46,6 +49,11 @@ SURNAMES = ["Carter", "Miller", "Reed", "Hayes", "Brooks", "Foster", "Bennett", 
 DENY_REASONS = ["window", "opened", "no_receipt", "final_sale"]
 # Corruptions for incorrect-input cases, cycled in this order.
 INCORRECT_INPUT_KINDS = ("purchase_date", "condition", "has_receipt")
+# Days since purchase (net of carrier delay) that threshold-sweep cases cover. Jev
+# approves up to about 57 days in E0, against the policy's 30 (research_docs/12).
+SWEEP_DAYS = (25, 65)
+# Points per sweep case: the original plus the others as sweep-point variants.
+SWEEP_POINTS = 5
 
 
 @dataclass
@@ -265,6 +273,22 @@ class RefundCaseGenerator:
             ],
         )
 
+    def threshold_sweep(self, i: int) -> _Draft:
+        """An unopened item with a receipt, asked about at several days since purchase
+        spread across SWEEP_DAYS. Only the window rule can decide these."""
+        base = self._base()
+        lo, hi = SWEEP_DAYS
+        edges = [lo + (hi - lo + 1) * k // SWEEP_POINTS for k in range(SWEEP_POINTS + 1)]
+        days = [self.rng.randint(a, b - 1) for a, b in zip(edges, edges[1:])]
+        self.rng.shuffle(days)
+        records = [base.replace(purchase_date=base.request_date - timedelta(days=d)) for d in days]
+        return _Draft(
+            CaseType.THRESHOLD_SWEEP, records[0], records[0], evaluate(records[0], self.params).outcome,
+            evidence=self._standard_evidence(records[0]),
+            variants=[(VariantKind.ORIGINAL, records[0], "field", f"original ({days[0]} days since purchase)")]
+            + [(VariantKind.SWEEP_POINT, r, "field", f"{d} days since purchase") for d, r in zip(days[1:], records[1:])],
+        )
+
     # ---- assembly ----------------------------------------------------------
 
     def generate(
@@ -274,8 +298,9 @@ class RefundCaseGenerator:
         counts: dict[CaseType, int] | None = None,
         id_prefix: str | None = None,
     ) -> list[Case]:
-        """counts overrides per_type for the case types it names. id_prefix defaults to
-        the policy ID (refund_v0's IDs); newer benchmarks use their own name."""
+        """counts overrides per_type for the case types it names; threshold-sweep cases
+        are built only when counts names them. id_prefix defaults to the policy ID
+        (refund_v0's IDs); newer benchmarks use their own name."""
         builders = {
             CaseType.CORRECT: self.correct,
             CaseType.INCORRECT_INPUT: self.incorrect_input,
@@ -283,8 +308,9 @@ class RefundCaseGenerator:
             CaseType.IRRELEVANT_CUE: self.irrelevant_cue,
             CaseType.AMBIGUOUS: self.ambiguous,
             CaseType.HARD_NEGATIVE: self.hard_negative,
+            CaseType.THRESHOLD_SWEEP: self.threshold_sweep,
         }
-        counts = counts or {}
+        counts = {CaseType.THRESHOLD_SWEEP: 0, **(counts or {})}
         drafts = [build(i) for t, build in builders.items() for i in range(counts.get(t, per_type))]
         self.rng.shuffle(drafts)
         prefix = id_prefix or self.params.policy_id

@@ -19,6 +19,8 @@ Saved simulator replies that failed to parse are re-parsed with the current pars
 repairs decimals with a spelled-out digit ("0. nine"); repaired replies are counted in the
 report. --no-repair scores them as unparsed instead.
 
+The benchmark's domain sets the options and the basis fields (sysone.benchmark.adapter).
+
 Usage:  uv run python -m sysone.analysis.pilot1 [--no-repair] results/runs/<run_id>
 
 Writes summary.json and report.md into the run directory. Both are derived files and
@@ -35,10 +37,10 @@ from pathlib import Path
 from typing import Any
 
 from sysone.analysis.pilot0 import _rate, _read_jsonl, load_decisions, majority
-from sysone.benchmark.records import Record
+from sysone.benchmark.adapter import adapter_for
 from sysone.benchmark.store import load_benchmark
-from sysone.decision.jev import LABELS
-from sysone.explain.basis import BasisError, execute, parse_basis
+from sysone.explain.basis import REFUND_BASIS, BasisError, BasisLanguage, execute, parse_basis
+from sysone.explain.setting import REFUND_SETTING, ExplainSetting
 from sysone.explain.simulator import parse_simulation
 from sysone.types import ChatResponse, Usage
 
@@ -64,7 +66,8 @@ def jev_decisions(pilot0_dir: Path) -> dict[str, JevVariantDecision]:
     for vid, rows in by_variant.items():
         with_probs = [r["probabilities"] for r in rows if r.get("probabilities")]
         probs = (
-            {k: round(sum(p[k] for p in with_probs) / len(with_probs), 4) for k in LABELS} if with_probs else None
+            {k: round(sum(p[k] for p in with_probs) / len(with_probs), 4) for k in with_probs[0]}
+            if with_probs else None
         )
         out[vid] = JevVariantDecision(majority([r["decision"] for r in rows]), probs, len(rows))
     return out
@@ -82,14 +85,15 @@ def _share(k: int, n: int) -> float | None:
     return round(k / n, 4) if n else None
 
 
-def _executed(basis_raw: Any, record: Record) -> str | None:
+def _executed(basis_raw: Any, record: Any, lang: BasisLanguage = REFUND_BASIS) -> str | None:
     try:
-        return execute(parse_basis(basis_raw), record).decision
+        return execute(parse_basis(basis_raw, lang), record, lang).decision
     except BasisError:
         return None
 
 
-def reparse_simulations(rows: list[dict[str, Any]], *, repair: bool = True) -> list[dict[str, Any]]:
+def reparse_simulations(rows: list[dict[str, Any]], *, repair: bool = True,
+                        setting: ExplainSetting = REFUND_SETTING) -> list[dict[str, Any]]:
     """Saved simulations, with replies that parse only after repair filled in (repair=True)
     or scored as unparsed (repair=False)."""
     out = []
@@ -99,7 +103,7 @@ def reparse_simulations(rows: list[dict[str, Any]], *, repair: bool = True) -> l
         elif r.get("status") == "ok" and repair and not r["parse_ok"] and r.get("raw_text"):
             saved = ChatResponse(text=r["raw_text"], usage=Usage(0, 0), cost_usd=0.0, provider="",
                                  model_requested="", model_used="", finish_reason=None, raw={})
-            sim = parse_simulation(saved, r.get("request_key", ""))
+            sim = parse_simulation(saved, r.get("request_key", ""), setting)
             if sim.repaired:
                 r = {**r, "predicted_decision": sim.predicted, "probabilities": sim.probabilities,
                      "basis": sim.basis_raw, "basis_ok": sim.basis is not None, "basis_error": sim.basis_error,
@@ -122,7 +126,7 @@ def _on_departures(rows: list[dict[str, Any]], control: dict[str, dict[str, Any]
 
 
 def _faithfulness(rows: list[dict[str, Any]], control: dict[str, dict[str, Any]],
-                  records: dict[str, Record]) -> dict[str, Any]:
+                  records: dict[str, Any], lang: BasisLanguage) -> dict[str, Any]:
     """Scores for one (explainer, condition) group of simulations with an explanation."""
     parsed = [r for r in rows if r["parse_ok"]]
     # Scored on variants where Jev's decision is determined and both simulations parsed.
@@ -146,7 +150,7 @@ def _faithfulness(rows: list[dict[str, Any]], control: dict[str, dict[str, Any]]
 
     covered = [r for r in parsed if r["covered"]]
     covered_scored = [r for r in covered if r["jev_decision"] is not None]
-    executed = {id(r): _executed(r["basis"], records[r["variant_id"]]) for r in parsed if r["basis_ok"]}
+    executed = {id(r): _executed(r["basis"], records[r["variant_id"]], lang) for r in parsed if r["basis_ok"]}
     decidable = [r for r in parsed if executed.get(id(r)) is not None]
     decidable_scored = [r for r in decidable if r["jev_decision"] is not None]
     return {
@@ -175,8 +179,8 @@ def _faithfulness(rows: list[dict[str, Any]], control: dict[str, dict[str, Any]]
     }
 
 
-def _option_b(explanations: list[dict[str, Any]], hidden: dict[str, list[str]], records: dict[str, Record],
-              jev: dict[str, str | None]) -> dict[str, Any]:
+def _option_b(explanations: list[dict[str, Any]], hidden: dict[str, list[str]], records: dict[str, Any],
+              jev: dict[str, str | None], lang: BasisLanguage) -> dict[str, Any]:
     """Structured explanations run directly against each hidden variant's record."""
     by_explainer: dict[str, list[int]] = defaultdict(lambda: [0, 0, 0])  # agree, decidable, scored variants
     for e in explanations:
@@ -185,7 +189,7 @@ def _option_b(explanations: list[dict[str, Any]], hidden: dict[str, list[str]], 
         for vid in hidden.get(e["case_id"], []):
             if jev.get(vid) is None:
                 continue
-            decision = _executed(e["basis"], records[vid])
+            decision = _executed(e["basis"], records[vid], lang)
             cell = by_explainer[e["explainer"]]
             cell[2] += 1
             if decision is not None:
@@ -240,9 +244,9 @@ def _disagreement(decisions: list[dict[str, Any]], jev: dict[str, str | None],
 
 
 def summarize(explainer_decisions: list[dict[str, Any]], explanations: list[dict[str, Any]],
-              simulations: list[dict[str, Any]], *, records: dict[str, Record], hidden: dict[str, list[str]],
+              simulations: list[dict[str, Any]], *, records: dict[str, Any], hidden: dict[str, list[str]],
               kinds: dict[str, str], policy: dict[str, str], jev: dict[str, str | None],
-              ledger: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+              ledger: list[dict[str, Any]] | None = None, lang: BasisLanguage = REFUND_BASIS) -> dict[str, Any]:
     control = {r["variant_id"]: r for r in simulations if r["condition"] == CONTROL}
     groups: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
     for r in simulations:
@@ -274,11 +278,12 @@ def summarize(explainer_decisions: list[dict[str, Any]], explanations: list[dict
             "agreement_with_jev": _rate(
                 sum(r["predicted_decision"] == r["jev_decision"] for r in control_scored), len(control_scored)),
         },
-        "faithfulness": {f"{a}/{c}": _faithfulness(rows, control, records) for (a, c), rows in sorted(groups.items())},
+        "faithfulness": {f"{a}/{c}": _faithfulness(rows, control, records, lang)
+                         for (a, c), rows in sorted(groups.items())},
         "faithfulness_on_policy_departures": {f"{a}/{c}": _on_departures(rows, control)
                                               for (a, c), rows in sorted(groups.items())},
         "simulations_repaired": sum(bool(r.get("repaired")) and bool(r["parse_ok"]) for r in simulations),
-        "option_b_structured_executed": _option_b(explanations, hidden, records, jev),
+        "option_b_structured_executed": _option_b(explanations, hidden, records, jev, lang),
         "jev_explainer_disagreement": _disagreement(explainer_decisions, jev, kinds, policy),
         "model_versions": dict(versions.most_common()),
         "cost": {
@@ -348,7 +353,8 @@ def render_report(s: dict[str, Any], run_id: str = "") -> str:
 def analyze_run(run_dir: str | Path, *, repair: bool = True) -> dict[str, Any]:
     run_dir = Path(run_dir)
     manifest = json.loads((run_dir / "manifest.json").read_text())
-    cases, _ = load_benchmark(manifest["benchmark"]["path"])
+    cases, meta = load_benchmark(manifest["benchmark"]["path"])
+    setting = adapter_for(meta).setting
     records = {v.variant_id: v.record for c in cases for v in c.variants}
     hidden = {c.case_id: [v.variant_id for v in c.variants[1:]] for c in cases}
     kinds = {v.variant_id: str(v.kind) for c in cases for v in c.variants}
@@ -357,10 +363,10 @@ def analyze_run(run_dir: str | Path, *, repair: bool = True) -> dict[str, Any]:
     summary = summarize(
         _latest_ok(_read_jsonl(run_dir / "explainer_decisions.jsonl"), "explainer", "variant_id", "sample_index"),
         _latest_ok(_read_jsonl(run_dir / "explanations.jsonl"), "explanation_id"),
-        _latest_ok(reparse_simulations(_read_jsonl(run_dir / "simulations.jsonl"), repair=repair),
+        _latest_ok(reparse_simulations(_read_jsonl(run_dir / "simulations.jsonl"), repair=repair, setting=setting),
                    "explanation_id", "variant_id"),
         records=records, hidden=hidden, kinds=kinds, policy=policy, jev=jev,
-        ledger=_read_jsonl(run_dir / "ledger.jsonl"),
+        ledger=_read_jsonl(run_dir / "ledger.jsonl"), lang=setting.basis,
     )
     (run_dir / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n")
     (run_dir / "report.md").write_text(render_report(summary, run_dir.name))

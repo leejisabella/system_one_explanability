@@ -16,6 +16,9 @@ class CaseType(StrEnum):
     IRRELEVANT_CUE = "irrelevant_cue"  # Type III
     AMBIGUOUS = "ambiguous"
     HARD_NEGATIVE = "hard_negative"
+    # A policy threshold swept across its cutoff, so the target's own cutoff decides
+    # many variants (added after Pilot 1, where the policy alone predicted Jev on 90%).
+    THRESHOLD_SWEEP = "threshold_sweep"
 
 
 class VariantKind(StrEnum):
@@ -34,6 +37,8 @@ class VariantKind(StrEnum):
     DISCREPANCY_FIXED = "discrepancy_fixed"
     # Fills in a missing fact.
     RESOLUTION = "resolution"
+    # Moves the swept quantity of a threshold-sweep case to another value.
+    SWEEP_POINT = "sweep_point"
 
 
 @dataclass(frozen=True)

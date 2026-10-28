@@ -1,0 +1,36 @@
+{
+  "case_type_counts": {
+    "ambiguous": 10,
+    "correct": 10,
+    "hard_negative": 10,
+    "ignored_evidence": 10,
+    "incorrect_input": 10,
+    "irrelevant_cue": 10,
+    "threshold_sweep": 10
+  },
+  "counts": {},
+  "domain": "moderation",
+  "generator_version": "moderation-gen-0.1",
+  "id_prefix": "moderation_v1",
+  "n_cases": 70,
+  "n_variants": 210,
+  "name": "moderation_v1",
+  "per_type": 10,
+  "policy": {
+    "policy_id": "moderation_v1",
+    "report_threshold": 10
+  },
+  "seed": 0,
+  "sha256": "787cfd0c327ccf7b86c619a17f321c2a50e002a6dc90775000a542ff40d73717",
+  "task": {
+    "criteria": {
+      "allow": "The moderation policy allows this post to stay up.",
+      "escalate": "The post goes to a human moderator: the policy escalates it, or the case file is missing information the policy needs to decide it.",
+      "remove": "The moderation policy requires removing this post."
+    },
+    "instructions": "Decide this flagged post by applying the moderation policy to the case file.",
+    "policy_key": "moderation_policy",
+    "question": "moderation_decision"
+  },
+  "text": "template"
+}

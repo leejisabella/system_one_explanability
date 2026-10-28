@@ -1,0 +1,37 @@
+{
+  "case_type_counts": {
+    "ambiguous": 10,
+    "correct": 10,
+    "hard_negative": 10,
+    "ignored_evidence": 10,
+    "incorrect_input": 10,
+    "irrelevant_cue": 10,
+    "threshold_sweep": 10
+  },
+  "counts": {},
+  "domain": "tool_selection",
+  "generator_version": "tools-gen-0.1",
+  "id_prefix": "tools_v1",
+  "n_cases": 70,
+  "n_variants": 210,
+  "name": "tools_v1",
+  "per_type": 10,
+  "policy": {
+    "policy_id": "tools_v1",
+    "row_limit": 20
+  },
+  "seed": 0,
+  "sha256": "23818d181488cbefd238dd0ba0e181c15b16843380c7713c0526c3a70fa95bf8",
+  "task": {
+    "criteria": {
+      "ask_user": "Ask the user a clarifying question first: the case file is missing information the policy needs to choose a tool.",
+      "calculator": "The tool-selection policy routes this request to the calculator.",
+      "code": "The tool-selection policy routes this request to the code interpreter.",
+      "search": "The tool-selection policy routes this request to web search."
+    },
+    "instructions": "Choose the tool for this request by applying the tool-selection policy to the case file.",
+    "policy_key": "tool_policy",
+    "question": "tool_decision"
+  },
+  "text": "template"
+}

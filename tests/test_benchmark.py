@@ -42,7 +42,8 @@ def test_policy_rules(changes, outcome, rule):
 def test_ten_cases_per_type(cases):
     assert len(cases) == 60
     for t in CaseType:
-        assert sum(c.case_type == t for c in cases) == 10
+        # Refund threshold sweeps are built only when asked for (refund_v1_1).
+        assert sum(c.case_type == t for c in cases) == (0 if t == CaseType.THRESHOLD_SWEEP else 10)
 
 
 def test_generation_is_deterministic(cases):
@@ -158,3 +159,13 @@ def test_v1_options_set_counts_corruptions_and_id_prefix():
 def test_unknown_corruption_kind_is_rejected():
     with pytest.raises(ValueError):
         RefundCaseGenerator(incorrect_input_kinds=("price",))
+
+
+def test_refund_threshold_sweeps_cross_the_window():
+    cases = RefundCaseGenerator(seed=2).generate(0, counts={CaseType.THRESHOLD_SWEEP: 6})
+    assert len(cases) == 6 and all(c.case_type == CaseType.THRESHOLD_SWEEP for c in cases)
+    for c in cases:
+        days = [(v.record.request_date - v.record.purchase_date).days for v in c.variants]
+        assert len(c.variants) == 5 and all(25 <= d <= 65 for d in days) and len(set(days)) == 5
+        assert all(v.policy_outcome == (Outcome.APPROVE if d <= 30 else Outcome.DENY)
+                   for v, d in zip(c.variants, days))

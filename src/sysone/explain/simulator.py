@@ -20,35 +20,43 @@ from dataclasses import dataclass
 from typing import Any
 
 from sysone.clients.base import GuardedClient
-from sysone.decision.jev import LABELS, PROBABILITY_SUM_TOLERANCE
-from sysone.explain.basis import BASIS_INSTRUCTIONS, BASIS_SCHEMA, Basis, BasisError, parse_basis
+from sysone.decision.jev import PROBABILITY_SUM_TOLERANCE
+from sysone.explain.basis import Basis, BasisError, parse_basis
 from sysone.explain.jsonout import parse_json_object, repair_spelled_digits, uses_schema
+from sysone.explain.setting import REFUND_SETTING, ExplainSetting
 from sysone.types import ChatRequest, ChatResponse
 
 # Models state probabilities less precisely than Jev's two-decimal output.
 SIMULATOR_PROBABILITY_TOLERANCE = max(PROBABILITY_SUM_TOLERANCE, 0.05)
 
-SIMULATION_SCHEMA = {
-    "type": "object",
-    "additionalProperties": False,
-    "required": ["predicted_decision", "probabilities", "basis", "covered"],
-    "properties": {
-        "predicted_decision": {"type": "string", "enum": list(LABELS)},
-        "probabilities": {
-            "type": "object",
-            "additionalProperties": False,
-            "required": list(LABELS),
-            "properties": {label: {"type": "number"} for label in LABELS},
+
+
+def simulation_schema(setting: ExplainSetting) -> dict[str, Any]:
+    labels = list(setting.labels)
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["predicted_decision", "probabilities", "basis", "covered"],
+        "properties": {
+            "predicted_decision": {"type": "string", "enum": labels},
+            "probabilities": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": labels,
+                "properties": {label: {"type": "number"} for label in labels},
+            },
+            "basis": setting.basis.schema,
+            "covered": {"type": "boolean"},
         },
-        "basis": BASIS_SCHEMA,
-        "covered": {"type": "boolean"},
-    },
-}
+    }
+
+
+SIMULATION_SCHEMA = simulation_schema(REFUND_SETTING)
 
 _CONTEXT = (
-    "An automated decision system decides refund requests. It is given the refund policy and a case file, "
+    "An automated decision system decides {cases_noun}. It is given the {policy_name} and a case file, "
     "but it may not apply the policy exactly. You will predict what this system decides on a new version "
-    "of a case it has already decided. Below are the refund policy, the original case file and the system's "
+    "of a case it has already decided. Below are the {policy_name}, the original case file and the system's "
     "decision on it{explained}, and the new case file."
 )
 _TASK = (
@@ -58,10 +66,15 @@ _TASK = (
     "- basis: the decision rule you are using to predict the system's behavior, as a basis.\n"
     "- covered: true only if the explanation of the system's decision determines its decision on the new "
     "case file. False if no explanation is given, or it does not say what the system would do here.\n\n"
-    f"{BASIS_INSTRUCTIONS}\n\n"
-    'Reply with only a JSON object: {"predicted_decision": ..., "probabilities": {"approve": ..., '
-    '"deny": ..., "undetermined": ...}, "basis": ..., "covered": ...}.'
+    "{basis_instructions}\n\n"
+    'Reply with only a JSON object: {{"predicted_decision": ..., "probabilities": {{{probabilities}}}, '
+    '"basis": ..., "covered": ...}}.'
 )
+
+
+def _task(setting: ExplainSetting) -> str:
+    probabilities = ", ".join(f'"{label}": ...' for label in setting.labels)
+    return _TASK.format(basis_instructions=setting.basis.instructions, probabilities=probabilities)
 
 
 @dataclass(frozen=True)
@@ -94,8 +107,10 @@ class Simulator:
         reasoning_max_tokens: int | None = None,
         seed: int | None = None,
         max_output_tokens: int = 1024,
+        setting: ExplainSetting = REFUND_SETTING,
     ):
         self.client = client
+        self.setting = setting
         self.temperature = temperature
         self.reasoning_max_tokens = reasoning_max_tokens
         self.seed = seed
@@ -103,15 +118,18 @@ class Simulator:
 
     def build_request(self, policy: str, original_case: str, jev_decision: str, explanation: str | None,
                       variant_case: str, *, tags: dict[str, str] | None = None) -> ChatRequest:
+        st = self.setting
+        context = _CONTEXT.format(cases_noun=st.cases_noun, policy_name=st.policy_name,
+                                  explained=", an explanation of that decision" if explanation else "")
         parts = [
-            ("Context", _CONTEXT.format(explained=", an explanation of that decision" if explanation else "")),
-            ("Refund policy", policy),
+            ("Context", context),
+            (st.policy_heading, policy),
             ("Original case file", original_case),
             ("System decision on the original case file", jev_decision),
         ]
         if explanation is not None:
             parts.append(("Explanation of the system's decision", explanation))
-        parts += [("New case file", variant_case), ("Task", _TASK)]
+        parts += [("New case file", variant_case), ("Task", _task(st))]
         prompt = "\n\n".join(f"## {name}\n{text}" for name, text in parts)
         return ChatRequest.from_prompt(
             prompt,
@@ -119,7 +137,7 @@ class Simulator:
             temperature=self.temperature,
             reasoning_max_tokens=self.reasoning_max_tokens,
             seed=self.seed,
-            json_schema=SIMULATION_SCHEMA if uses_schema(self.client.spec.provider) else None,
+            json_schema=simulation_schema(st) if uses_schema(self.client.spec.provider) else None,
             tags=tags or {},
         )
 
@@ -128,10 +146,11 @@ class Simulator:
         request = self.build_request(policy, original_case, jev_decision, explanation, variant_case, tags=tags)
         response = self.client.complete(request)
         key = self.client.request_key(request)
-        return parse_simulation(response, key)
+        return parse_simulation(response, key, self.setting)
 
 
-def parse_simulation(response: ChatResponse, key: str) -> Simulation:
+def parse_simulation(response: ChatResponse, key: str, setting: ExplainSetting = REFUND_SETTING) -> Simulation:
+    labels = setting.labels
     obj, repaired = parse_json_object(response.text), False
     if obj is None:
         obj = parse_json_object(repair_spelled_digits(response.text))
@@ -144,11 +163,11 @@ def parse_simulation(response: ChatResponse, key: str) -> Simulation:
         return fail(f"reply is not a JSON object: {response.text[:200]!r}")
     basis_raw = obj.get("basis")
     predicted = obj.get("predicted_decision")
-    if predicted not in LABELS:
-        return fail(f"predicted_decision {predicted!r} not in {LABELS}", basis_raw)
+    if predicted not in labels:
+        return fail(f"predicted_decision {predicted!r} not in {labels}", basis_raw)
     probs = obj.get("probabilities")
-    if not isinstance(probs, dict) or set(probs) != set(LABELS):
-        return fail(f"probabilities {probs!r} do not cover {LABELS}", basis_raw)
+    if not isinstance(probs, dict) or set(probs) != set(labels):
+        return fail(f"probabilities {probs!r} do not cover {labels}", basis_raw)
     if not all(_is_unit_number(p) for p in probs.values()):
         return fail(f"probabilities {probs!r} are not all numbers in [0, 1]", basis_raw)
     if abs(sum(probs.values()) - 1) > SIMULATOR_PROBABILITY_TOLERANCE:
@@ -158,8 +177,8 @@ def parse_simulation(response: ChatResponse, key: str) -> Simulation:
         return fail(f"covered {covered!r} is not true or false", basis_raw)
     # A basis that can't be run doesn't void the prediction; it is scored as undecidable.
     try:
-        basis, basis_error = parse_basis(basis_raw), None
+        basis, basis_error = parse_basis(basis_raw, setting.basis), None
     except BasisError as e:
         basis, basis_error = None, str(e)
-    return Simulation(predicted, {k: float(probs[k]) for k in LABELS}, basis_raw, basis, basis_error, covered,
+    return Simulation(predicted, {k: float(probs[k]) for k in labels}, basis_raw, basis, basis_error, covered,
                       True, None, response, key, repaired)

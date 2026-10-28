@@ -20,6 +20,9 @@ Usage:
   uv run python -m sysone.experiments.pilot1 --pilot0-run <id> --dry-run   # fake models, no cost
   uv run python -m sysone.experiments.pilot1 --pilot0-run <id> --run-id <id>
 
+The benchmark's domain (from its meta; refund by default) sets the policy, the case
+text, the options and the explainer and simulator prompts (sysone.benchmark.adapter).
+
 Every model is locked to the first version that answers (saved per alias as
 `model_versions` in the manifest), and the run halts if one changes.
 """
@@ -38,9 +41,7 @@ from typing import Any, TypeVar
 import yaml
 
 from sysone.analysis.pilot1 import JevVariantDecision, analyze_run, jev_decisions
-from sysone.benchmark.cases import Case
-from sysone.benchmark.refund_policy import PolicyParams, policy_text
-from sysone.benchmark.render import render_case_text
+from sysone.benchmark.adapter import adapter_for
 from sysone.benchmark.store import load_benchmark
 from sysone.budget.guard import BudgetError
 from sysone.budget.pricing import Price
@@ -160,7 +161,7 @@ def _latest_ok(writer: JsonlWriter, key: Callable[[dict[str, Any]], Any]) -> dic
     return {key(r): r for r in writer.rows() if r["status"] == "ok"}
 
 
-def load_pilot0(pilot0_dir: Path) -> tuple[dict[str, Any], Path, list[Case], dict[str, Any]]:
+def load_pilot0(pilot0_dir: Path) -> tuple[dict[str, Any], Path, list[Any], dict[str, Any]]:
     """A completed Pilot 0 run's manifest, and the benchmark it used (checked against its hash)."""
     manifest_path = pilot0_dir / "manifest.json"
     if not manifest_path.exists():
@@ -178,8 +179,8 @@ def load_pilot0(pilot0_dir: Path) -> tuple[dict[str, Any], Path, list[Case], dic
 def run_pilot1(config: Pilot1Config, run: Run, clients: dict[str, GuardedClient], *, pilot0_dir: Path) -> str:
     """Run (or resume) Pilot 1 and return the final run status."""
     p0, benchmark_dir, cases, meta = load_pilot0(pilot0_dir)
-    params = PolicyParams(**meta["policy"])
-    policy = policy_text(params)
+    adapter = adapter_for(meta)
+    policy, setting = adapter.policy, adapter.setting
     jev = jev_decisions(pilot0_dir)
     none = JevVariantDecision(None, None, 0)
 
@@ -213,6 +214,7 @@ def run_pilot1(config: Pilot1Config, run: Run, clients: dict[str, GuardedClient]
         resumed_at=now_iso() if resumed else None,
         pilot0={"run_id": pilot0_dir.name, "dir": str(pilot0_dir), "model_version": p0.get("model_version")},
         benchmark={"path": str(benchmark_dir), "name": meta["name"], "sha256": meta["sha256"]},
+        domain=adapter.domain,
         config=dataclasses.asdict(config),
         models={
             alias: {
@@ -250,7 +252,7 @@ def run_pilot1(config: Pilot1Config, run: Run, clients: dict[str, GuardedClient]
         consecutive_errors = 0
         return result
 
-    texts = {v.variant_id: render_case_text(v) for c in cases for v in c.variants}
+    texts = {v.variant_id: adapter.render(v) for c in cases for v in c.variants}
     explainable = [c for c in cases if c.case_id not in skipped]
 
     status = "completed"
@@ -259,7 +261,7 @@ def run_pilot1(config: Pilot1Config, run: Run, clients: dict[str, GuardedClient]
         done = set(_latest_ok(decisions_w, lambda r: (r["explainer"], r["variant_id"], r["sample_index"])))
         for alias in config.explainers:
             explainer = ExplainerModel(clients[alias], temperature=config.explainer_temperature,
-                                       reasoning_max_tokens=config.explainer_reasoning_max_tokens)
+                                       reasoning_max_tokens=config.explainer_reasoning_max_tokens, setting=setting)
             for case in cases:
                 for variant in case.variants:
                     for sample in range(config.explainer_decision_samples):
@@ -303,13 +305,15 @@ def run_pilot1(config: Pilot1Config, run: Run, clients: dict[str, GuardedClient]
                         "jev_probabilities": jev_original.probabilities,
                     }
                     if condition == DECISION_PROBABILITIES:
-                        text = decision_probabilities_text(jev_original.label, jev_original.probabilities)
+                        text = decision_probabilities_text(jev_original.label, jev_original.probabilities,
+                                                           setting.labels)
                         row = {**base, "status": "ok", "explanation_text": text, "basis": None, "summary": None,
                                "parse_ok": True, "parse_error": None, "raw_text": None, "cost_usd": 0.0,
                                "ts": now_iso()}
                     else:
                         explainer = ExplainerModel(clients[alias], temperature=config.explainer_temperature,
-                                                   reasoning_max_tokens=config.explainer_reasoning_max_tokens)
+                                                   reasoning_max_tokens=config.explainer_reasoning_max_tokens,
+                                                   setting=setting)
                         tags = {"experiment": EXPERIMENT, "step": "explanation", "explainer": alias,
                                 "condition": condition, "case_id": case.case_id}
                         result = attempt(explanations_w, base, lambda: explainer.explain(
@@ -324,7 +328,8 @@ def run_pilot1(config: Pilot1Config, run: Run, clients: dict[str, GuardedClient]
 
         # 3. Simulations on the hidden variants: the control, then each usable explanation.
         simulator = Simulator(clients[config.simulator], temperature=config.simulator_temperature,
-                              reasoning_max_tokens=config.simulator_reasoning_max_tokens, seed=config.simulator_seed)
+                              reasoning_max_tokens=config.simulator_reasoning_max_tokens, seed=config.simulator_seed,
+                              setting=setting)
         by_case = {c.case_id: c for c in explainable}
         targets = [(f"{CONTROL}/{c.case_id}", CONTROL, CONTROL, c.case_id, None) for c in explainable]
         targets += [

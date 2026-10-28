@@ -29,12 +29,32 @@ Realistic synthetic cases across domains such as **customer support**, **content
 | **Irrelevant-cue cases** | Social or linguistic information is varied while policy-relevant facts remain constant. → Type III |
 | **Ambiguous cases** | Available information does not establish a clear outcome, requiring uncertainty or additional review. |
 | **Hard negative cases** | Counterfactual changes alter the model's output without establishing an actual decision error. |
+| **Threshold-sweep cases** | One numeric quantity is moved across the policy's cutoff, so the decision model's own cutoff decides many variants. Added after Pilot 1, where the policy alone predicted Jev on 90% of hidden variants. |
 
 ### Construction principles
 
 - Built with **programmatic rules and independently specified records**; LLMs are used primarily to generate natural-language realizations.
 - The **benchmark evaluator knows the complete underlying state**. The explanation method receives only the information available under its assigned access condition. This prevents the system from winning by directly reading the answers.
 - Use multiple independent generation procedures and held-out policy families (see Risk 2).
+
+### Domains (built 2026-10-28)
+
+Each domain is a fictional organization's written policy, an ordered rule function that computes the ground truth, a typed choice question for Jev, and a text template. The five non-refund domains share one generator ([src/sysone/benchmark/domains/](../src/sysone/benchmark/domains/)), which builds all seven case types (10 each by default) and checks every intended outcome against the rule function. Every domain has an option for "can't decide from this case file", which ambiguous cases test.
+
+| Benchmark | Domain | Options | Swept threshold (policy cutoff) | Exceptions shown only in an attachment | Cues swapped | Cases / variants |
+|---|---|---|---|---|---|---|
+| `refund_v1_1` | Refund eligibility | approve / deny / undetermined | days since purchase, 25–65 (30) | carrier delay, manager pre-approval | name, message register | 104 / 338 |
+| `moderation_v1` | Content moderation | allow / remove / escalate | user reports, 3–22 (10) | upheld appeal, news context | author name, writing style | 70 / 210 |
+| `fraud_v1` | Card fraud screening | approve / block / review | amount vs. typical purchase, 2–10× (5×) | travel notice, in-app confirmation | cardholder name, merchant | 70 / 210 |
+| `tools_v1` | Tool selection | search / calculator / code / ask_user | rows in an attached table, 5–45 (20) | user asked for a tool earlier | user name, message register | 70 / 210 |
+| `routing_v1` | Support ticket routing | billing / technical / security / human | urgency score, 60–99 (80) | open security incident, asked for a person | customer name, message register | 70 / 210 |
+| `eligibility_v1` | Rental assistance eligibility | eligible / ineligible / undetermined | income, 80–125% of the household's limit (100%) | caseworker hardship exemption | applicant name, message register | 70 / 210 |
+
+- **Content moderation posts are described by fields** (the classifier's finding, the report count), never by their text, so no harmful content is generated or sent to any model.
+- **Name swaps reuse the provisional name list** (first names from Bertrand & Mullainathan, 2004) until the cited audit list is chosen; changing it means freezing new versions.
+- **User-harm labels** exist where a wrong decision harms the person the case is about: refunds (wrongful denial), moderation (removing an allowed post), fraud (blocking an approvable purchase) and eligibility (finding an eligible household ineligible). Tool selection and routing carry none.
+- **Runs on every domain (2026-10-28):** the Pilot 0 and Pilot 1 runners, their analyses, the preflight and the explainer and simulator prompts take the domain from the benchmark's meta ([src/sysone/benchmark/adapter.py](../src/sysone/benchmark/adapter.py)). Each domain has its own basis fields for structured explanations, and its policy written as a basis agrees with its rule function on every variant. Refund prompts are byte-identical to before, so Pilot 1's requests and cache keys are unchanged. Dry runs with fake models pass on all six benchmarks; **Jev hasn't decided the new cases yet.**
+- **"Undetermined" is decided by the rule, not the option.** In some domains the abstain option is also a real outcome (an urgent ticket goes to a person; a large purchase goes to review). Rules that decide because a fact is missing end in `_unknown`, and only those make a case undetermined; a wrong answer on any other case is contestable.
 
 ### Stretch-goal annotations (added to Dataset A)
 
