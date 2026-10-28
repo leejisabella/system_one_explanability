@@ -23,7 +23,7 @@ Put keys in `.env` (gitignored; copy [.env.example](.env.example)). The experime
 | Provider | Used for | How to configure |
 |----------|----------|------------------|
 | TypeSafe | Jev (`jev-latest`, native API) | `TYPESAFE_API_KEY` |
-| Amazon Bedrock (us-east-2) | Case writers (Qwen3 235B, Mistral Large 3), explainers (Claude Haiku 5.5, Llama 4 Maverick), simulator and judge (gpt-oss-120b), Experiment 6 decision model (Nova Lite) | `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`, or `AWS_PROFILE`. IAM policy below. Claude also needs Anthropic's one-time use-case form in the Bedrock console. |
+| Amazon Bedrock (us-east-2) | Case writers (Qwen3 235B, Mistral Large 3), explainers (Llama 4 Maverick; Claude Haiku 5.5, blocked on this account for now), simulator and judge (gpt-oss-120b), Experiment 6 decision model (Nova Lite) | `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`, or `AWS_PROFILE`. IAM policy below. Claude also needs Anthropic's one-time use-case form in the Bedrock console and an AWS Marketplace subscription, which AWS currently refuses for this account (see [TODO.md](TODO.md)). |
 | Google Gemini API | Gemini explainer (Gemini 3.1 Flash-Lite) | `GEMINI_API_KEY` |
 
 Never commit keys.

@@ -5,7 +5,7 @@ Results write-ups, one folder per experiment. The plans live in [research_docs/]
 | Experiment | Folder | Status |
 |---|---|---|
 | E0: Jev decision characterization (Pilot 0) | [E0_jev_characterization/](E0_jev_characterization/README.md) | Done 2026-10-28: go for Experiment 1 |
-| E1: Faithfulness vs. contestability (Pilot 1 first) | — | Harness built; waits on AWS |
+| E1: Faithfulness vs. contestability (Pilot 1 first) | — | Preflight passed 2026-10-28; Pilot 1 ready to run (Llama and Gemini explainers) |
 | E2–E6, stretch S1–S5 | — | Not started |
 
 ## What goes in each folder

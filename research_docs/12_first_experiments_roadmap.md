@@ -86,7 +86,7 @@ Run `pilot0-v1-2026-10-28`: 564 calls, all answered by `jev-1.14.0`, 100% parsed
 
 | Pilot | Builds on | Needs | What it measures |
 |-------|-----------|-------|------------------|
-| **Pilot 1 — Experiment 1 pilot** | Pilot 0 decisions | Explainers (Claude Haiku 5.5, Gemini 3.1 Flash-Lite); simulator (gpt-oss-120b) | Free-form and structured explanations and the decision-plus-probabilities baseline, scored for faithfulness and contestability. Each explanation is frozen once the explainer has seen Jev's decision, then scored on the benchmark's hidden counterfactual variants: how often its implied decisions agree with Jev's, and how often Jev's and the explainer's independent decisions disagree |
+| **Pilot 1 — Experiment 1 pilot** | Pilot 0 decisions | Explainers (Llama 4 Maverick, Gemini 3.1 Flash-Lite; Claude Haiku 5.5 was planned but is blocked on this AWS account); simulator (gpt-oss-120b) | Free-form and structured explanations and the decision-plus-probabilities baseline, scored for faithfulness and contestability. Each explanation is frozen once the explainer has seen Jev's decision, then scored on the benchmark's hidden counterfactual variants: how often its implied decisions agree with Jev's, and how often Jev's and the explainer's independent decisions disagree |
 | **Pilot 2 — Stretch S1 pilot** | Pilot 1 explanations | LLM judge (gpt-oss-120b); harness not built yet | Harmful Justification Rate, Defect Disclosure Rate and Over-accusation Rate on the same explanations (mostly scoring, few new calls) |
 
 Pilot 1 and 2 reuse Pilot 0's saved decisions, so Jev isn't called again for them.
@@ -104,7 +104,7 @@ Follows the Experiment 1 protocol in [05_experiments.md](05_experiments.md#exper
 
 **Simulator (main measure).** A separate simulator model predicts Jev's decision on each hidden variant from the frozen explanation. It sees the policy, the original case, Jev's decision on the original, the frozen explanation and the variant's presented case text. It never sees Jev's decision on the variant, the true record or the ground truth.
 
-- **Model choice.** The simulator is never the explainer being scored, never from that explainer's model family, and never Jev. It may be the same model as the LLM judge if that rule holds. Chosen 2026-10-27: OpenAI's gpt-oss-120b on Bedrock (flex tier, reasoning effort `low`), from a third family, so one simulator scores both the Claude and the Gemini explainer. GPT-6.1 Terra was considered first, but AWS publishes no price for it and OpenRouter's could not be confirmed. The runner refuses a simulator from an explainer's family.
+- **Model choice.** The simulator is never the explainer being scored, never from that explainer's model family, and never Jev. It may be the same model as the LLM judge if that rule holds. Chosen 2026-10-27: OpenAI's gpt-oss-120b on Bedrock (flex tier, reasoning effort `low`), from a third family, so one simulator scores every explainer (Llama and Gemini in Pilot 1; Claude too if it is unblocked). GPT-6.1 Terra was considered first, but AWS publishes no price for it and OpenRouter's could not be confirmed. The runner refuses a simulator from an explainer's family.
 - **Fixed settings.** The same settings for every call: provider-default temperature, reasoning effort `low` with a 2,048-token reasoning cap, and the same three options Jev gets (approve, deny, undetermined). Bedrock's Converse API has no seed parameter, so none is set.
 - **No-explanation control.** The simulator also predicts each variant with the explanation removed and everything else unchanged. Faithfulness is the gain the explanation adds over this control (Normalized Simulatability Gain).
 
@@ -138,15 +138,15 @@ The basis can be run, so each variant yields two predictions from one call:
 
 - **Input:** a completed Pilot 0 run. Jev's decision on each variant is the majority of its 3 Pilot 0 samples, with probabilities averaged. Variants where the samples tie are left out of scoring, and cases whose original ties are not explained (listed in the manifest as `skipped_cases_jev_tie`).
 - **Conditions:** `free_form` and `structured` (one explanation per explainer per case, given Jev's decision only), and `decision_probabilities` (no explainer call: the simulator is shown Jev's decision and averaged probabilities).
-- **Explainers:** `explainer_bedrock` (Claude Haiku 5.5) and `explainer_gemini` (Gemini 3.1 Flash-Lite, thinking level `minimal`). Each makes 3 independent decisions per variant, with the same question and rotating option order Jev gets. Bedrock models get the JSON format in the prompt and their reply is parsed; Gemini gets a JSON schema.
+- **Explainers:** `explainer_open` (Llama 4 Maverick) and `explainer_gemini` (Gemini 3.1 Flash-Lite, thinking level `minimal`). The plan was Claude Haiku 5.5 (`explainer_bedrock`) in Llama's place, but on 2026-10-28 AWS refused the Marketplace subscription Claude needs for this account, even with the use-case form approved. If AWS unblocks it, Claude is added as a third explainer on the same Pilot 0 decisions. Each makes 3 independent decisions per variant, with the same question and rotating option order Jev gets. Bedrock models get the JSON format in the prompt and their reply is parsed; Gemini gets a JSON schema.
 - **Steps run in order and resume:** explainer decisions, then explanations, then simulations. A saved explanation is never regenerated, even if the explainer changes.
 - **Version lock:** each model is locked to the first version that answers (`model_versions` in the manifest), as for Jev in Pilot 0.
-- **Volume with two explainers on benchmark v0:** 960 explainer decisions, up to 240 explanations, and up to 600 simulator calls (100 hidden variants × the control, 4 explained groups and the baseline). Rough cost: about $0.10 for Claude Haiku 5.5 and $0.40–0.70 for the simulator on AWS, and $0.50–1.50 for Gemini 3.1 Flash-Lite on GCP, depending on how much it thinks. Measured costs from the live run replace these estimates.
+- **Volume with two explainers on benchmark v1:** 1,128 explainer decisions, 296 explanations, and 684 simulator calls (114 hidden variants × the control, 4 explained groups and the baseline). Projected from the preflight's measured costs per call (2026-10-28): about $0.10 for Llama 4 Maverick and $0.09 for the simulator on AWS, and $0.12 for Gemini 3.1 Flash-Lite on GCP, about $0.31 in all. The live run's ledger replaces these estimates.
 - **Not built yet:** contestability scoring against the verified defects, which needs the LLM judge.
 
 ## Steps to get there
 
-Steps 1–9 are done (✅) except 6b. Step 10 (Pilot 1) waits only on AWS verification; step 6b can run any time once AWS has verified the account.
+Steps 1–9 are done (✅) except 6b. Step 10 (Pilot 1) is ready to run (preflight passed 2026-10-28); step 6b can run any time.
 
 | Step | Work | Cost |
 |------|------|------|
@@ -259,9 +259,9 @@ analysis/
 
 ## Open items before the live runs
 
-- AWS account verification (blocks every Bedrock call; AWS said under 2 hours on 2026-10-27).
-- AWS Marketplace permissions on the IAM user and Anthropic's one-time use-case form, both needed before the first Claude call.
-- The preflight (`scripts/preflight.py`): one real request of every kind Pilot 0 and Pilot 1 make, to confirm access, parsing, the Gemini thinking level, the flex tier and real per-call costs, with a projected cost for full runs.
+- ✅ AWS account verification (done by 2026-10-28).
+- ❌ Claude on Bedrock: the use-case form is approved, but AWS refuses the Marketplace subscription for this account; an AWS Support case is needed. Llama 4 Maverick replaces Claude in Pilot 1.
+- ✅ The preflight (`scripts/preflight.py`, 2026-10-28): every request kind parsed, Gemini accepted thinking level `minimal`, gpt-oss ran on flex.
 - Whether the AWS and GCP credits cover these models (see [11_harness_and_infrastructure.md](11_harness_and_infrastructure.md#assumptions-still-to-verify)).
 - Budget alerts in the AWS and GCP consoles.
 

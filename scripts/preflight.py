@@ -1,7 +1,7 @@
 """Preflight before live runs: one real request of every kind Pilot 0 and Pilot 1 make, on a real case.
 
 Usage:
-  uv run python scripts/preflight.py                  # every role: jev, both explainers, simulator
+  uv run python scripts/preflight.py                  # every role: jev, Pilot 1's explainers, simulator
   uv run python scripts/preflight.py --only jev       # just Jev (e.g. before AWS is ready)
   uv run python scripts/preflight.py --dry-run        # fake models: no network, no cost
 
@@ -35,7 +35,9 @@ from sysone.explain.explainer import FREE_FORM, STRUCTURED, ExplainerModel
 from sysone.explain.simulator import Simulator
 from sysone.registry import CONFIG_DIR, REPO_ROOT, Registry
 
-ROLES = ("jev", "explainer_bedrock", "explainer_gemini", "simulator")
+# Explainer roles are the aliases in configs/experiments/pilot1.yaml.
+EXPLAINERS = tuple(yaml.safe_load((CONFIG_DIR / "experiments" / "pilot1.yaml").read_text())["explainers"])
+ROLES = ("jev", *EXPLAINERS, "simulator")
 
 
 def main() -> None:
@@ -89,7 +91,7 @@ def main() -> None:
             report("jev", "decision", d.decision.parse_ok, d.response, d.decision.parse_error)
             print(f"  {'':18} version {d.response.model_used}, probabilities {d.decision.probabilities}")
             jev_label = d.decision.label or jev_label
-        for alias in ("explainer_bedrock", "explainer_gemini"):
+        for alias in EXPLAINERS:
             if alias not in args.only:
                 continue
             explainer = ExplainerModel(client(alias), temperature=p1["explainer_temperature"],
@@ -120,10 +122,8 @@ def main() -> None:
     n_explainers = len(p1["explainers"])
     volume = {
         "jev/decision": n_variants * p0["samples_per_variant"],
-        "explainer_bedrock/decision": n_variants * p1["explainer_decision_samples"],
-        "explainer_gemini/decision": n_variants * p1["explainer_decision_samples"],
-        "explainer_bedrock/explanation:free_form": n_cases, "explainer_bedrock/explanation:structured": n_cases,
-        "explainer_gemini/explanation:free_form": n_cases, "explainer_gemini/explanation:structured": n_cases,
+        **{f"{a}/decision": n_variants * p1["explainer_decision_samples"] for a in EXPLAINERS},
+        **{f"{a}/explanation:{c}": n_cases for a in EXPLAINERS for c in (FREE_FORM, STRUCTURED)},
         "simulator/simulation:control": n_hidden,
         "simulator/simulation:explained": n_hidden * (2 * n_explainers + 1),
     }

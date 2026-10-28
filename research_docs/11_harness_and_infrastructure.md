@@ -11,9 +11,9 @@ Chosen 2026-10-27 under the project budget (see *Project budget* below). Prices 
 | Decision model (Jev) | `jev` | TypeSafe native API | `jev-latest` (was `jev-1.14.0` on 2026-10-26) | $0.042 / free |
 | Case writer (natural-language realization of Dataset A) | `case_writer` | Amazon Bedrock, us-east-2 (Ohio) | Qwen3 235B (`qwen.qwen3-235b-a22b-2507-v1:0`) | $0.22 / $0.88 |
 | Second case writer (independent generation procedure, Risk 2) | `case_writer_2` | Bedrock | Mistral Large 3 (`mistral.mistral-large-3-675b-instruct`) | $0.50 / $1.50 |
-| Explainer | `explainer_bedrock` | Bedrock | Claude Haiku 5.5 (`global.anthropic.claude-haiku-5-5`) | $0.10 / $0.50 |
+| Explainer (first choice; blocked on this AWS account since 2026-10-28) | `explainer_bedrock` | Bedrock | Claude Haiku 5.5 (`global.anthropic.claude-haiku-5-5`) | $0.10 / $0.50 |
 | Explainer | `explainer_gemini` | Gemini API | Gemini 3.1 Flash-Lite (`gemini-3.1-flash-lite`), thinking level `minimal` | $0.25 / $1.50 |
-| Open-weight explainer (stretch goal) | `explainer_open` | Bedrock | Llama 4 Maverick (`us.meta.llama4-maverick-17b-instruct-v1:0`) | $0.24 / $0.97 |
+| Explainer in Pilot 1 (replacing Claude) and open-weight explainer (stretch goal) | `explainer_open` | Bedrock | Llama 4 Maverick (`us.meta.llama4-maverick-17b-instruct-v1:0`) | $0.24 / $0.97 |
 | Simulator (Pilot 1 faithfulness scoring) | `simulator` | Bedrock | gpt-oss-120b (`openai.gpt-oss-120b-1:0`), flex tier, reasoning effort `low` | $0.15 / $0.60; flex $0.075 / $0.30 |
 | LLM judge (Pilot 2 onward) | `judge` | Bedrock | same as the simulator | same |
 | Second decision model (Experiment 6) | `decision_alt` | Bedrock | Amazon Nova Lite (`amazon.nova-lite-v1:0`) | $0.06 / $0.24 |
@@ -92,7 +92,7 @@ Every experiment, including the stretch goal, has to fit in **$50 on AWS, $50 on
 The whole-project estimate (2026-10-27, from dry-run prompt sizes and assumed reply lengths) is about $35–40 on AWS, $20–25 on GCP and $2–3 on TypeSafe, and could be off by 2–3×. AWS is the tight one. Rules that keep it within budget:
 
 - **Re-estimate before each experiment** from measured costs per call (Pilot 0 and Pilot 1 give the first ones), with a go / no-go against what is left.
-- **Experiment 2 sweeps with one explainer** (Claude Haiku 5.5); Gemini runs at a single query budget.
+- **Experiment 2 sweeps with one explainer** (Claude Haiku 5.5, or Llama 4 Maverick while Claude is blocked; Llama costs about twice as much per token, so re-estimate first); Gemini runs at a single query budget.
 - **Reuse identical Jev queries within a run** (many baselines and budgets ask the same counterfactual). Answers from earlier runs are still not reused.
 - **Fewer repeats after the pilots** once their noise is measured, e.g. 1 explainer decision per variant instead of 3.
 - **Off the cloud budgets:** S4 fine-tuning runs locally or in a free notebook with a small open-weight model, or only its in-context variant (S4a) runs; on Bedrock, a fine-tuned model typically needs hourly-billed reserved capacity. Experiment 6's classifiers for BANKING77 run locally.

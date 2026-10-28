@@ -3,7 +3,7 @@
 Usage:
   uv run python scripts/smoke_test.py jev           # TypeSafe: one yes/no question
   uv run python scripts/smoke_test.py <alias>       # any chat model in configs/models.yaml: a one-word reply,
-                                                    # e.g. case_writer, explainer_bedrock, explainer_gemini, simulator
+                                                    # e.g. case_writer, explainer_open, explainer_gemini, simulator
 
 Spends real money (well under $0.01 per call) and counts toward the project caps. Bypasses the cache. For Jev it prints the exact
 version that answered, which is what an experiment run will lock to.

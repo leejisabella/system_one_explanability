@@ -79,7 +79,7 @@ T = TypeVar("T")
 class Pilot1Config:
     # run_id of a completed Pilot 0 run under <results-dir>/runs. --pilot0-run overrides it.
     pilot0_run: str | None = None
-    explainers: tuple[str, ...] = ("explainer_bedrock", "explainer_gemini")
+    explainers: tuple[str, ...] = ("explainer_open", "explainer_gemini")
     conditions: tuple[str, ...] = CONDITIONS
     simulator: str = "simulator"
     # Independent decisions per explainer, per case variant (Jev has 3 per variant in Pilot 0).

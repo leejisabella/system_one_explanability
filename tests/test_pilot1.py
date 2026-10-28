@@ -21,7 +21,7 @@ from sysone.registry import REPO_ROOT
 from sysone.runs import Run
 from sysone.types import ChatResponse, Usage
 
-ALIASES = ("explainer_bedrock", "explainer_gemini", "simulator")
+ALIASES = ("explainer_open", "explainer_gemini", "simulator")
 
 
 # --- Basis ---------------------------------------------------------------------------
@@ -149,12 +149,12 @@ def test_family_check():
         def __init__(self, s):
             self.spec = s
 
-    config = Pilot1Config(explainers=("explainer_bedrock", "explainer_gemini"))
-    explainers = {"explainer_bedrock": C(spec("explainer_bedrock", "bedrock", "us.anthropic.claude-x")),
+    config = Pilot1Config(explainers=("explainer_open", "explainer_gemini"))
+    explainers = {"explainer_open": C(spec("explainer_open", "bedrock", "us.meta.llama-x")),
                   "explainer_gemini": C(spec("explainer_gemini", "gemini", "gemini-3.8-flash"))}
     check_families(config, {**explainers, "simulator": C(spec("simulator", "openrouter", "openai/gpt-6.1-terra"))})
     for bad in (spec("simulator", "openrouter", "google/gemini-3.8-flash"),
-                spec("simulator", "openrouter", "anthropic/claude-x"),
+                spec("simulator", "bedrock", "meta.llama3-x"),
                 spec("simulator", "typesafe", "jev-latest")):
         with pytest.raises(ValueError):
             check_families(config, {**explainers, "simulator": C(bad)})
@@ -214,7 +214,7 @@ def test_dry_run_writes_all_steps_and_resumes_without_new_calls(tmp_path, pilot0
     # Explanations see the original case only, never a hidden variant.
     texts = {v.variant_id: render_case_text(v) for c in cases for v in c.variants}
     by_case = {c.case_id: c for c in cases}
-    for alias in ("explainer_bedrock", "explainer_gemini"):
+    for alias in ("explainer_open", "explainer_gemini"):
         for req in providers[alias].requests:
             if req.tags["step"] != "explanation":
                 continue
@@ -234,7 +234,7 @@ def test_dry_run_writes_all_steps_and_resumes_without_new_calls(tmp_path, pilot0
     assert len(run.writer("explanations").rows()) == len(explanations)
 
     summary = analyze_run(run.dir)
-    assert set(summary["faithfulness"]) == {f"{a}/{c}" for a in ("explainer_bedrock", "explainer_gemini")
+    assert set(summary["faithfulness"]) == {f"{a}/{c}" for a in ("explainer_open", "explainer_gemini")
                                             for c in ("free_form", "structured")} | {"none/decision_probabilities"}
     assert (run.dir / "report.md").exists()
 
@@ -247,9 +247,9 @@ def test_a_frozen_explanation_is_never_rewritten(tmp_path, pilot0_run):
 
     # A different explainer on resume must not replace what was saved.
     other = {a: FakeChatProvider(version="fake-chat-1.0") for a in ALIASES}
-    other["explainer_bedrock"] = Recording()
+    other["explainer_open"] = Recording()
     run_pilot1(config, run, fake_clients(tmp_path, other), pilot0_dir=pilot0_run)
-    assert not [r for r in other["explainer_bedrock"].requests if r.tags["step"] == "explanation"]
+    assert not [r for r in other["explainer_open"].requests if r.tags["step"] == "explanation"]
     assert {r["explanation_id"]: r["explanation_text"] for r in run.writer("explanations").rows()} == first
 
 

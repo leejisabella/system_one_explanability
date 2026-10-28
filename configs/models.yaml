@@ -33,6 +33,7 @@ case_writer_2:
 
 explainer_bedrock:
   # Claude Haiku 5.5 through the global cross-Region profile (10% cheaper than us.).
+  # Not usable yet: AWS refuses the Marketplace subscription for this account (2026-10-28).
   provider: bedrock
   model: global.anthropic.claude-haiku-5-5
 
@@ -44,7 +45,8 @@ explainer_gemini:
   reasoning_effort: minimal
 
 explainer_open:
-  # Open-weight explainer for the stretch goal (several families and sizes).
+  # Open-weight explainer: Pilot 1's second explainer while Claude is blocked, and the
+  # stretch goal's open-weight model.
   provider: bedrock
   model: us.meta.llama4-maverick-17b-instruct-v1:0
 

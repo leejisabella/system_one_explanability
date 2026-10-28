@@ -1,7 +1,9 @@
 # Pilot 1: Experiment 1 pilot (Jev vs. explainer). See research_docs/12_first_experiments_roadmap.md.
 
 pilot0_run: null               # run_id of a completed Pilot 0 run; or pass --pilot0-run
-explainers: [explainer_bedrock, explainer_gemini]   # aliases in configs/models.yaml
+# Claude Haiku 5.5 (explainer_bedrock) is blocked on this AWS account (Marketplace subscription
+# refused, 2026-10-28), so Llama 4 Maverick takes its place; Claude joins later if AWS unblocks it.
+explainers: [explainer_open, explainer_gemini]   # aliases in configs/models.yaml
 conditions: [free_form, structured, decision_probabilities]
 simulator: simulator           # must not be Jev, an explainer, or from an explainer's model family
 explainer_decision_samples: 3  # independent explainer decisions per variant, like Jev's 3 in Pilot 0
