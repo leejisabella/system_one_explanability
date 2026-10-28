@@ -9,10 +9,17 @@ from sysone.budget import (
     RunBudgetExceeded,
 )
 from sysone.budget.pricing import estimate_input_tokens, worst_case_cost
-from sysone.clients.base import GuardedClient, ModelNotConfigured, ModelSpec, ProviderError
+from sysone.clients.base import (
+    GuardedClient,
+    ModelNotConfigured,
+    ModelSpec,
+    ModelVersionChanged,
+    ProviderError,
+    VersionLock,
+)
 from sysone.clients.cache import ResponseCache
-from sysone.clients.fake import FakeProvider, ok_result
-from sysone.types import ChatRequest
+from sysone.clients.fake import FakeProvider, ok_result, typesafe_result
+from sysone.types import ChatRequest, SystemOneRequest
 
 # $10 / $50 per 1M tokens: 40k output tokens has a worst case of $2.00 on output alone.
 PRICE = Price(input_per_m=10.0, output_per_m=50.0)
@@ -149,3 +156,69 @@ def test_ledger_records_routed_model(tmp_path):
     [entry] = client.guard.ledger.entries()
     assert entry["model_used"] == "routed/underlying-model"
     assert entry["tags"] == {"case_id": "c1"}
+
+
+# --- System One requests and the version lock ---
+
+
+def s1_req(state="the case", sample_index=0):
+    return SystemOneRequest(state=state, questions={"q": {"type": "noul"}}, sample_index=sample_index)
+
+
+def test_system_one_estimate_counts_state_and_questions():
+    small = estimate_input_tokens(s1_req("x"))
+    big = estimate_input_tokens(s1_req("x" * 3000))
+    assert big - small >= 1000  # at least one token per 3 characters of state
+    long_question = SystemOneRequest(state="x", questions={"q": {"type": "noul", "instructions": "y" * 3000}})
+    assert estimate_input_tokens(long_question) - small >= 1000  # questions are billed too
+
+
+def test_system_one_worst_case_covers_output_if_it_is_ever_billed():
+    request = s1_req()
+    assert worst_case_cost(request, Price(10.0, 0.0)) == pytest.approx(estimate_input_tokens(request) * 10 / 1e6)
+    assert worst_case_cost(request, Price(10.0, 50.0)) > worst_case_cost(request, Price(10.0, 0.0))
+
+
+def test_system_one_request_needs_typed_questions():
+    with pytest.raises(ValueError):
+        SystemOneRequest(state="s", questions={})
+    with pytest.raises(ValueError):
+        SystemOneRequest(state="s", questions={"q": {"instructions": "no type"}})
+
+
+def test_version_lock_records_first_version_then_holds():
+    seen = []
+    lock = VersionLock(on_lock=seen.append)
+    lock.check("jev-1.14.0")
+    lock.check("jev-1.14.0")
+    assert seen == ["jev-1.14.0"]
+    with pytest.raises(ModelVersionChanged) as exc:
+        lock.check("jev-1.15.0")
+    assert exc.value.expected == "jev-1.14.0" and exc.value.got == "jev-1.15.0"
+
+
+def test_version_change_is_logged_but_never_cached(tmp_path):
+    provider = FakeProvider([
+        typesafe_result({}, model="jev-1.14.0", input_tokens=100),
+        typesafe_result({}, model="jev-1.15.0", input_tokens=100),
+    ])
+    client = make_client(tmp_path, provider, cache=True, price=Price(1.0, 0.0))
+    client.version_lock = VersionLock()
+    client.complete(s1_req(sample_index=0))
+    with pytest.raises(ModelVersionChanged):
+        client.complete(s1_req(sample_index=1))
+    entries = client.guard.ledger.entries()
+    assert [e["model_used"] for e in entries] == ["jev-1.14.0", "jev-1.15.0"]
+    assert entries[-1]["cost_usd"] > 0
+    # The mismatched answer was not cached, so the same request calls the provider again.
+    with pytest.raises(ModelVersionChanged):
+        client.complete(s1_req(sample_index=1))
+    assert len(provider.calls) == 3
+
+
+def test_cached_answer_from_another_version_is_refused(tmp_path):
+    client = make_client(tmp_path, FakeProvider([typesafe_result({}, model="jev-1.13.0")]), cache=True, price=Price(1.0, 0.0))
+    client.complete(s1_req())  # cached under the alias, answered by 1.13.0
+    client.version_lock = VersionLock("jev-1.14.0")
+    with pytest.raises(ModelVersionChanged):
+        client.complete(s1_req())

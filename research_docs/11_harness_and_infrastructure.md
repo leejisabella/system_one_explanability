@@ -6,7 +6,7 @@ How experiments call outside models, and the cost controls around every call. Op
 
 | Role | Alias | Provider | Model | Status |
 |------|-------|----------|-------|--------|
-| Decision model (Jev) | `jev` | OpenRouter | TBD | **TODO** |
+| Decision model (Jev) | `jev` | TypeSafe native API | `jev-latest` (was `jev-1.14.0` on 2026-10-26) | Chosen |
 | Case writer (natural-language realization of Dataset A) | `case_writer` | Amazon Bedrock, us-east-2 (Ohio) | Claude Opus 4.5 (`us.anthropic.claude-opus-4-5-20251101-v1:0`) | Chosen |
 | Explainer | `explainer_bedrock` | Amazon Bedrock | TBD | **TODO** |
 | Explainer | `explainer_gemini` | Google Gemini | TBD | **TODO** |
@@ -14,7 +14,8 @@ How experiments call outside models, and the cost controls around every call. Op
 
 Design choices:
 
-- **Jev model ID.** The only public OpenRouter listing (as of 2026-10-21) is `typesafe/jev-router`, which picks the underlying model and reasoning effort per request. If the router changes models between probes, then $f$ is not fixed and counterfactual differences could reflect routing rather than the intervention. We prefer a fixed model ID. If we use the router, every call logs `model_used` so results can be stratified by underlying model.
+- **Jev through TypeSafe's native API.** Jev answers typed questions about a state. A choice question returns the chosen option, a probability for every option (two decimals) and TypeSafe's `confidence`, which is derived from the probabilities. The probabilities are what experiments measure. OpenRouter also lists Jev, but as a chat model, which would only give a confidence Jev types into its reply.
+- **Version lock.** `jev-latest` moves when a release ships, and every response names the exact version that answered. Each run locks to the first version that answers, saves it in the manifest as `model_version`, and halts on any answer from another version, including cached answers and answers on resume. The mismatched call is still logged and billed.
 - **Case writer is not Jev.** This keeps the model that writes benchmark text separate from the model being judged. The writer should also differ from the explainer in each run.
 - **Bedrock via boto3 `invoke_model`.** The request body pins `anthropic_version`. Anthropic's docs note that recent Anthropic SDK releases send an API version that ARN-versioned Bedrock models such as Opus 4.5 reject.
 - **The `us.` inference profile** is required for Opus 4.5 in us-east-2. It keeps traffic in US regions and costs 10% more than the `global.` profile.
@@ -46,15 +47,15 @@ Paid-tier Gemini API prices per 1M tokens (input / output), from ai.google.dev/g
 | Assumption | Where it matters | If wrong |
 |------------|------------------|----------|
 | Bedrock price for Opus 4.5 on the `us.` profile is $5.50 / $27.50 | Cost estimate and logged cost for `case_writer` | Logged cost is off; the breaker still trips if a call's computed cost exceeds $2 |
-| OpenRouter's `provider.max_price` applies to `jev-router` | Bounding Jev's per-token price | The worst-case estimate for Jev may be too low; OpenRouter's reported cost still feeds the breaker |
-| OpenRouter's `completion_tokens` includes reasoning tokens | Token counts in the log | Only token counts are affected; cost comes from OpenRouter's reported `cost` |
+| TypeSafe doesn't bill failed (non-200) requests | Logged cost of failed Jev calls | Failed calls are logged as free; Jev is cheap enough that the error is negligible |
+| Jev's output tokens stay free | Logged cost for `jev` | Logged cost is too low; the worst-case estimate already allows 1,024 output tokens at the listed output price |
 | Gemini counts thinking tokens against `max_output_tokens` | Bounding Gemini output | Output could exceed the estimate; the breaker trips if a call's actual cost exceeds $2 |
 
 ## Cost controls
 
 Limits are set in [configs/budget.yaml](../configs/budget.yaml):
 
-- **$2.00 per call.** A call is one API request to OpenRouter, Bedrock or Google, and every retry counts as its own call.
+- **$2.00 per call.** A call is one API request to TypeSafe, OpenRouter, Bedrock or Google, and every retry counts as its own call.
 - **$25.00 per run.** A run is one `run_id`.
 
 Every call goes through `GuardedClient` → `CostGuard` ([src/sysone/budget/guard.py](../src/sysone/budget/guard.py)):
@@ -69,7 +70,7 @@ Every call goes through `GuardedClient` → `CostGuard` ([src/sysone/budget/guar
    - Models with no entry in [configs/pricing.yaml](../configs/pricing.yaml).
 3. **OpenRouter price ceiling.** OpenRouter requests also send the price-table rates as `provider.max_price`, so OpenRouter won't route to a more expensive endpoint.
 4. **After the call:**
-   - The actual cost is recorded. OpenRouter reports cost directly; Bedrock and Gemini cost is computed as tokens × price table.
+   - The actual cost is recorded. OpenRouter reports cost directly; TypeSafe, Bedrock and Gemini cost is computed as tokens × price table.
    - If any call actually cost more than $2, the estimate was wrong, so the guard trips and refuses all further calls in the run. The trip is read back from the spending log, so resuming the same `run_id` stays halted; fix the estimate and start a new run.
    - If a response comes back with no usage data, it is charged at its worst case.
 5. **Failed calls:**
@@ -86,12 +87,12 @@ Backstops outside the harness (recommended): an OpenRouter key with a credit lim
 ```
 configs/            models.yaml, pricing.yaml, budget.yaml, experiments/
 src/sysone/
-  types.py          ChatRequest / ChatResponse / Usage
+  types.py          ChatRequest / SystemOneRequest / ChatResponse / Usage
   budget/           pricing (worst-case estimate), guard (caps), ledger (JSONL)
-  clients/          base (GuardedClient), openrouter, bedrock, gemini, fake, cache
+  clients/          base (GuardedClient, VersionLock), typesafe, openrouter, bedrock, gemini, fake, cache
   registry.py       builds guarded clients from configs, one guard per run
   benchmark/        records, refund policy, generator, renderer, frozen-benchmark store
-  decision/         Jev decision wrapper (structured output, parsing, query budget B)
+  decision/         Jev decision wrapper (typed choice question, probabilities, query budget B)
   runs.py           per-run manifest and append-only JSONL outputs
   experiments/      experiment runners (pilot0)
   analysis/         metrics computed from saved runs (pilot0)

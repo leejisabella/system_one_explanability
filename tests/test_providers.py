@@ -12,7 +12,8 @@ from sysone.clients.base import ProviderError
 from sysone.clients.bedrock import BedrockProvider
 from sysone.clients.gemini import GeminiProvider
 from sysone.clients.openrouter import OpenRouterProvider
-from sysone.types import ChatRequest
+from sysone.clients.typesafe import TYPESAFE_URL, TypeSafeProvider
+from sysone.types import ChatRequest, SystemOneRequest
 
 PRICE = Price(1.0, 2.0)
 
@@ -128,3 +129,83 @@ def test_gemini_counts_thinking_as_output():
     assert config.system_instruction == "be brief"
     assert result.usage.output_tokens == 10 and result.usage.reasoning_tokens == 4
     assert result.model_used == "gemini-2.5-flash-001"
+
+
+# --- TypeSafe (native Jev API) ---
+
+TS_ANSWERS = {"refund_decision": {"type": "choice", "choice": "deny", "confidence": 0.4,
+                                  "probabilities": {"approve": 0.3, "deny": 0.7}}}
+
+
+def typesafe(handler):
+    return TypeSafeProvider(api_key="test", http=httpx.Client(transport=httpx.MockTransport(handler)))
+
+
+def s1_req():
+    return SystemOneRequest(
+        state={"refund_policy": "P", "case_file": "C"},
+        questions={"refund_decision": {"type": "choice", "instructions": "Decide.",
+                                       "criteria": {"approve": "yes", "deny": "no"}}},
+        sample_index=4,
+        tags={"case_id": "c1"},
+    )
+
+
+def test_typesafe_sends_state_and_questions_and_reads_probabilities():
+    seen = {}
+
+    def handler(request: httpx.Request):
+        seen["url"] = str(request.url)
+        seen["auth"] = request.headers["authorization"]
+        seen["body"] = json.loads(request.content)
+        return httpx.Response(200, json={"model": "jev-1.14.0", "answers": TS_ANSWERS,
+                                         "usage": {"input_tokens": 321, "output_tokens": 5}})
+
+    result = typesafe(handler).send("jev-latest", s1_req(), PRICE)
+    assert seen["url"] == TYPESAFE_URL and seen["auth"] == "Bearer test"
+    # Only the API's own fields are sent: no sample index or tags.
+    assert seen["body"] == {"model": "jev-latest", "state": {"refund_policy": "P", "case_file": "C"},
+                            "questions": s1_req().questions}
+    assert result.model_used == "jev-1.14.0"
+    assert result.raw["answers"]["refund_decision"]["probabilities"] == {"approve": 0.3, "deny": 0.7}
+    assert result.usage.input_tokens == 321 and result.usage.output_tokens == 5
+    assert result.reported_cost_usd is None  # cost comes from the price table
+
+
+@pytest.mark.parametrize("status,retryable", [(429, True), (529, True), (500, True), (400, False), (422, False), (401, False)])
+def test_typesafe_http_errors(status, retryable):
+    provider = typesafe(lambda r: httpx.Response(status, text="nope"))
+    with pytest.raises(ProviderError) as exc:
+        provider.send("jev-latest", s1_req(), PRICE)
+    assert exc.value.retryable is retryable and exc.value.billed == "no"
+
+
+def test_typesafe_timeout_is_unknown_billing():
+    def handler(request):
+        raise httpx.ReadTimeout("slow", request=request)
+
+    with pytest.raises(ProviderError) as exc:
+        typesafe(handler).send("jev-latest", s1_req(), PRICE)
+    assert exc.value.billed == "unknown" and exc.value.retryable
+
+
+@pytest.mark.parametrize("payload", [
+    {"answers": TS_ANSWERS, "usage": {"input_tokens": 1}},             # no version
+    {"model": "", "answers": TS_ANSWERS, "usage": {"input_tokens": 1}},
+    {"model": "jev-1.14.0", "usage": {"input_tokens": 1}},             # no answers
+])
+def test_typesafe_requires_version_and_answers(payload):
+    with pytest.raises(ProviderError) as exc:
+        typesafe(lambda r: httpx.Response(200, json=payload)).send("jev-latest", s1_req(), PRICE)
+    assert exc.value.billed == "unknown" and not exc.value.retryable
+
+
+def test_typesafe_refuses_chat_requests():
+    with pytest.raises(TypeError):
+        typesafe(lambda r: httpx.Response(200)).send("jev-latest", req(), PRICE)
+
+
+def test_typesafe_needs_a_key(monkeypatch):
+    monkeypatch.delenv("TYPESAFE_API_KEY", raising=False)
+    with pytest.raises(RuntimeError, match="TYPESAFE_API_KEY"):
+        TypeSafeProvider()

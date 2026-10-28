@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import threading
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -10,11 +11,46 @@ from typing import Callable, Literal
 from sysone.budget.guard import CostGuard
 from sysone.budget.pricing import Price, worst_case_cost
 from sysone.clients.cache import ResponseCache
-from sysone.types import ChatRequest, ChatResponse, ProviderResult
+from sysone.types import ChatResponse, ProviderResult, Request
 
 
 class ModelNotConfigured(RuntimeError):
     """Raised for placeholder model IDs (those starting with "TODO")."""
+
+
+class ModelVersionChanged(RuntimeError):
+    """Raised when a response comes from a different model version than the run is locked to."""
+
+    def __init__(self, expected: str, got: str):
+        super().__init__(f"model version changed from {expected} to {got}; the run is locked to {expected}")
+        self.expected = expected
+        self.got = got
+
+
+class VersionLock:
+    """Keeps every response in a run on one model version.
+
+    An alias such as jev-latest moves when a new release ships. The lock records the
+    first version that answers (unless one is given up front) and raises
+    ModelVersionChanged for any later response from a different version.
+    """
+
+    def __init__(self, expected: str | None = None, *, on_lock: Callable[[str], None] | None = None):
+        self.expected = expected
+        self._on_lock = on_lock
+        self._lock = threading.Lock()
+
+    def check(self, model_used: str) -> None:
+        with self._lock:
+            if self.expected is None:
+                self.expected = model_used
+                newly_locked = True
+            elif model_used != self.expected:
+                raise ModelVersionChanged(self.expected, model_used)
+            else:
+                newly_locked = False
+        if newly_locked and self._on_lock is not None:
+            self._on_lock(model_used)
 
 
 class ProviderError(RuntimeError):
@@ -40,7 +76,7 @@ class Provider(ABC):
     reasoning_allowance_tokens: int = 0
 
     @abstractmethod
-    def send(self, model: str, request: ChatRequest, price: Price) -> ProviderResult:
+    def send(self, model: str, request: Request, price: Price) -> ProviderResult:
         """Make one request. Raise ProviderError on failure."""
 
 
@@ -57,7 +93,11 @@ class ModelSpec:
 
 
 class GuardedClient:
-    """Wraps one provider/model with the cache, cost guard, retries and spending log."""
+    """Wraps one provider/model with the cache, cost guard, retries and spending log.
+
+    Set `version_lock` to stop on any response, fresh or cached, from a different model
+    version than the run is locked to. The call is still recorded in the spending log.
+    """
 
     def __init__(
         self,
@@ -69,7 +109,9 @@ class GuardedClient:
         max_retries: int = 2,
         backoff_s: float = 2.0,
         sleep: Callable[[float], None] = time.sleep,
+        version_lock: VersionLock | None = None,
     ):
+        self.version_lock = version_lock
         self.spec = spec
         self.provider = provider
         self.guard = guard
@@ -78,7 +120,7 @@ class GuardedClient:
         self.backoff_s = backoff_s
         self._sleep = sleep
 
-    def complete(self, request: ChatRequest) -> ChatResponse:
+    def complete(self, request: Request) -> ChatResponse:
         if self.spec.is_placeholder:
             raise ModelNotConfigured(
                 f"model alias '{self.spec.alias}' is a placeholder ({self.spec.model}); "
@@ -89,6 +131,8 @@ class GuardedClient:
 
         key = ResponseCache.key(self.spec.provider, self.spec.model, request)
         if self.cache is not None and (hit := self.cache.get(key)) is not None:
+            if self.version_lock is not None:
+                self.version_lock.check(hit.model_used)
             return hit
 
         price = self.spec.price
@@ -144,6 +188,10 @@ class GuardedClient:
                 reasoning_tokens=result.usage.reasoning_tokens,
                 finish_reason=result.finish_reason,
             )
+            # Checked after the spending log is written, so a mismatched call is still
+            # accounted for, and before caching, so its answer is never reused.
+            if self.version_lock is not None:
+                self.version_lock.check(result.model_used)
             response = ChatResponse(
                 text=result.text,
                 usage=result.usage,

@@ -8,7 +8,7 @@ Before we can measure anything about *explanations*, we need to know how Jev its
 
 - Experiment 1 (faithfulness vs. contestability) needs cases where Jev's decision is actually wrong under ground truth. If Jev never errs on the benchmark, there is nothing to contest.
 - Experiments 1–3 compare explanations against Jev's *observed* behavior under counterfactual edits. That only means something if Jev's decisions are stable across repeated samples.
-- If `jev-router` sends different requests to different underlying models, we need to know how often, and whether decisions differ by model, before treating Jev as a single decision function $f$ (see [11_harness_and_infrastructure.md](11_harness_and_infrastructure.md)).
+- Jev must stay one decision function $f$ for the whole run. `jev-latest` can move to a new release, so every call records the version that answered and the run halts if it changes (see [11_harness_and_infrastructure.md](11_harness_and_infrastructure.md)).
 
 Pilot 0 is also the cheapest experiment: it calls only Jev (plus the case writer once to produce case text), and it needs no explainer models, which are still undecided.
 
@@ -17,15 +17,17 @@ Pilot 0 is also the cheapest experiment: it calls only Jev (plus the case writer
 | # | Question | Measure |
 |---|----------|---------|
 | P0.1 | Does Jev return usable structured decisions? | Parse/validation success rate |
-| P0.2 | Does Jev apply the stated policy to the record it is shown? | Agreement with the policy outcome computed on the *presented* record, by case type |
-| P0.3 | How often is Jev's decision wrong under ground truth? | Agreement with the *true* outcome, by case type — this sets how many contestable cases we have |
-| P0.4 | Are decisions stable? | Agreement across repeated samples of the same input |
+| P0.2 | Does Jev apply the stated policy to the record it is shown? | Agreement with the policy outcome computed on the *presented* record, by case type and by the rule that decides it, with date-window rules reported apart |
+| P0.3 | How often is Jev's decision wrong under ground truth? | Agreement with the *true* outcome, by case type and rule. Each contestable case is classified as following a planted defect or as Jev's own misapplication of the policy (date-window rules vs. other rules) |
+| P0.4 | Are decisions stable, and does option order matter? | Agreement and P(approve) range across repeated samples; how often the first-listed option is chosen |
 | P0.5 | Does Jev respond to the decisive field? | Flip rate when a policy-relevant field is changed across the decision threshold |
 | P0.6 | Is Jev sensitive to irrelevant cues? | Flip rate under name/dialect edits that leave the policy outcome unchanged |
-| P0.7 | Does routing vary? | Distribution of `model_used`; decision agreement within vs. across routed models |
+| P0.7 | Did one model version answer every call? | Distribution of `model_used` (the version); a locked run should show one |
 | P0.8 | What does it cost? | Cost per decision, to budget Experiments 1–2 |
 
 Note the difference between P0.2 and P0.3. For an incorrect-input case, Jev can apply the policy perfectly to the record it sees and still be wrong under ground truth. That gap is what a contestability explanation should surface.
+
+**Question design.** Jev chooses among approve, deny and undetermined ("the decision cannot be determined"), so ambiguous cases have a correct answer. The option order rotates with the sample index, so across three repeats each option is listed first once. Both follow independent audits: without a "can't tell" option Jev answers unanswerable questions confidently, and it sometimes leans toward the first-listed option. Because repeats differ in order, their P(approve) range is an upper bound on pure noise; set `rotate_option_order: false` for a pure noise-floor run. Date arithmetic is listed by TypeSafe as unreliable for Jev, and 32 of the 60 cases are decided by the purchase window, so the report separates date-window errors.
 
 ### Design
 
@@ -41,7 +43,7 @@ Note the difference between P0.2 and P0.3. For an incorrect-input case, Jev can 
 - Parse success ≥ 98%.
 - Enough cases where Jev's decision is wrong under ground truth, ideally at least 20 of the 60, so Experiment 1 has defects to find. If there are too few, make the defects harder before continuing.
 - Sample-to-sample agreement high enough that counterfactual flips aren't just noise (threshold to set after seeing the data).
-- Routing stable, or at least stratifiable by `model_used`.
+- One model version throughout the run.
 
 ## What comes after Pilot 0
 
@@ -54,7 +56,7 @@ Pilot 1 and 2 reuse Pilot 0's saved decisions, so Jev isn't called again for the
 
 ## Steps to get there
 
-Steps 1–6 are built (✅), along with the analysis script from step 8. Step 7 waits on the Jev model ID; step 6b can run any time.
+Steps 1–6 are built (✅), along with the analysis script from step 8. Step 7 waits on `TYPESAFE_API_KEY`; step 6b can run any time.
 
 | Step | Work | Cost |
 |------|------|------|
@@ -90,7 +92,7 @@ Each case also records the evidence that would confirm its facts (receipt, order
 ```bash
 uv run python -m sysone.benchmark.build --name refund_v0 --seed 0 --per-type 10   # already done; refuses to overwrite
 uv run python -m sysone.experiments.pilot0 --dry-run          # fake Jev: no network, no cost
-uv run python -m sysone.experiments.pilot0 --run-id <id>      # live, once the Jev model ID is set
+uv run python -m sysone.experiments.pilot0 --run-id <id>      # live, needs TYPESAFE_API_KEY
 uv run python analysis/pilot0.py results/runs/<id>            # regenerate the report from saved results
 ```
 
@@ -127,7 +129,8 @@ results/                 # gitignored
                          #   model specs, prices, seeds, start/end time, total cost
     ledger.jsonl         # every API attempt and its cost
     decisions.jsonl      # one row per Jev query: case/variant/sample IDs, parsed decision,
-                         #   confidence, parse status, model_used, cost, request key
+                         #   P(approve) and all probabilities, confidence, parse status,
+                         #   model_used (exact version), cost, request key
     explanations.jsonl   # explainer outputs (Pilot 1 onward)
     scores.jsonl         # derived per-case metrics; can be regenerated (Pilot 1 onward)
     summary.json         # aggregate metrics for the run; can be regenerated
@@ -140,6 +143,6 @@ analysis/
 
 ## Open decisions that block later steps
 
-- Jev model ID and price (blocks step 7). See [TODO.md](../TODO.md).
+- TypeSafe API key (blocks step 7).
 - Explainer models (blocks Pilot 1).
 - LLM judge (blocks the free-text part of Pilot 2).

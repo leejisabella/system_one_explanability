@@ -4,12 +4,13 @@
 # Every alias needs a matching price in configs/pricing.yaml, or calls are refused.
 
 jev:
-  # TODO: choose the Jev model ID. As of 2026-10-21 the only public OpenRouter
-  # listing is "typesafe/jev-router", which routes each request to a model and
-  # reasoning effort of its choosing, with dynamic pricing. A fixed model ID is
-  # preferable so the decision model f stays constant across counterfactual probes.
-  provider: openrouter
-  model: TODO_JEV_MODEL_ID
+  # TypeSafe's native API, which returns a probability for every option.
+  # jev-latest is an alias that moves when TypeSafe ships a release (it pointed to
+  # jev-1.14.0 on 2026-10-26). Every response names the exact version that answered,
+  # and experiment runs lock to one version and halt if it changes. To keep using a
+  # version after the alias moves, set model to its fixed ID, e.g. jev-1.14.0.
+  provider: typesafe
+  model: jev-latest
 
 case_writer:
   # Writes natural-language realizations of synthetic benchmark cases.
