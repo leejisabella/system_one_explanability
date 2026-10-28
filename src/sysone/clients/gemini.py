@@ -28,7 +28,8 @@ class GeminiProvider(Provider):
             from google.genai import types
 
             # One attempt per request: retries are handled by GuardedClient so each passes the cost guard.
-            http_options = types.HttpOptions(retry_options=types.HttpRetryOptions(attempts=1))
+            # The SDK sets no timeout by default; 300 s (in ms here) matches Bedrock's read timeout.
+            http_options = types.HttpOptions(retry_options=types.HttpRetryOptions(attempts=1), timeout=300_000)
             if vertex_project:
                 client = genai.Client(
                     vertexai=True, project=vertex_project, location=vertex_location, http_options=http_options

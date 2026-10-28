@@ -14,7 +14,7 @@ from sysone.clients.fake import FakeChatProvider, FakeDecisionProvider, ok_resul
 from sysone.experiments.pilot0 import Pilot0Config, run_pilot0
 from sysone.experiments.pilot1 import Pilot1Config, check_families, model_family, run_pilot1
 from sysone.explain.basis import BasisError, execute, parse_basis, policy_basis
-from sysone.explain.explainer import ExplainerModel
+from sysone.explain.explainer import DECISION_SYSTEM, ExplainerModel
 from sysone.explain.jsonout import parse_json_object
 from sysone.explain.simulator import Simulator, parse_simulation
 from sysone.registry import REPO_ROOT
@@ -134,6 +134,13 @@ def test_providers_without_structured_output_get_the_format_in_the_prompt(tmp_pa
     assert request.json_schema is None and '{"decision"' in request.messages[0].content
     assert bedrock_like.decide("POLICY", "CASE").label == "approve"
     assert ExplainerModel(guarded(tmp_path, provider)).build_decision_request("P", "C").json_schema is not None
+
+
+def test_explainer_decisions_carry_the_answer_only_system_message(tmp_path):
+    # Without it Llama 4 Maverick reasons past the 64-token cap (pilot1-v1-2026-10-28).
+    for name, model in (("bedrock", "us.meta.llama-x"), ("fake", "fake-model")):
+        explainer = ExplainerModel(guarded(tmp_path, FakeChatProvider(), provider_name=name, model=model))
+        assert explainer.build_decision_request("P", "C").system == DECISION_SYSTEM
 
 
 def test_family_check():

@@ -4,7 +4,7 @@ Open decisions and setup tasks. Every model in [configs/models.yaml](configs/mod
 
 ## Before the first live runs
 
-- [x] **Keys in `.env`** (gitignored): `TYPESAFE_API_KEY`, `GEMINI_API_KEY`, AWS access key pair (2026-10-27).
+- [x] **Keys in `.env`** (gitignored): `TYPESAFE_API_KEY`, `GEMINI_API_KEY`, AWS access key pair (2026-10-27); `GEMINI_VERTEX_PROJECT` and a `gcloud` application-default login with quota project `cs-329x-510703` (2026-10-28).
 - [x] **AWS account verification:** done by 2026-10-28; every Bedrock model except Claude answers.
 - [x] **IAM: AWS Marketplace permissions** (`aws-marketplace:Subscribe`, `Unsubscribe`, `ViewSubscriptions`) and `bedrock:GetFoundationModelAvailability` on the `system-one` user (2026-10-28); policy in [README.md](README.md#credentials).
 - [x] **Anthropic use-case form** submitted and approved (`authorizationStatus: AUTHORIZED`, 2026-10-28).
@@ -13,7 +13,7 @@ Open decisions and setup tasks. Every model in [configs/models.yaml](configs/mod
   - [x] Gemini 3.1 Flash-Lite accepts `thinking_level: minimal`; it reported 0 thinking tokens.
   - [x] gpt-oss-120b's response reports `serviceTier: flex`.
   - [ ] Claude Haiku 5.5: blocked (above).
-- [ ] **Credits:** in AWS *Billing → Credits*, check that credits cover the Bedrock-billed models (and Claude, billed through AWS Marketplace, if it is unblocked); in GCP *Billing → Credits*, check that they cover the Gemini API project.
+- [ ] **Credits:** in AWS *Billing → Credits*, check that credits cover the Bedrock-billed models (and Claude, billed through AWS Marketplace, if it is unblocked); in GCP *Billing → Credits*, check that the education credits cover Vertex AI usage on `cs-329x-510703`.
 - [ ] **Budget alerts:** AWS Budgets and a GCP budget alert, e.g. at $40 each.
 - [ ] **Commit** before live runs, so each run's manifest names a clean git commit.
 
@@ -22,7 +22,7 @@ Open decisions and setup tasks. Every model in [configs/models.yaml](configs/mod
 - [x] **Jev:** `jev-latest` on TypeSafe's native API ($0.042 per 1M input tokens, output free). It pointed to `jev-1.14.0` on 2026-10-26.
   - [ ] If TypeSafe ships a new release mid-project, decide whether to stay on `jev-1.14.0` by its fixed ID or start fresh runs on the new version.
 - [x] **Case writers:** Qwen3 235B (`case_writer`) and Mistral Large 3 (`case_writer_2`) on Bedrock.
-- [x] **Explainers:** Gemini 3.1 Flash-Lite (Gemini API) and Llama 4 Maverick (Bedrock; also the stretch goal's open-weight model). Claude Haiku 5.5 (Bedrock) was the first choice and stays configured as `explainer_bedrock`, but is blocked on this AWS account; Llama replaced it in Pilot 1 on 2026-10-28.
+- [x] **Explainers:** Gemini 3.1 Flash-Lite (Vertex AI) and Llama 4 Maverick (Bedrock; also the stretch goal's open-weight model). Claude Haiku 5.5 (Bedrock) was the first choice and stays configured as `explainer_bedrock`, but is blocked on this AWS account; Llama replaced it in Pilot 1 on 2026-10-28.
 - [x] **Simulator and judge:** gpt-oss-120b on Bedrock, flex tier, reasoning effort `low`.
 - [x] **Second decision model for Experiment 6:** Amazon Nova Lite on Bedrock.
 - [x] **Prices** from AWS's official Price List files (us-east-2, published 2026-10-12) and Google's pricing page (checked 2026-10-27). Re-check before large runs.
@@ -39,6 +39,11 @@ Open decisions and setup tasks. Every model in [configs/models.yaml](configs/mod
 - [ ] **Jev's date-window errors** (approves requests up to 52 days old against a 30-day window): decide whether to study them as their own category, e.g. in Experiment 5.
 - [ ] **Step 6b:** build the natural-language realization with the case writer, frozen as `refund_v2` (≈ $0.10).
 - [x] **Pilot 1 harness** built 2026-10-27, dry run passed; preflight passed 2026-10-28. Ready for the live run.
+- [x] **First live Pilot 1 attempt** (`pilot1-v1-2026-10-28`, $0.13 by the ledger) halted during explainer decisions; keep it as a record, don't resume it.
+  - Llama 4 Maverick parsed only 239 of 564 decisions: it reasoned step by step past the 64-token cap, mostly on edited variants. Fixed with an answer-only system message on every explainer decision (10/10 failed variants then parsed); the preflight now tests one decision per variant kind.
+  - Gemini stopped at 462 decisions with `429 RESOURCE_EXHAUSTED`: the `GEMINI_API_KEY` project is on the **free tier** (500 requests per day for gemini-3.1-flash-lite), so the GCP credits weren't in use. The ledger still charged those calls at paid prices, so it overstates GCP spend by about $0.05.
+- [x] **Gemini moved to Vertex AI** (2026-10-28): AI Studio rejected the education billing account, so the key couldn't leave the free tier. Gemini preflight through Vertex passed (`preflight-20261028T064016Z`, 8/8 decisions, $0.0022).
+- [ ] **Launch Pilot 1** under a new run ID: `pilot1-v1b-2026-10-28`.
 - [x] **Pilot 1:** how a frozen explanation's implied decision on each hidden variant is obtained (decided 2026-10-27): a simulator model with a structured response, scored against a no-explanation control, plus a structured-explanation condition run directly against the records. See [research_docs/12](research_docs/12_first_experiments_roadmap.md#how-an-explanations-implied-decision-is-obtained).
 - [ ] **Pilot 1 contestability scoring** against the verified defects, with the judge.
 - [ ] **Re-estimate costs** from Pilot 0 and Pilot 1's measured costs before each later experiment, against the allocations in [configs/budget.yaml](configs/budget.yaml).

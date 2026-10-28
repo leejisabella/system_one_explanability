@@ -39,7 +39,10 @@ gemini:
   # re-checked 2026-10-27).
   # Where a price rises on Dec 1, 2026 or Jan 1, 2027, the later price is listed.
   # Gemini 2.5 Pro and 3.1 Pro charge more above 200k input tokens; the higher tier is listed.
-  # The project uses the Gemini API, not Vertex AI (whose prices may differ).
+  # Since 2026-10-28 the project calls Gemini through Vertex AI's global endpoint (the AI Studio
+  # key is free tier only). Vertex's standard global price for gemini-3.1-flash-lite is the same,
+  # $0.25 / $1.50 (cloud.google.com/gemini-enterprise-agent-platform/generative-ai/pricing, read
+  # 2026-10-28); regional endpoints cost 10% more and are not used.
   gemini-4-argon:          {input: 4.00, output: 20.00}
   gemini-3.1-pro-preview:  {input: 4.00, output: 18.00}
   gemini-3.8-flash:        {input: 1.50, output: 7.50}

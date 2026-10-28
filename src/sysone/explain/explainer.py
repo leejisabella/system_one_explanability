@@ -36,6 +36,13 @@ DECISION_SCHEMA = {
     "required": ["decision"],
     "properties": {"decision": {"type": "string", "enum": list(LABELS)}},
 }
+# Sent with every explainer decision. Without it Llama 4 Maverick often reasons step by step
+# and is cut off at the 64-token cap before answering (58% of its decisions in
+# pilot1-v1-2026-10-28, concentrated on edited variants).
+DECISION_SYSTEM = (
+    "You answer with a single JSON object and nothing else. Do not explain or show your reasoning. "
+    'Your entire reply must be exactly {"decision": "<option>"}.'
+)
 STRUCTURED_SCHEMA = {
     "type": "object",
     "additionalProperties": False,
@@ -103,9 +110,10 @@ class ExplainerModel:
         self.explanation_max_tokens = explanation_max_tokens
 
     def _request(self, prompt: str, *, max_tokens: int, schema: dict | None, sample_index: int,
-                 tags: dict[str, str]) -> ChatRequest:
+                 tags: dict[str, str], system: str | None = None) -> ChatRequest:
         return ChatRequest.from_prompt(
             prompt,
+            system=system,
             max_output_tokens=max_tokens,
             temperature=self.temperature,
             reasoning_max_tokens=self.reasoning_max_tokens,
@@ -129,7 +137,7 @@ class ExplainerModel:
                  'Reply with only a JSON object: {"decision": <one of the options>}.',
         )
         return self._request(prompt, max_tokens=self.decision_max_tokens, schema=DECISION_SCHEMA,
-                             sample_index=sample_index, tags=tags or {})
+                             sample_index=sample_index, tags=tags or {}, system=DECISION_SYSTEM)
 
     def decide(self, policy: str, case_text: str, *, sample_index: int = 0,
                tags: dict[str, str] | None = None) -> ExplainerDecision:

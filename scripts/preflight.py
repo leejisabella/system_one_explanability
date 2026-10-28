@@ -5,7 +5,7 @@ Usage:
   uv run python scripts/preflight.py --only jev       # just Jev (e.g. before AWS is ready)
   uv run python scripts/preflight.py --dry-run        # fake models: no network, no cost
 
-Sends: one Jev decision; per explainer, one decision, one free-form and one structured
+Sends: one Jev decision; per explainer, one decision per variant kind (8), one free-form and one structured
 explanation; and two simulations (the no-explanation control and one with the structured
 explanation). That exercises the real prompts, JSON schemas, thinking level and flex tier,
 which a one-word smoke test does not. It reports whether each answer parsed, its tokens,
@@ -54,6 +54,12 @@ def main() -> None:
     # A case with hidden variants, so the simulator has a real variant to predict.
     case = next(c for c in cases if len(c.variants) > 1)
     original, variant = render_case_text(case.original), render_case_text(case.variants[1])
+    # One variant of each edited kind (plus an original), for the explainer decisions.
+    by_kind = {}
+    for c in cases:
+        for v in c.variants:
+            by_kind.setdefault(v.kind, v)
+    decision_variants = list(by_kind.values())
 
     run_id = f"preflight-{'dryrun-' if args.dry_run else ''}{datetime.now(timezone.utc):%Y%m%dT%H%M%SZ}"
     registry = Registry(run_id)
@@ -97,8 +103,11 @@ def main() -> None:
             explainer = ExplainerModel(client(alias), temperature=p1["explainer_temperature"],
                                        reasoning_max_tokens=p1["explainer_reasoning_max_tokens"])
             tags = {"experiment": "preflight", "explainer": alias}
-            d = explainer.decide(policy, original, tags={**tags, "step": "explainer_decision"})
-            report(alias, "decision", d.parse_ok, d.response, d.parse_error)
+            # Several variant kinds and option orders: one decision passing hid a 42% parse rate once.
+            for i, v in enumerate(decision_variants):
+                d = explainer.decide(policy, render_case_text(v), sample_index=i,
+                                     tags={**tags, "step": "explainer_decision"})
+                report(alias, "decision", d.parse_ok, d.response, d.parse_error)
             for condition in (FREE_FORM, STRUCTURED):
                 e = explainer.explain(condition, policy, original, jev_label,
                                       tags={**tags, "step": "explanation", "condition": condition})

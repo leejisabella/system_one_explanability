@@ -12,7 +12,7 @@ Chosen 2026-10-27 under the project budget (see *Project budget* below). Prices 
 | Case writer (natural-language realization of Dataset A) | `case_writer` | Amazon Bedrock, us-east-2 (Ohio) | Qwen3 235B (`qwen.qwen3-235b-a22b-2507-v1:0`) | $0.22 / $0.88 |
 | Second case writer (independent generation procedure, Risk 2) | `case_writer_2` | Bedrock | Mistral Large 3 (`mistral.mistral-large-3-675b-instruct`) | $0.50 / $1.50 |
 | Explainer (first choice; blocked on this AWS account since 2026-10-28) | `explainer_bedrock` | Bedrock | Claude Haiku 5.5 (`global.anthropic.claude-haiku-5-5`) | $0.10 / $0.50 |
-| Explainer | `explainer_gemini` | Gemini API | Gemini 3.1 Flash-Lite (`gemini-3.1-flash-lite`), thinking level `minimal` | $0.25 / $1.50 |
+| Explainer | `explainer_gemini` | Vertex AI, global endpoint | Gemini 3.1 Flash-Lite (`gemini-3.1-flash-lite`), thinking level `minimal` | $0.25 / $1.50 |
 | Explainer in Pilot 1 (replacing Claude) and open-weight explainer (stretch goal) | `explainer_open` | Bedrock | Llama 4 Maverick (`us.meta.llama4-maverick-17b-instruct-v1:0`) | $0.24 / $0.97 |
 | Simulator (Pilot 1 faithfulness scoring) | `simulator` | Bedrock | gpt-oss-120b (`openai.gpt-oss-120b-1:0`), flex tier, reasoning effort `low` | $0.15 / $0.60; flex $0.075 / $0.30 |
 | LLM judge (Pilot 2 onward) | `judge` | Bedrock | same as the simulator | same |
@@ -29,7 +29,7 @@ Design choices:
 - **Flex tier for the simulator and judge.** Requested as `serviceTier: {"type": "flex"}`. Bedrock's response names the tier that served the call; the flex price is charged only when it says flex, and the standard price otherwise. Worst-case estimates always use the standard price.
 - **Per-model request settings live in [configs/models.yaml](../configs/models.yaml)** (`service_tier`, `reasoning_effort`) and are applied by `GuardedClient` before the cache key is computed, so answers from different settings never mix.
 - **Gemini thinking.** Google documents no way to turn thinking fully off for 3.1 Flash-Lite (only 2.5 Flash-Lite, which new accounts may not be able to use), so the explainer runs at `thinking_level: minimal`. Thinking tokens are billed as output and recorded per call (`reasoning_tokens`); the first live call shows how many it actually uses.
-- **Gemini API key, not Vertex AI.** The Gemini client also supports Vertex AI, but the project uses the Gemini API key.
+- **Gemini through Vertex AI, not the API key** (since 2026-10-28). The AI Studio key stayed on the free tier (500 requests per day), because AI Studio rejects the course's education billing account as "inactive or unsupported". Vertex bills project `cs-329x-510703` and its credits directly. Same model, same price on the global endpoint ($0.25 / $1.50); regional endpoints cost 10% more. Vertex reports more input tokens for schema-constrained requests (about 1,215 vs 706 for a structured explanation), probably because it counts the schema.
 - **Structured output.** Gemini gets a JSON schema. Bedrock models get the JSON format in the prompt and their reply is parsed.
 
 ### Assumptions still to verify

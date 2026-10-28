@@ -24,7 +24,7 @@ Put keys in `.env` (gitignored; copy [.env.example](.env.example)). The experime
 |----------|----------|------------------|
 | TypeSafe | Jev (`jev-latest`, native API) | `TYPESAFE_API_KEY` |
 | Amazon Bedrock (us-east-2) | Case writers (Qwen3 235B, Mistral Large 3), explainers (Llama 4 Maverick; Claude Haiku 5.5, blocked on this account for now), simulator and judge (gpt-oss-120b), Experiment 6 decision model (Nova Lite) | `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`, or `AWS_PROFILE`. IAM policy below. Claude also needs Anthropic's one-time use-case form in the Bedrock console and an AWS Marketplace subscription, which AWS currently refuses for this account (see [TODO.md](TODO.md)). |
-| Google Gemini API | Gemini explainer (Gemini 3.1 Flash-Lite) | `GEMINI_API_KEY` |
+| Google Cloud: Vertex AI (now Gemini Enterprise Agent Platform), global endpoint | Gemini explainer (Gemini 3.1 Flash-Lite) | `GEMINI_VERTEX_PROJECT` (the GCP project ID, billed to its billing account), with the Vertex AI API (`aiplatform.googleapis.com`) enabled and a one-time `gcloud auth application-default login` plus `gcloud auth application-default set-quota-project <project-id>`; tick every scope on the consent page. Without `GEMINI_VERTEX_PROJECT`, `GEMINI_API_KEY` is used, but an education billing account can't move an AI Studio key off the free tier (500 requests per day). |
 
 Never commit keys.
 

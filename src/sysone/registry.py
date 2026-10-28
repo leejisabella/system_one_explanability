@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from collections import defaultdict
 from collections.abc import Callable
 from pathlib import Path
@@ -36,7 +37,9 @@ def _default_provider(name: str) -> Provider:
     if name == "gemini":
         from sysone.clients.gemini import GeminiProvider
 
-        return GeminiProvider()
+        # GEMINI_VERTEX_PROJECT routes Gemini through Vertex AI (Gemini Enterprise Agent Platform),
+        # billed to that GCP project; otherwise the Gemini API key is used.
+        return GeminiProvider(vertex_project=os.environ.get("GEMINI_VERTEX_PROJECT") or None)
     raise ValueError(f"unknown provider '{name}'")
 
 
