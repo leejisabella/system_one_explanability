@@ -29,8 +29,14 @@ Open decisions and setup tasks. Every model in [configs/models.yaml](configs/mod
 ## Benchmark and experiments
 
 - [ ] **Audit name list** for name-swap cues. Benchmark v0 uses first names from the title of Bertrand & Mullainathan (2004) as a placeholder ([src/sysone/benchmark/generator.py](src/sysone/benchmark/generator.py)). Choosing a different list means freezing a new benchmark version.
-- [ ] **Step 7:** live Pilot 0 run.
-- [ ] **Step 6b:** build the natural-language realization with the case writer, frozen as `refund_v1` (≈ $0.10).
+- [x] **Step 7:** live Pilot 0 run on refund_v0 (`pilot0-v0-2026-10-28`, $0.0137): no-go, 6 customer-harming wrong decisions of 60 (20 needed).
+- [x] **refund_v1** frozen 2026-10-28: 24 incorrect-input cases with the receipt and condition corruptions Jev follows.
+- [x] **Step 7b:** Pilot 0 on refund_v1 (`pilot0-v1-2026-10-28`, $0.0160): go, 24 customer-harming wrong decisions.
+- [ ] **Missing-receipt cases:** Jev answered "undetermined" in only 7 of 12 samples where the receipt status is missing. Note for Experiment 5 (abstention).
+- [x] **Stability threshold** for go / no-go: at least 90% of variants unanimous across repeats (set 2026-10-28; both runs ≈ 97%).
+- [x] **E0 write-up** with figures: [research_analyses/E0_jev_characterization/](research_analyses/E0_jev_characterization/README.md).
+- [ ] **Jev's date-window errors** (approves requests up to 52 days old against a 30-day window): decide whether to study them as their own category, e.g. in Experiment 5.
+- [ ] **Step 6b:** build the natural-language realization with the case writer, frozen as `refund_v2` (≈ $0.10).
 - [x] **Pilot 1 harness** built 2026-10-27, dry run passed. The live run waits on a live Pilot 0 run and AWS verification.
 - [x] **Pilot 1:** how a frozen explanation's implied decision on each hidden variant is obtained (decided 2026-10-27): a simulator model with a structured response, scored against a no-explanation control, plus a structured-explanation condition run directly against the records. See [research_docs/12](research_docs/12_first_experiments_roadmap.md#how-an-explanations-implied-decision-is-obtained).
 - [ ] **Pilot 1 contestability scoring** against the verified defects, with the judge.

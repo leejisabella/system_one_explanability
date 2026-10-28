@@ -20,7 +20,13 @@ from typing import Any
 
 UNDETERMINED = "undetermined"
 PARSE_RATE_GO = 0.98
-CONTESTABLE_SHARE_GO = 1 / 3
+# Go / no-go for Experiment 1: enough cases where Jev's wrong decision harms the customer
+# (a denial of a refund the policy owes on the true record). Wrong approvals harm the
+# store, not the person contesting, so they are reported but don't count toward this.
+USER_HARMFUL_MIN_GO = 20
+# Share of variants whose repeats all give the same decision (set 2026-10-28, after
+# refund_v0 and refund_v1 both came in at 97%).
+STABILITY_UNANIMOUS_GO = 0.90
 # Rules decided by counting days against the 30- or 90-day window (net of carrier
 # delay). Jev's own docs list date arithmetic as unreliable, so these are reported apart.
 DATE_WINDOW_RULES = frozenset({"R5_within_window", "R5_outside_window"})
@@ -108,6 +114,9 @@ def summarize(rows: list[dict[str, Any]], ledger: list[dict[str, Any]] | None = 
     # planted). Otherwise Jev misapplied the policy to what it was shown, split by
     # whether a date-window rule decides the presented record.
     causes: Counter[str] = Counter()
+    # Who each wrong decision harms: the customer (denied an owed refund), the store
+    # (approved a refund the policy doesn't allow), or neither ("undetermined" given).
+    harms: dict[str, list[str]] = defaultdict(list)
     for case_id, vid in sorted(originals.items()):
         v = variants[vid]
         if maj[vid] is None:
@@ -119,6 +128,9 @@ def summarize(rows: list[dict[str, Any]], ledger: list[dict[str, Any]] | None = 
             cell[1] += 1
         if not right and v["true_outcome"] != UNDETERMINED:
             contestable.append(case_id)
+            harm = ("customer: wrongly denied" if maj[vid] == "deny" and v["true_outcome"] == "approve"
+                    else "store: wrongly approved" if maj[vid] == "approve" else "neither: answered undetermined")
+            harms[harm].append(case_id)
             if maj[vid] == v["policy_outcome"]:
                 causes["follows presented record"] += 1
             else:
@@ -177,9 +189,10 @@ def summarize(rows: list[dict[str, Any]], ledger: list[dict[str, Any]] | None = 
     row_cost = sum(r.get("cost_usd") or 0.0 for r in billed)
     total_cost = sum(e.get("cost_usd", 0.0) for e in ledger) if ledger is not None else row_cost
 
+    unanimous_share = round(unanimous / len(multi), 4) if multi else None
     n_cases = len(originals)
     parse_rate = len(parsed) / len(rows) if rows else None
-    contestable_share = len(contestable) / n_cases if n_cases else None
+    user_harmful = harms.get("customer: wrongly denied", [])
     return {
         "n_rows": len(rows),
         "n_cases": n_cases,
@@ -192,11 +205,13 @@ def summarize(rows: list[dict[str, Any]], ledger: list[dict[str, Any]] | None = 
         "P0.3_truth_agreement_by_rule": {t: _rate(*c) for t, c in sorted(truth_by_rule.items())},
         "P0.3_contestable_cases": contestable,
         "P0.3_contestable_by_cause": dict(sorted(causes.items())),
+        "P0.3_contestable_by_harm": {h: sorted(ids) for h, ids in sorted(harms.items())},
+        "P0.3_user_harmful_cases": sorted(user_harmful),
         "P0.3_tied_cases": ties,
         "P0.4_stability": {
             "n_variants": len(multi),
             "mean_majority_share": round(sum(shares) / len(shares), 4) if shares else None,
-            "unanimous_share": round(unanimous / len(multi), 4) if multi else None,
+            "unanimous_share": unanimous_share,
         },
         "P0.4_probability_noise": {
             "n_variants": len(ranges),
@@ -240,8 +255,8 @@ def summarize(rows: list[dict[str, Any]], ledger: list[dict[str, Any]] | None = 
         },
         "go_no_go": {
             "parse_rate_ok": parse_rate is not None and parse_rate >= PARSE_RATE_GO,
-            "enough_contestable_cases": contestable_share is not None and contestable_share >= CONTESTABLE_SHARE_GO,
-            "stability": "judge from P0.4 (threshold set after seeing data)",
+            "enough_contestable_cases": len(user_harmful) >= USER_HARMFUL_MIN_GO,
+            "stability_ok": unanimous_share is not None and unanimous_share >= STABILITY_UNANIMOUS_GO,
             "single_model_version": len(versions) == 1,
         },
     }
@@ -272,6 +287,8 @@ def render_report(s: dict[str, Any], run_id: str = "") -> str:
     if s["P0.3_contestable_by_cause"]:
         out += ["| Why Jev is wrong | Cases |", "|---|---|"]
         out += [f"| {cause} | {n} |" for cause, n in s["P0.3_contestable_by_cause"].items()]
+        out += ["", "| Who the wrong decision harms | Cases |", "|---|---|"]
+        out += [f"| {h} | {len(ids)} |" for h, ids in s["P0.3_contestable_by_harm"].items()]
         out += ["", "\"Follows presented record\" means Jev applied the policy correctly to a corrupted or "
                 "incomplete record, a defect planted by the benchmark. The other rows are Jev's own errors.", ""]
     st = s["P0.4_stability"]
@@ -307,8 +324,10 @@ def render_report(s: dict[str, Any], run_id: str = "") -> str:
     g = s["go_no_go"]
     out += ["**Go / no-go**", "",
             f"- Parse rate ≥ {PARSE_RATE_GO:.0%}: {'yes' if g['parse_rate_ok'] else 'no'}",
-            f"- Contestable cases ≥ {CONTESTABLE_SHARE_GO:.0%} of cases: {'yes' if g['enough_contestable_cases'] else 'no'}",
-            f"- Stability: {g['stability']}",
+            f"- At least {USER_HARMFUL_MIN_GO} cases where Jev wrongly denies the customer: "
+            f"{'yes' if g['enough_contestable_cases'] else 'no'} ({len(s['P0.3_user_harmful_cases'])})",
+            f"- At least {STABILITY_UNANIMOUS_GO:.0%} of variants unanimous across repeats: "
+            f"{'yes' if g['stability_ok'] else 'no'} ({s['P0.4_stability']['unanimous_share']})",
             f"- One model version throughout: {'yes' if g['single_model_version'] else 'no'}", ""]
     return "\n".join(out)
 

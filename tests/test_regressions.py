@@ -105,9 +105,16 @@ def test_ledger_creates_no_folder_until_written(tmp_path):
     assert ledger.total_spent() == 0 and not ledger.path.parent.exists()
 
 
-def test_frozen_benchmark_matches_generator():
-    meta = json.loads((REPO_ROOT / "benchmarks" / "refund_v0" / "meta.json").read_text())
-    cases = RefundCaseGenerator(meta["seed"]).generate(meta["per_type"])
+@pytest.mark.parametrize("name", ["refund_v0", "refund_v1"])
+def test_frozen_benchmark_matches_generator(name):
+    from sysone.benchmark.cases import CaseType
+    from sysone.benchmark.generator import INCORRECT_INPUT_KINDS
+
+    meta = json.loads((REPO_ROOT / "benchmarks" / name / "meta.json").read_text())
+    generator = RefundCaseGenerator(meta["seed"],
+                                    incorrect_input_kinds=tuple(meta.get("incorrect_input_kinds", INCORRECT_INPUT_KINDS)))
+    counts = {CaseType(t): n for t, n in meta.get("counts", {}).items()}
+    cases = generator.generate(meta["per_type"], counts=counts, id_prefix=meta.get("id_prefix"))
     body = "".join(json.dumps(c.to_dict(), sort_keys=True) + "\n" for c in sorted(cases, key=lambda c: c.case_id))
     assert hashlib.sha256(body.encode()).hexdigest() == meta["sha256"]
 

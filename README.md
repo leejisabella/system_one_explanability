@@ -4,6 +4,7 @@ Exploring model misalignment, System One model information availability, and dec
 - **Picking this up? Start with [STATUS.md](STATUS.md)**: what exists, what's blocking, what to do next
 - Research questions, framework, experiments and references: [research_docs/](research_docs/README.md)
 - Harness design, model access and cost controls: [research_docs/11_harness_and_infrastructure.md](research_docs/11_harness_and_infrastructure.md)
+- Results, one folder per experiment: [research_analyses/](research_analyses/README.md)
 - Open decisions and setup tasks: [TODO.md](TODO.md)
 
 ## Setup

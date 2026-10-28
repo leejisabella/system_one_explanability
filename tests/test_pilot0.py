@@ -237,6 +237,7 @@ def test_summary_metrics_on_known_rows():
     assert flips[("correction", "policy flips")] == 1.0
     assert flips[("cue_edit", "policy unchanged")] == 1.0
     assert s["P0.4_stability"]["unanimous_share"] == 1.0
+    assert s["go_no_go"]["stability_ok"]
     assert s["P0.8_cost"]["total_usd"] == pytest.approx(0.12)
     # Rows without probabilities (as from older runs) leave the probability metrics empty.
     assert s["P0.4_probability_noise"]["n_variants"] == 0
@@ -312,3 +313,22 @@ def test_majority_ties():
     assert majority(["approve", "deny"]) is None
     assert majority(["approve", "deny", "deny"]) == "deny"
     assert majority([]) is None
+
+
+def test_wrong_decisions_are_split_by_who_they_harm():
+    rows = [
+        # a: owed a refund, Jev denies (harms the customer).
+        *[row("a", "original", s, "deny", "deny", "approve", "incorrect_input") for s in range(3)],
+        # b: not owed one, Jev approves (harms the store).
+        *[row("b", "original", s, "approve", "deny", "deny", rule="R5_outside_window") for s in range(3)],
+        # c: owed a refund, Jev says it can't be determined.
+        *[row("c", "original", s, "undetermined", "approve", "approve") for s in range(3)],
+    ]
+    s = summarize(rows)
+    assert s["P0.3_contestable_by_harm"] == {
+        "customer: wrongly denied": ["a"],
+        "neither: answered undetermined": ["c"],
+        "store: wrongly approved": ["b"],
+    }
+    assert s["P0.3_user_harmful_cases"] == ["a"]
+    assert not s["go_no_go"]["enough_contestable_cases"]

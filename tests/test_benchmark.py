@@ -138,3 +138,23 @@ def test_load_rejects_edited_benchmark(tmp_path, cases):
 def test_case_round_trip(cases):
     for c in cases:
         assert Case.from_dict(c.to_dict()) == c
+
+
+def test_v1_options_set_counts_corruptions_and_id_prefix():
+    from sysone.benchmark.cases import CaseType
+
+    gen = RefundCaseGenerator(seed=1, incorrect_input_kinds=("condition", "has_receipt"))
+    cases = gen.generate(2, counts={CaseType.INCORRECT_INPUT: 6}, id_prefix="refund_v1")
+    by_type = {}
+    for c in cases:
+        by_type.setdefault(str(c.case_type), []).append(c)
+    assert len(by_type["incorrect_input"]) == 6 and all(len(v) == 2 for t, v in by_type.items() if t != "incorrect_input")
+    assert {c.defects[0].field for c in by_type["incorrect_input"]} == {"condition", "has_receipt"}
+    assert all(c.case_id.startswith("refund_v1-") for c in cases)
+    # Every incorrect-input case is presented as a denial of an owed refund.
+    assert all(str(c.presented_outcome) == "deny" and str(c.true_outcome) == "approve" for c in by_type["incorrect_input"])
+
+
+def test_unknown_corruption_kind_is_rejected():
+    with pytest.raises(ValueError):
+        RefundCaseGenerator(incorrect_input_kinds=("price",))

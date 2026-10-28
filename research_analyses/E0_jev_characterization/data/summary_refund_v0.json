@@ -1,0 +1,311 @@
+{
+  "P0.1_parse": {
+    "k": 480,
+    "n": 480,
+    "rate": 1.0
+  },
+  "P0.2_policy_agreement_by_rule": {
+    "R1_manager_preapproval": {
+      "k": 30,
+      "n": 30,
+      "rate": 1.0
+    },
+    "R2_final_sale": {
+      "k": 24,
+      "n": 24,
+      "rate": 1.0
+    },
+    "R3_no_receipt": {
+      "k": 45,
+      "n": 45,
+      "rate": 1.0
+    },
+    "R3_receipt_unknown": {
+      "k": 11,
+      "n": 12,
+      "rate": 0.9167
+    },
+    "R4_condition_unknown": {
+      "k": 9,
+      "n": 9,
+      "rate": 1.0
+    },
+    "R4_opened": {
+      "k": 57,
+      "n": 57,
+      "rate": 1.0
+    },
+    "R5_outside_window": {
+      "k": 57,
+      "n": 99,
+      "rate": 0.5758
+    },
+    "R5_purchase_date_unknown": {
+      "k": 9,
+      "n": 9,
+      "rate": 1.0
+    },
+    "R5_within_window": {
+      "k": 195,
+      "n": 195,
+      "rate": 1.0
+    }
+  },
+  "P0.2_policy_agreement_by_rule_group": {
+    "date window": {
+      "k": 252,
+      "n": 294,
+      "rate": 0.8571
+    },
+    "other rules": {
+      "k": 185,
+      "n": 186,
+      "rate": 0.9946
+    }
+  },
+  "P0.2_policy_agreement_by_type": {
+    "ambiguous": {
+      "k": 83,
+      "n": 90,
+      "rate": 0.9222
+    },
+    "correct": {
+      "k": 57,
+      "n": 60,
+      "rate": 0.95
+    },
+    "hard_negative": {
+      "k": 83,
+      "n": 90,
+      "rate": 0.9222
+    },
+    "ignored_evidence": {
+      "k": 76,
+      "n": 90,
+      "rate": 0.8444
+    },
+    "incorrect_input": {
+      "k": 48,
+      "n": 60,
+      "rate": 0.8
+    },
+    "irrelevant_cue": {
+      "k": 90,
+      "n": 90,
+      "rate": 1.0
+    }
+  },
+  "P0.3_contestable_by_cause": {
+    "follows presented record": 6,
+    "misapplies policy: date window": 1
+  },
+  "P0.3_contestable_by_harm": {
+    "customer: wrongly denied": [
+      "refund_v0-001",
+      "refund_v0-009",
+      "refund_v0-010",
+      "refund_v0-025",
+      "refund_v0-027",
+      "refund_v0-040"
+    ],
+    "store: wrongly approved": [
+      "refund_v0-053"
+    ]
+  },
+  "P0.3_contestable_cases": [
+    "refund_v0-001",
+    "refund_v0-009",
+    "refund_v0-010",
+    "refund_v0-025",
+    "refund_v0-027",
+    "refund_v0-040",
+    "refund_v0-053"
+  ],
+  "P0.3_tied_cases": [],
+  "P0.3_truth_agreement_by_rule": {
+    "R1_manager_preapproval": {
+      "k": 5,
+      "n": 5,
+      "rate": 1.0
+    },
+    "R2_final_sale": {
+      "k": 4,
+      "n": 4,
+      "rate": 1.0
+    },
+    "R3_no_receipt": {
+      "k": 4,
+      "n": 4,
+      "rate": 1.0
+    },
+    "R3_receipt_unknown": {
+      "k": 4,
+      "n": 4,
+      "rate": 1.0
+    },
+    "R4_condition_unknown": {
+      "k": 3,
+      "n": 3,
+      "rate": 1.0
+    },
+    "R4_opened": {
+      "k": 5,
+      "n": 5,
+      "rate": 1.0
+    },
+    "R5_outside_window": {
+      "k": 6,
+      "n": 7,
+      "rate": 0.8571
+    },
+    "R5_purchase_date_unknown": {
+      "k": 3,
+      "n": 3,
+      "rate": 1.0
+    },
+    "R5_within_window": {
+      "k": 19,
+      "n": 25,
+      "rate": 0.76
+    }
+  },
+  "P0.3_truth_agreement_by_type": {
+    "ambiguous": {
+      "k": 10,
+      "n": 10,
+      "rate": 1.0
+    },
+    "correct": {
+      "k": 10,
+      "n": 10,
+      "rate": 1.0
+    },
+    "hard_negative": {
+      "k": 9,
+      "n": 10,
+      "rate": 0.9
+    },
+    "ignored_evidence": {
+      "k": 10,
+      "n": 10,
+      "rate": 1.0
+    },
+    "incorrect_input": {
+      "k": 4,
+      "n": 10,
+      "rate": 0.4
+    },
+    "irrelevant_cue": {
+      "k": 10,
+      "n": 10,
+      "rate": 1.0
+    }
+  },
+  "P0.3_user_harmful_cases": [
+    "refund_v0-001",
+    "refund_v0-009",
+    "refund_v0-010",
+    "refund_v0-025",
+    "refund_v0-027",
+    "refund_v0-040"
+  ],
+  "P0.4_option_order": {
+    "first_listed_chosen_share": 0.3271,
+    "mean_p_approve_shift_when_approve_first": -0.0104,
+    "n_rows": 480,
+    "n_variants_with_both": 160,
+    "no_effect_share": 0.3333,
+    "orders_vary_across_repeats": true
+  },
+  "P0.4_probability_noise": {
+    "identical_across_repeats_share": 0.3312,
+    "includes_order_effects": true,
+    "max_range_p_approve": 0.17,
+    "mean_range_p_approve": 0.0239,
+    "n_variants": 160,
+    "p95_range_p_approve": 0.09
+  },
+  "P0.4_stability": {
+    "mean_majority_share": 0.9896,
+    "n_variants": 160,
+    "unanimous_share": 0.9688
+  },
+  "P0.5_6_flips": [
+    {
+      "expectation": "policy flips",
+      "k": 6,
+      "mean_abs_shift_p_approve": 0.7483,
+      "n": 10,
+      "rate": 0.6,
+      "variant_kind": "correction"
+    },
+    {
+      "expectation": "policy unchanged",
+      "k": 0,
+      "mean_abs_shift_p_approve": 0.0063,
+      "n": 20,
+      "rate": 0.0,
+      "variant_kind": "cue_edit"
+    },
+    {
+      "expectation": "policy flips",
+      "k": 18,
+      "mean_abs_shift_p_approve": 0.8115,
+      "n": 20,
+      "rate": 0.9,
+      "variant_kind": "decisive_edit"
+    },
+    {
+      "expectation": "policy unchanged",
+      "k": 0,
+      "mean_abs_shift_p_approve": 0.0143,
+      "n": 10,
+      "rate": 0.0,
+      "variant_kind": "discrepancy_fixed"
+    },
+    {
+      "expectation": "policy flips",
+      "k": 5,
+      "mean_abs_shift_p_approve": 0.4653,
+      "n": 10,
+      "rate": 0.5,
+      "variant_kind": "exception_removed"
+    },
+    {
+      "expectation": "policy unchanged",
+      "k": 0,
+      "mean_abs_shift_p_approve": 0.0703,
+      "n": 10,
+      "rate": 0.0,
+      "variant_kind": "exception_salient"
+    },
+    {
+      "expectation": "original undetermined",
+      "k": 20,
+      "mean_abs_shift_p_approve": 0.5665,
+      "n": 20,
+      "rate": 1.0,
+      "variant_kind": "resolution"
+    }
+  ],
+  "P0.7_model_versions": {
+    "model_used_counts": {
+      "jev-1.14.0": 480
+    },
+    "n_versions": 1
+  },
+  "P0.8_cost": {
+    "billed_decisions": 480,
+    "per_decision_usd": 2.8e-05,
+    "total_usd": 0.013669
+  },
+  "go_no_go": {
+    "enough_contestable_cases": false,
+    "parse_rate_ok": true,
+    "single_model_version": true,
+    "stability_ok": true
+  },
+  "n_cases": 60,
+  "n_rows": 480,
+  "n_variants": 160
+}

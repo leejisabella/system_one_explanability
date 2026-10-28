@@ -1,6 +1,6 @@
 # Pilot 0: Jev decision characterization. See research_docs/12_first_experiments_roadmap.md.
 
-benchmark: benchmarks/refund_v0
+benchmark: benchmarks/refund_v1    # refund_v0 ran as pilot0-v0-2026-10-28; v1 adds the defects Jev follows
 model_alias: jev               # TypeSafe jev-latest, set in configs/models.yaml
 samples_per_variant: 3         # repeats of each input, for stability and the noise floor
 expected_model_version: null   # null = lock to the first version that answers; or e.g. jev-1.14.0

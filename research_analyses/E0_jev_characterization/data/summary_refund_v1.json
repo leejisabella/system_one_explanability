@@ -1,0 +1,369 @@
+{
+  "P0.1_parse": {
+    "k": 564,
+    "n": 564,
+    "rate": 1.0
+  },
+  "P0.2_policy_agreement_by_rule": {
+    "R1_manager_preapproval": {
+      "k": 30,
+      "n": 30,
+      "rate": 1.0
+    },
+    "R2_final_sale": {
+      "k": 24,
+      "n": 24,
+      "rate": 1.0
+    },
+    "R3_no_receipt": {
+      "k": 72,
+      "n": 72,
+      "rate": 1.0
+    },
+    "R3_receipt_unknown": {
+      "k": 7,
+      "n": 12,
+      "rate": 0.5833
+    },
+    "R4_condition_unknown": {
+      "k": 9,
+      "n": 9,
+      "rate": 1.0
+    },
+    "R4_opened": {
+      "k": 84,
+      "n": 84,
+      "rate": 1.0
+    },
+    "R5_outside_window": {
+      "k": 44,
+      "n": 87,
+      "rate": 0.5057
+    },
+    "R5_purchase_date_unknown": {
+      "k": 9,
+      "n": 9,
+      "rate": 1.0
+    },
+    "R5_within_window": {
+      "k": 237,
+      "n": 237,
+      "rate": 1.0
+    }
+  },
+  "P0.2_policy_agreement_by_rule_group": {
+    "date window": {
+      "k": 281,
+      "n": 324,
+      "rate": 0.8673
+    },
+    "other rules": {
+      "k": 235,
+      "n": 240,
+      "rate": 0.9792
+    }
+  },
+  "P0.2_policy_agreement_by_type": {
+    "ambiguous": {
+      "k": 82,
+      "n": 90,
+      "rate": 0.9111
+    },
+    "correct": {
+      "k": 54,
+      "n": 60,
+      "rate": 0.9
+    },
+    "hard_negative": {
+      "k": 81,
+      "n": 90,
+      "rate": 0.9
+    },
+    "ignored_evidence": {
+      "k": 75,
+      "n": 90,
+      "rate": 0.8333
+    },
+    "incorrect_input": {
+      "k": 144,
+      "n": 144,
+      "rate": 1.0
+    },
+    "irrelevant_cue": {
+      "k": 80,
+      "n": 90,
+      "rate": 0.8889
+    }
+  },
+  "P0.3_contestable_by_cause": {
+    "follows presented record": 24,
+    "misapplies policy: date window": 3
+  },
+  "P0.3_contestable_by_harm": {
+    "customer: wrongly denied": [
+      "refund_v1-003",
+      "refund_v1-004",
+      "refund_v1-005",
+      "refund_v1-006",
+      "refund_v1-008",
+      "refund_v1-012",
+      "refund_v1-015",
+      "refund_v1-016",
+      "refund_v1-018",
+      "refund_v1-022",
+      "refund_v1-023",
+      "refund_v1-025",
+      "refund_v1-028",
+      "refund_v1-037",
+      "refund_v1-039",
+      "refund_v1-043",
+      "refund_v1-048",
+      "refund_v1-049",
+      "refund_v1-060",
+      "refund_v1-062",
+      "refund_v1-067",
+      "refund_v1-070",
+      "refund_v1-071",
+      "refund_v1-073"
+    ],
+    "store: wrongly approved": [
+      "refund_v1-042",
+      "refund_v1-056",
+      "refund_v1-063"
+    ]
+  },
+  "P0.3_contestable_cases": [
+    "refund_v1-003",
+    "refund_v1-004",
+    "refund_v1-005",
+    "refund_v1-006",
+    "refund_v1-008",
+    "refund_v1-012",
+    "refund_v1-015",
+    "refund_v1-016",
+    "refund_v1-018",
+    "refund_v1-022",
+    "refund_v1-023",
+    "refund_v1-025",
+    "refund_v1-028",
+    "refund_v1-037",
+    "refund_v1-039",
+    "refund_v1-042",
+    "refund_v1-043",
+    "refund_v1-048",
+    "refund_v1-049",
+    "refund_v1-056",
+    "refund_v1-060",
+    "refund_v1-062",
+    "refund_v1-063",
+    "refund_v1-067",
+    "refund_v1-070",
+    "refund_v1-071",
+    "refund_v1-073"
+  ],
+  "P0.3_tied_cases": [],
+  "P0.3_truth_agreement_by_rule": {
+    "R1_manager_preapproval": {
+      "k": 5,
+      "n": 5,
+      "rate": 1.0
+    },
+    "R2_final_sale": {
+      "k": 4,
+      "n": 4,
+      "rate": 1.0
+    },
+    "R3_no_receipt": {
+      "k": 4,
+      "n": 4,
+      "rate": 1.0
+    },
+    "R3_receipt_unknown": {
+      "k": 3,
+      "n": 4,
+      "rate": 0.75
+    },
+    "R4_condition_unknown": {
+      "k": 3,
+      "n": 3,
+      "rate": 1.0
+    },
+    "R4_opened": {
+      "k": 5,
+      "n": 5,
+      "rate": 1.0
+    },
+    "R5_outside_window": {
+      "k": 4,
+      "n": 7,
+      "rate": 0.5714
+    },
+    "R5_purchase_date_unknown": {
+      "k": 3,
+      "n": 3,
+      "rate": 1.0
+    },
+    "R5_within_window": {
+      "k": 15,
+      "n": 39,
+      "rate": 0.3846
+    }
+  },
+  "P0.3_truth_agreement_by_type": {
+    "ambiguous": {
+      "k": 9,
+      "n": 10,
+      "rate": 0.9
+    },
+    "correct": {
+      "k": 10,
+      "n": 10,
+      "rate": 1.0
+    },
+    "hard_negative": {
+      "k": 8,
+      "n": 10,
+      "rate": 0.8
+    },
+    "ignored_evidence": {
+      "k": 10,
+      "n": 10,
+      "rate": 1.0
+    },
+    "incorrect_input": {
+      "k": 0,
+      "n": 24,
+      "rate": 0.0
+    },
+    "irrelevant_cue": {
+      "k": 9,
+      "n": 10,
+      "rate": 0.9
+    }
+  },
+  "P0.3_user_harmful_cases": [
+    "refund_v1-003",
+    "refund_v1-004",
+    "refund_v1-005",
+    "refund_v1-006",
+    "refund_v1-008",
+    "refund_v1-012",
+    "refund_v1-015",
+    "refund_v1-016",
+    "refund_v1-018",
+    "refund_v1-022",
+    "refund_v1-023",
+    "refund_v1-025",
+    "refund_v1-028",
+    "refund_v1-037",
+    "refund_v1-039",
+    "refund_v1-043",
+    "refund_v1-048",
+    "refund_v1-049",
+    "refund_v1-060",
+    "refund_v1-062",
+    "refund_v1-067",
+    "refund_v1-070",
+    "refund_v1-071",
+    "refund_v1-073"
+  ],
+  "P0.4_option_order": {
+    "first_listed_chosen_share": 0.3351,
+    "mean_p_approve_shift_when_approve_first": -0.0091,
+    "n_rows": 564,
+    "n_variants_with_both": 188,
+    "no_effect_share": 0.3333,
+    "orders_vary_across_repeats": true
+  },
+  "P0.4_probability_noise": {
+    "identical_across_repeats_share": 0.383,
+    "includes_order_effects": true,
+    "max_range_p_approve": 0.13,
+    "mean_range_p_approve": 0.0173,
+    "n_variants": 188,
+    "p95_range_p_approve": 0.07
+  },
+  "P0.4_stability": {
+    "mean_majority_share": 0.9911,
+    "n_variants": 188,
+    "unanimous_share": 0.9734
+  },
+  "P0.5_6_flips": [
+    {
+      "expectation": "policy flips",
+      "k": 24,
+      "mean_abs_shift_p_approve": 0.9867,
+      "n": 24,
+      "rate": 1.0,
+      "variant_kind": "correction"
+    },
+    {
+      "expectation": "policy unchanged",
+      "k": 0,
+      "mean_abs_shift_p_approve": 0.0063,
+      "n": 20,
+      "rate": 0.0,
+      "variant_kind": "cue_edit"
+    },
+    {
+      "expectation": "policy flips",
+      "k": 16,
+      "mean_abs_shift_p_approve": 0.8,
+      "n": 20,
+      "rate": 0.8,
+      "variant_kind": "decisive_edit"
+    },
+    {
+      "expectation": "policy unchanged",
+      "k": 1,
+      "mean_abs_shift_p_approve": 0.0087,
+      "n": 10,
+      "rate": 0.1,
+      "variant_kind": "discrepancy_fixed"
+    },
+    {
+      "expectation": "policy flips",
+      "k": 5,
+      "mean_abs_shift_p_approve": 0.472,
+      "n": 10,
+      "rate": 0.5,
+      "variant_kind": "exception_removed"
+    },
+    {
+      "expectation": "policy unchanged",
+      "k": 0,
+      "mean_abs_shift_p_approve": 0.0597,
+      "n": 10,
+      "rate": 0.0,
+      "variant_kind": "exception_salient"
+    },
+    {
+      "expectation": "original undetermined",
+      "k": 19,
+      "mean_abs_shift_p_approve": 0.5383,
+      "n": 20,
+      "rate": 0.95,
+      "variant_kind": "resolution"
+    }
+  ],
+  "P0.7_model_versions": {
+    "model_used_counts": {
+      "jev-1.14.0": 564
+    },
+    "n_versions": 1
+  },
+  "P0.8_cost": {
+    "billed_decisions": 564,
+    "per_decision_usd": 2.8e-05,
+    "total_usd": 0.016035
+  },
+  "go_no_go": {
+    "enough_contestable_cases": true,
+    "parse_rate_ok": true,
+    "single_model_version": true,
+    "stability_ok": true
+  },
+  "n_cases": 74,
+  "n_rows": 564,
+  "n_variants": 188
+}

@@ -1,10 +1,10 @@
 # Project Status — start here
 
-Last updated: 2026-10-27 (all models chosen under the project budget; Bedrock Converse support and project caps added). Read this first when picking the project back up.
+Last updated: 2026-10-28 (Pilot 0 passes on refund_v1; Pilot 1 waits on AWS). Read this first when picking the project back up.
 
 ## In one paragraph
 
-We study whether explanations of opaque AI decisions give people verifiable grounds to contest those decisions (main question), and whether LLMs asked to explain Jev's decisions can be pushed into justifying bad or user-harmful decisions (stretch goal). The research plan is written up in [research_docs/](research_docs/README.md). The code so far is the infrastructure for the **first experiment, Pilot 0**: a frozen benchmark of 60 synthetic refund cases, a cost-capped harness for calling outside models, a wrapper that asks Jev for typed decisions through TypeSafe's native API, and a runner and analysis script that save and summarize results. The **Pilot 1** (Experiment 1) harness is also built: explainers decide the cases themselves and explain Jev's decisions, and a simulator model (gpt-oss-120b) scores each frozen explanation on hidden counterfactual variants. Every model is chosen and priced from official price lists, and the whole project must fit in **$50 on AWS, $50 on GCP and $5 on TypeSafe**, which the harness enforces across all runs. Jev is called as `jev-latest`; each run records the full probabilities and the exact version on every call, and halts if the version changes. Everything has been tested offline with fake models. **No live model has answered yet:** one Bedrock test call on 2026-10-27 was refused because AWS was still verifying the account (not billed).
+We study whether explanations of opaque AI decisions give people verifiable grounds to contest those decisions (main question), and whether LLMs asked to explain Jev's decisions can be pushed into justifying bad or user-harmful decisions (stretch goal). The research plan is written up in [research_docs/](research_docs/README.md). The code so far is the infrastructure for the **first experiment, Pilot 0**: a frozen benchmark of 60 synthetic refund cases, a cost-capped harness for calling outside models, a wrapper that asks Jev for typed decisions through TypeSafe's native API, and a runner and analysis script that save and summarize results. The **Pilot 1** (Experiment 1) harness is also built: explainers decide the cases themselves and explain Jev's decisions, and a simulator model (gpt-oss-120b) scores each frozen explanation on hidden counterfactual variants. Every model is chosen and priced from official price lists, and the whole project must fit in **$50 on AWS, $50 on GCP and $5 on TypeSafe**, which the harness enforces across all runs. Jev is called as `jev-latest`; each run records the full probabilities and the exact version on every call, and halts if the version changes. **Pilot 0 ran live on 2026-10-28** (`pilot0-v0-2026-10-28`, $0.0137): Jev is stable and parses perfectly, but only 6 of 60 cases were customer-harming wrong decisions, short of the 20 needed, so a new benchmark, **refund_v1**, adds the defects Jev follows. **On refund_v1 Pilot 0 passes** (`pilot0-v1-2026-10-28`, $0.0160): 24 customer-harming wrong decisions, 100% parsed, 97% of variants unanimous (results in [research_docs/12](research_docs/12_first_experiments_roadmap.md#pilot-0-results-on-refund_v1-2026-10-28-go)). Bedrock has not answered yet: AWS was still verifying the account on 2026-10-27.
 
 ## What exists
 
@@ -15,13 +15,15 @@ We study whether explanations of opaque AI decisions give people verifiable grou
 | Roadmap to the first experiments, Pilot 0 design, results layout | [research_docs/12_first_experiments_roadmap.md](research_docs/12_first_experiments_roadmap.md) | Written |
 | Provider clients (TypeSafe, Bedrock incl. Converse and flex tier, Gemini, OpenRouter), cost guard with project caps, version lock, spending log, cache | [src/sysone/clients/](src/sysone/clients/), [src/sysone/budget/](src/sysone/budget/) | Built, tested offline |
 | Benchmark generator, refund policy, renderer | [src/sysone/benchmark/](src/sysone/benchmark/) | Built, tested |
-| Benchmark v0 (60 cases, 160 variants, template text) | [benchmarks/refund_v0/](benchmarks/refund_v0/) | Frozen |
+| Benchmark v0 (60 cases, 160 variants, template text) | [benchmarks/refund_v0/](benchmarks/refund_v0/) | Frozen; Pilot 0 ran on it |
+| Benchmark v1 (74 cases, 188 variants; 24 incorrect-input cases with the defects Jev follows) | [benchmarks/refund_v1/](benchmarks/refund_v1/) | Frozen; the current benchmark |
 | Jev decision wrapper (typed choice question, full probabilities) | [src/sysone/decision/jev.py](src/sysone/decision/jev.py) | Built, tested with a fake Jev |
-| Pilot 0 runner and analysis | [src/sysone/experiments/pilot0.py](src/sysone/experiments/pilot0.py), [src/sysone/analysis/pilot0.py](src/sysone/analysis/pilot0.py) | Built, dry run passed |
+| Pilot 0 runner and analysis | [src/sysone/experiments/pilot0.py](src/sysone/experiments/pilot0.py), [src/sysone/analysis/pilot0.py](src/sysone/analysis/pilot0.py) | Run live on refund_v0 |
 | Pilot 1 runner, explainer and simulator wrappers, structured basis, analysis | [src/sysone/experiments/pilot1.py](src/sysone/experiments/pilot1.py), [src/sysone/explain/](src/sysone/explain/), [src/sysone/analysis/pilot1.py](src/sysone/analysis/pilot1.py) | Built, dry run passed |
+| Results write-ups, one folder per experiment (E0 done, with figures) | [research_analyses/](research_analyses/README.md) | E0 written |
 | Open decisions and setup tasks | [TODO.md](TODO.md) | Up to date |
 
-Not built yet: the natural-language version of the cases (step 6b), the access layer that controls what an explainer may see, Pilot 1's contestability scoring (needs the LLM judge), CAPE, and the stretch-goal harness.
+Not built yet: the natural-language version of the cases (step 6b, to be `refund_v2`), the access layer that controls what an explainer may see, Pilot 1's contestability scoring (needs the LLM judge), CAPE, and the stretch-goal harness.
 
 ## How to pick it up
 
@@ -43,10 +45,10 @@ In order (details in [TODO.md](TODO.md)):
 2. **Check credits and set budget alerts** in the AWS and GCP consoles (e.g. alerts at $40). Claude on Bedrock is billed through AWS Marketplace, which some credits exclude.
 3. **Commit**, so each run's manifest names a clean commit.
 4. **Run the preflight**: `uv run python scripts/preflight.py` sends one real request of every kind Pilot 0 and Pilot 1 make (Jev, both explainers, the simulator), checks each parses, and projects full-run costs from the measured cost per call (well under $0.01 in total). `--only jev` runs just Jev, which doesn't need AWS. Then smoke-test the models the pilots don't use yet (`case_writer`, `case_writer_2`, `explainer_open`, `decision_alt`) with `uv run python scripts/smoke_test.py <alias>`.
-5. **Run Pilot 0 live**: `uv run python -m sysone.experiments.pilot0 --run-id pilot0-v0-<date>` (480 Jev calls, about $0.01). Then decide go / no-go for Experiment 1 from its report (criteria in [research_docs/12](research_docs/12_first_experiments_roadmap.md)).
-6. **Run Pilot 1 live** (about $1–2 across AWS and GCP): `uv run python -m sysone.experiments.pilot1 --pilot0-run <pilot0 id> --run-id pilot1-v0-<date>`.
+5. ✅ **Pilot 0 on refund_v1** passed (`pilot0-v1-2026-10-28`); results written up in [research_analyses/E0_jev_characterization/](research_analyses/E0_jev_characterization/README.md).
+6. **Run Pilot 1 live** on the refund_v1 Pilot 0 run (about $1–2 across AWS and GCP): `uv run python -m sysone.experiments.pilot1 --pilot0-run pilot0-v1-2026-10-28 --run-id pilot1-v1-<date>`.
 7. **Re-estimate the project budget** from the measured costs per call, before later experiments ([research_docs/11](research_docs/11_harness_and_infrastructure.md#project-budget)).
-8. **Step 6b** (natural-language cases with the case writer, about $0.10) can happen any time after step 1; its generator is not built yet.
+8. **Step 6b** (natural-language cases with the case writer, about $0.10, frozen as `refund_v2`) can happen any time after step 1; its generator is not built yet.
 
 ## Things that are easy to forget
 
@@ -57,7 +59,8 @@ In order (details in [TODO.md](TODO.md)):
 - **Model families stay apart by role:** case writers and the simulator/judge never share a family with an explainer ([research_docs/11](research_docs/11_harness_and_infrastructure.md#model-access)). Check this when changing a model.
 - **Flex tier:** the simulator and judge request Bedrock's flex tier; it is charged at the flex price only when Bedrock's response confirms flex, otherwise at the standard price.
 - **`results/` stays local.** It is gitignored and not backed up anywhere. Write down the `run_id` of each run that matters.
-- **Benchmarks are frozen.** Never edit `benchmarks/refund_v0/` by hand: loading checks a hash and will refuse an edited file. To change cases, freeze a new version under a new name.
+- **Benchmarks are frozen.** Never edit `benchmarks/refund_v*/` by hand: loading checks a hash and will refuse an edited file. To change cases, freeze a new version under a new name.
+- **Runs that matter:** `pilot0-v0-2026-10-28` (Pilot 0 on refund_v0, no-go) and `pilot0-v1-2026-10-28` (Pilot 0 on refund_v1, go; Pilot 1 builds on it).
 - **Provisional name list:** the name-swap cases use first names from Bertrand & Mullainathan (2004) as a placeholder until the audit name list is chosen.
 - **Pilot 0 does not reuse cached answers** from earlier runs (`use_cache: false`), so every new run makes fresh, billed calls. Resuming the same run never re-pays for saved decisions.
 - **Unverified assumptions behind cost estimates** are listed in [research_docs/11](research_docs/11_harness_and_infrastructure.md#assumptions-still-to-verify).

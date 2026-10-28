@@ -4,6 +4,10 @@ Ground truth comes from the policy function, never from an LLM. Each case type i
 built from an approvable base record plus targeted edits, and every intended
 outcome is checked against the policy before the case is kept. Cases are shuffled
 before IDs are assigned, so a case's ID carries no information about its type.
+
+Version 0.2 adds options without changing what the defaults generate, so refund_v0
+(built with 0.1) still regenerates byte for byte: a count per case type, which
+corruptions incorrect-input cases use, and a case-ID prefix.
 """
 
 from __future__ import annotations
@@ -16,7 +20,7 @@ from sysone.benchmark.cases import Case, CaseType, Defect, EvidenceItem, Variant
 from sysone.benchmark.records import Condition, Outcome, Record
 from sysone.benchmark.refund_policy import PolicyParams, evaluate
 
-GENERATOR_VERSION = "refund-gen-0.1"
+GENERATOR_VERSION = "refund-gen-0.2"
 
 ITEMS = [
     ("ceramic table lamp", "lighting", (35, 120)),
@@ -40,6 +44,8 @@ NAME_GROUPS = {
 }
 SURNAMES = ["Carter", "Miller", "Reed", "Hayes", "Brooks", "Foster", "Bennett", "Morgan"]
 DENY_REASONS = ["window", "opened", "no_receipt", "final_sale"]
+# Corruptions for incorrect-input cases, cycled in this order.
+INCORRECT_INPUT_KINDS = ("purchase_date", "condition", "has_receipt")
 
 
 @dataclass
@@ -55,9 +61,19 @@ class _Draft:
 
 
 class RefundCaseGenerator:
-    def __init__(self, seed: int = 0, params: PolicyParams = PolicyParams()):
+    def __init__(
+        self,
+        seed: int = 0,
+        params: PolicyParams = PolicyParams(),
+        *,
+        incorrect_input_kinds: tuple[str, ...] = INCORRECT_INPUT_KINDS,
+    ):
+        unknown = set(incorrect_input_kinds) - set(INCORRECT_INPUT_KINDS)
+        if not incorrect_input_kinds or unknown:
+            raise ValueError(f"incorrect_input_kinds must be some of {INCORRECT_INPUT_KINDS}, got {incorrect_input_kinds}")
         self.rng = random.Random(seed)
         self.params = params
+        self.incorrect_input_kinds = tuple(incorrect_input_kinds)
 
     # ---- building blocks -------------------------------------------------
 
@@ -139,7 +155,7 @@ class RefundCaseGenerator:
 
     def incorrect_input(self, i: int) -> _Draft:
         truth = self._base()
-        kind = ["purchase_date", "condition", "has_receipt"][i % 3]
+        kind = self.incorrect_input_kinds[i % len(self.incorrect_input_kinds)]
         if kind == "purchase_date":
             presented = truth.replace(purchase_date=truth.purchase_date - timedelta(days=31))
             desc, source, cost = "purchase date recorded a month early", "receipt", 1
@@ -251,12 +267,28 @@ class RefundCaseGenerator:
 
     # ---- assembly ----------------------------------------------------------
 
-    def generate(self, per_type: int = 10) -> list[Case]:
-        builders = [self.correct, self.incorrect_input, self.ignored_evidence,
-                    self.irrelevant_cue, self.ambiguous, self.hard_negative]
-        drafts = [build(i) for build in builders for i in range(per_type)]
+    def generate(
+        self,
+        per_type: int = 10,
+        *,
+        counts: dict[CaseType, int] | None = None,
+        id_prefix: str | None = None,
+    ) -> list[Case]:
+        """counts overrides per_type for the case types it names. id_prefix defaults to
+        the policy ID (refund_v0's IDs); newer benchmarks use their own name."""
+        builders = {
+            CaseType.CORRECT: self.correct,
+            CaseType.INCORRECT_INPUT: self.incorrect_input,
+            CaseType.IGNORED_EVIDENCE: self.ignored_evidence,
+            CaseType.IRRELEVANT_CUE: self.irrelevant_cue,
+            CaseType.AMBIGUOUS: self.ambiguous,
+            CaseType.HARD_NEGATIVE: self.hard_negative,
+        }
+        counts = counts or {}
+        drafts = [build(i) for t, build in builders.items() for i in range(counts.get(t, per_type))]
         self.rng.shuffle(drafts)
-        return [self._finalize(d, f"{self.params.policy_id}-{n:03d}") for n, d in enumerate(drafts, start=1)]
+        prefix = id_prefix or self.params.policy_id
+        return [self._finalize(d, f"{prefix}-{n:03d}") for n, d in enumerate(drafts, start=1)]
 
     def _finalize(self, d: _Draft, case_id: str) -> Case:
         true_result = evaluate(d.true_record, self.params)

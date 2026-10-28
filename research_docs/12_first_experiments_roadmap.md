@@ -41,9 +41,46 @@ Note the difference between P0.2 and P0.3. For an incorrect-input case, Jev can 
 ### Go / no-go criteria for moving on to Experiment 1
 
 - Parse success ≥ 98%.
-- Enough cases where Jev's decision is wrong under ground truth, ideally at least 20 of the 60, so Experiment 1 has defects to find. If there are too few, make the defects harder before continuing.
-- Sample-to-sample agreement high enough that counterfactual flips aren't just noise (threshold to set after seeing the data).
+- At least 20 cases where Jev's decision is wrong under ground truth **and harms the customer** (a denial of a refund the policy owes on the true record), so Experiment 1 has contestable decisions to find. Wrong approvals harm the store rather than the person contesting, so they are reported separately and don't count. If there are too few, change the benchmark before continuing. (Revised 2026-10-28 after the first run, from "at least 20 wrong decisions".)
+- At least 90% of variants unanimous across repeated samples, so counterfactual flips aren't just noise (set 2026-10-28 after the first two runs, both about 97%).
 - One model version throughout the run.
+
+## Pilot 0 results on refund_v0 (2026-10-28)
+
+Run `pilot0-v0-2026-10-28` (results/ is local only): 480 calls, all answered by `jev-1.14.0`, 100% parsed, **$0.0137** in total ($0.000029 per decision).
+
+| Criterion | Result |
+|---|---|
+| Parse rate ≥ 98% | Yes, 100% |
+| One model version | Yes |
+| ≥ 90% of variants unanimous | Yes: 97% across 3 repeats; 95th-percentile range of P(approve) 0.09, largest 0.17 (includes any order effect) |
+| ≥ 20 customer-harming wrong decisions | **No: 6** (plus 1 wrong approval) |
+
+What the run showed:
+
+- **Jev misjudges the 30-day window in the customer's favour.** It denied only 58% of samples for requests outside the window; 14 variants 37–52 days past purchase were approved. That masks the "purchase date recorded a month early" defect: Jev approved all 4 such cases anyway, which happens to match the ground truth.
+- **Jev reads attachments.** All 10 ignored-evidence cases were decided correctly, so that design produced no wrong decisions.
+- **Jev follows corrupted receipt and condition fields.** All 6 such incorrect-input cases were wrong denials: 6 of the 7 contestable cases.
+- **No sensitivity to names or message register** (0 of 20 cue edits flipped a decision) and **no option-order effect** (first-listed option chosen 32.7% of the time, 33.3% expected).
+- Corrections flip the decision only 60% of the time, again because of the date-window errors.
+
+Response: [refund_v1](#benchmark-v1-as-built), which adds the defects Jev follows. The full write-up of both runs, with figures, is in [research_analyses/E0_jev_characterization/](../research_analyses/E0_jev_characterization/README.md).
+
+## Pilot 0 results on refund_v1 (2026-10-28): go
+
+Run `pilot0-v1-2026-10-28`: 564 calls, all answered by `jev-1.14.0`, 100% parsed, **$0.0160** ($0.000028 per decision). The working tree was uncommitted when it ran (`git.dirty` in the manifest); the benchmark hash and all configs are recorded.
+
+| Criterion | Result |
+|---|---|
+| Parse rate ≥ 98% | Yes, 100% |
+| One model version | Yes |
+| ≥ 90% of variants unanimous | Yes: 97%; 95th-percentile range of P(approve) 0.07, largest 0.13 |
+| ≥ 20 customer-harming wrong decisions | **Yes: 24** (plus 3 wrong approvals from date-window errors) |
+
+- **All 24 incorrect-input cases are wrong denials** that follow the corrupted record, and **all 24 corrections flip the decision** (mean P(approve) shift 0.99). These are the contestable cases Experiment 1 needs.
+- The date-window weakness repeats: Jev denies only 51% of samples outside the window, which accounts for the 3 wrong approvals.
+- **Missing receipts:** Jev answered "undetermined" in only 7 of 12 samples where the receipt status is missing (58%); in the other 5 it decided anyway.
+- Again no sensitivity to names or message register (0 of 20 cue edits flipped) and no option-order effect (first-listed option chosen 33.5%, 33.3% expected).
 
 ## What comes after Pilot 0
 
@@ -109,7 +146,7 @@ The basis can be run, so each variant yields two predictions from one call:
 
 ## Steps to get there
 
-Steps 1–6 are built (✅), along with the analysis script from step 8 and the Pilot 1 harness (step 9). Step 7 needs only the TypeSafe key; step 6b can run any time once AWS has verified the account; step 10 waits on step 7.
+Steps 1–9 are done (✅) except 6b. Step 10 (Pilot 1) waits only on AWS verification; step 6b can run any time once AWS has verified the account.
 
 | Step | Work | Cost |
 |------|------|------|
@@ -119,11 +156,23 @@ Steps 1–6 are built (✅), along with the analysis script from step 8 and the 
 | 4 ✅ | **Jev decision wrapper:** prompt (policy + case → structured decision), JSON schema, parsing and validation, repeat sampling, query budget $B$ | Free to build |
 | 5 ✅ | **Run harness and results store** (see below): run manifest, JSONL writers, resume | Free |
 | 6 ✅ | **End-to-end dry run** with a fake Jev, to check the whole pipeline and the analysis script | Free |
-| 6b | **Natural-language realization** of the 60 cases with the case writer; freeze as `refund_v1` (generator not built yet) | ≈ $0.10 |
-| 7 | **Pilot 0 live run** (template text first, then natural-language text) | ≈ $0.01 |
-| 8 | **Analysis script** for P0.1–P0.8 (✅ built and run on the dry run); go / no-go decision after the live run | Free |
+| 6b | **Natural-language realization** of the cases with the case writer; freeze as `refund_v2` (generator not built yet) | ≈ $0.10 |
+| 7 ✅ | **Pilot 0 live run on refund_v0** (`pilot0-v0-2026-10-28`): no-go, 6 customer-harming wrong decisions | $0.0137 |
+| 7b ✅ | **Pilot 0 live run on refund_v1** (`pilot0-v1-2026-10-28`): go, 24 customer-harming wrong decisions | $0.0160 |
+| 8 ✅ | **Analysis script** for P0.1–P0.8, with wrong decisions split by who they harm | Free |
 | 9 ✅ | **Pilot 1 harness:** explainer and simulator wrappers, structured basis and its executor, runner, analysis; dry run with fake models | Free |
 | 10 | **Pilot 1 live run** | ≈ $1–2 across AWS and GCP |
+
+## Benchmark v1 as built
+
+`benchmarks/refund_v1/` (seed 1, generator `refund-gen-0.2`, template text, frozen 2026-10-28): the same policy and case types as v0, with **24 incorrect-input cases instead of 10**, using only the corruptions Jev follows (12 "item logged as opened", 12 "receipt not linked"; no purchase-date corruption, which Jev's date errors mask). Every one is presented as a denial of an owed refund. The other five types have 10 cases each: **74 cases, 188 variants**. Case IDs start with `refund_v1-`. The generator still reproduces v0 byte for byte, and a test checks both.
+
+```bash
+uv run python -m sysone.benchmark.build --name refund_v1 --seed 1 --per-type 10 \
+    --incorrect-input 24 --incorrect-input-kinds condition has_receipt --id-prefix refund_v1
+```
+
+Volumes on v1: Pilot 0 is 564 Jev calls (≈ $0.016). Pilot 1 is 564 decisions per explainer, up to 148 explanations per explainer and up to 684 simulator calls (114 hidden variants × 6).
 
 ## Benchmark v0 as built
 
