@@ -13,13 +13,19 @@ doesn't match the committed manifest.
 Usage:
   uv run --group data python -m sysone.cascade.items build    # download the sources, freeze both samples
 
-Samples (E.101's go/no-go pilot):
-- wildguard_prompt_v1: WildGuardTest (human labels; the GPT-4-labeled training split is not
-  used), prompt harmfulness, 75 items in each cell of adversarial x label.
-- civil_toxicity_v1: Civil Comments with identity annotations (the WILDS release), toxicity
-  >= 0.5, 75 items in each cell of mentions-an-identity x label. Only comments from Jigsaw's
-  test sets (ID >= 7,000,000) whose text is not in google/civil_comments' train split:
+  uv run --group data python -m sysone.cascade.items build civil_toxicity_pool_v1   # one sample
+
+Samples:
+- wildguard_prompt_v1 (E.101): WildGuardTest (human labels; the GPT-4-labeled training split is
+  not used), prompt harmfulness, 75 items in each cell of adversarial x label.
+- civil_toxicity_v1 (E.101): Civil Comments with identity annotations (the WILDS release),
+  toxicity >= 0.5, 75 items in each cell of mentions-an-identity x label. Only comments from
+  Jigsaw's test sets (ID >= 7,000,000) whose text is not in google/civil_comments' train split:
   TypeSafe's "Jev boost" post-training sets include that train split (as of 2026-10-24).
+- wildguard_prompt_full_v1 (E.102): every labeled WildGuardTest prompt.
+- wildguard_response_full_v1 (E.102): every WildGuardTest response with a harmfulness label,
+  shown with its prompt; conversations over 12,000 characters are left out.
+- civil_toxicity_pool_v1 (E.102): 750 per cell, as civil_toxicity_v1 but none of its items.
 """
 
 from __future__ import annotations
@@ -35,7 +41,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
-from sysone.cascade.tasks import CIVIL_TOXICITY, TASKS, WILDGUARD_PROMPT
+from sysone.cascade.tasks import CIVIL_TOXICITY, TASKS, WILDGUARD_PROMPT, WILDGUARD_RESPONSE
 from sysone.registry import REPO_ROOT
 
 DATA_DIR = REPO_ROOT / "data"
@@ -100,8 +106,9 @@ def stratified_sample(rows: list[dict[str, Any]], key: Callable[[dict[str, Any]]
     return out
 
 
-def wildguard_items(rows: Iterable[dict[str, Any]], *, n_per_cell: int, seed: int, max_chars: int) -> tuple[list[Item], dict]:
-    """WildGuardTest rows (in file order) to prompt-harmfulness items."""
+def wildguard_items(rows: Iterable[dict[str, Any]], *, n_per_cell: int | None, seed: int,
+                    max_chars: int) -> tuple[list[Item], dict]:
+    """WildGuardTest rows (in file order) to prompt-harmfulness items; n_per_cell None takes all."""
     pool, dropped = [], Counter()
     for i, r in enumerate(rows):
         if r.get("prompt_harm_label") not in WILDGUARD_PROMPT.labels:
@@ -110,8 +117,8 @@ def wildguard_items(rows: Iterable[dict[str, Any]], *, n_per_cell: int, seed: in
             dropped["too_long_or_empty"] += 1
         else:
             pool.append({**r, "_index": i})
-    picked = stratified_sample(pool, lambda r: (bool(r["adversarial"]), r["prompt_harm_label"]), n_per_cell, seed,
-                               row_id=lambda r: r["_index"])
+    picked = pool if n_per_cell is None else stratified_sample(
+        pool, lambda r: (bool(r["adversarial"]), r["prompt_harm_label"]), n_per_cell, seed, row_id=lambda r: r["_index"])
     items = [Item(
         item_id=f"wgt-{r['_index']:04d}",
         dataset="wildguard_prompt",
@@ -126,13 +133,42 @@ def wildguard_items(rows: Iterable[dict[str, Any]], *, n_per_cell: int, seed: in
     return items, {"pool": len(pool), "dropped": dict(dropped)}
 
 
+def wildguard_response_items(rows: Iterable[dict[str, Any]], *, max_chars: int) -> tuple[list[Item], dict]:
+    """WildGuardTest rows (in file order) to response-harmfulness items: the conversation is the
+    prompt and the response, and the label is the response's."""
+    items, dropped = [], Counter()
+    for i, r in enumerate(rows):
+        if r.get("response_harm_label") not in WILDGUARD_RESPONSE.labels or not r.get("response"):
+            dropped["no_response_label"] += 1
+            continue
+        text = f"User prompt:\n{r['prompt']}\n\nAI assistant's response:\n{r['response']}"
+        if len(text) > max_chars:
+            dropped["too_long"] += 1
+            continue
+        items.append(Item(
+            item_id=f"wgr-{i:04d}",
+            dataset="wildguard_response",
+            task=WILDGUARD_RESPONSE.name,
+            text=text,
+            label=r["response_harm_label"],
+            strata={"adversarial": "adversarial" if r["adversarial"] else "vanilla",
+                    "annotator_agreement": "low" if (r.get("response_harm_agreement") or 3) < 3 else "high",
+                    "response": r.get("response_refusal_label") or "unknown"},
+            meta={"source_index": i, "subcategory": r.get("subcategory"), "prompt_harm_label": r.get("prompt_harm_label"),
+                  "response_harm_agreement": r.get("response_harm_agreement")},
+        ))
+    return items, {"pool": len(items), "dropped": dict(dropped)}
+
+
 def civil_items(rows: Iterable[dict[str, Any]], train_texts: set[str], *, n_per_cell: int, seed: int,
-                max_chars: int) -> tuple[list[Item], dict]:
+                max_chars: int, exclude_ids: frozenset[int] = frozenset()) -> tuple[list[Item], dict]:
     """Identity-annotated Civil Comments rows to toxicity items, keeping only comments that
-    never appeared in google/civil_comments' train split."""
+    never appeared in google/civil_comments' train split (nor in exclude_ids, e.g. an earlier sample)."""
     pool, dropped = [], Counter()
     for r in rows:
-        if r["id"] < JIGSAW_TEST_MIN_ID:
+        if r["id"] in exclude_ids:
+            dropped["in_earlier_sample"] += 1
+        elif r["id"] < JIGSAW_TEST_MIN_ID:
             dropped["jigsaw_train_id"] += 1
         elif r["comment_text"] in train_texts:
             dropped["text_in_hf_train"] += 1
@@ -229,38 +265,89 @@ def _parquet_rows(path: Path, columns: list[str] | None = None) -> list[dict[str
     return pq.read_table(path, columns=columns).to_pylist()
 
 
-def build(*, n_per_cell: int = 75, seed: int = 101, force: bool = False) -> None:
-    from sysone.env import load_env
-
-    load_env()
-    wg_rows = _parquet_rows(download(WILDGUARD_SOURCE))
-    settings = {"n_per_cell": n_per_cell, "seed": seed, "max_chars": 8000}
-    items, stats = wildguard_items(wg_rows, **settings)
-    print(f"wildguard_prompt_v1: {len(items)} items from {stats}")
-    print("  ", freeze_items(items, "wildguard_prompt_v1", {
-        "source": WILDGUARD_SOURCE, "task": WILDGUARD_PROMPT.name, "sampling": settings, "source_stats": stats,
-        "stratified_on": ["adversarial", "label"]}, force=force))
-
+def _civil_rows() -> tuple[list[dict[str, Any]], set[str]]:
     train_texts: set[str] = set()
     for source in CIVIL_TRAIN_SOURCES:
         train_texts.update(r["text"] for r in _parquet_rows(download(source), ["text"]))
-    cc_cols = ["id", "comment_text", "toxicity", "identity_attack", "identity_any", "toxicity_annotator_count",
-               *CIVIL_IDENTITY_GROUPS]
-    settings = {"n_per_cell": n_per_cell, "seed": seed, "max_chars": 4000}
-    items, stats = civil_items(_parquet_rows(download(CIVIL_SOURCE), cc_cols), train_texts, **settings)
-    print(f"civil_toxicity_v1: {len(items)} items from {stats}")
-    print("  ", freeze_items(items, "civil_toxicity_v1", {
-        "source": CIVIL_SOURCE, "excluded_if_text_in": CIVIL_TRAIN_SOURCES, "task": CIVIL_TOXICITY.name,
-        "toxic_threshold": CIVIL_TOXIC_THRESHOLD, "jigsaw_test_min_id": JIGSAW_TEST_MIN_ID, "sampling": settings,
-        "source_stats": stats, "stratified_on": ["identity", "label"]}, force=force))
+    cols = ["id", "comment_text", "toxicity", "identity_attack", "identity_any", "toxicity_annotator_count",
+            *CIVIL_IDENTITY_GROUPS]
+    return _parquet_rows(download(CIVIL_SOURCE), cols), train_texts
+
+
+def _civil_meta(settings: dict, stats: dict, **extra: Any) -> dict[str, Any]:
+    return {"source": CIVIL_SOURCE, "excluded_if_text_in": CIVIL_TRAIN_SOURCES, "task": CIVIL_TOXICITY.name,
+            "toxic_threshold": CIVIL_TOXIC_THRESHOLD, "jigsaw_test_min_id": JIGSAW_TEST_MIN_ID, "sampling": settings,
+            "source_stats": stats, "stratified_on": ["identity", "label"], **extra}
+
+
+def _build_wildguard_prompt_v1() -> tuple[list[Item], dict]:
+    settings = {"n_per_cell": 75, "seed": 101, "max_chars": 8000}
+    items, stats = wildguard_items(_parquet_rows(download(WILDGUARD_SOURCE)), **settings)
+    return items, {"source": WILDGUARD_SOURCE, "task": WILDGUARD_PROMPT.name, "sampling": settings,
+                   "source_stats": stats, "stratified_on": ["adversarial", "label"]}
+
+
+def _build_civil_toxicity_v1() -> tuple[list[Item], dict]:
+    rows, train_texts = _civil_rows()
+    settings = {"n_per_cell": 75, "seed": 101, "max_chars": 4000}
+    items, stats = civil_items(rows, train_texts, **settings)
+    return items, _civil_meta(settings, stats)
+
+
+def _build_wildguard_prompt_full_v1() -> tuple[list[Item], dict]:
+    settings = {"n_per_cell": None, "seed": 102, "max_chars": 8000}
+    items, stats = wildguard_items(_parquet_rows(download(WILDGUARD_SOURCE)), **settings)
+    return items, {"source": WILDGUARD_SOURCE, "task": WILDGUARD_PROMPT.name, "sampling": settings,
+                   "source_stats": stats, "stratified_on": []}
+
+
+def _build_wildguard_response_full_v1() -> tuple[list[Item], dict]:
+    settings = {"max_chars": 12000}
+    items, stats = wildguard_response_items(_parquet_rows(download(WILDGUARD_SOURCE)), **settings)
+    return items, {"source": WILDGUARD_SOURCE, "task": WILDGUARD_RESPONSE.name, "sampling": settings,
+                   "source_stats": stats, "stratified_on": []}
+
+
+def _build_civil_toxicity_pool_v1() -> tuple[list[Item], dict]:
+    rows, train_texts = _civil_rows()
+    earlier, _ = load_items("civil_toxicity_v1")
+    exclude = frozenset(i.meta["jigsaw_id"] for i in earlier)
+    settings = {"n_per_cell": 750, "seed": 102, "max_chars": 4000}
+    items, stats = civil_items(rows, train_texts, exclude_ids=exclude, **settings)
+    return items, _civil_meta(settings, stats, excluded_samples=["civil_toxicity_v1"])
+
+
+BUILDERS: dict[str, Callable[[], tuple[list[Item], dict]]] = {
+    "wildguard_prompt_v1": _build_wildguard_prompt_v1,
+    "civil_toxicity_v1": _build_civil_toxicity_v1,
+    "wildguard_prompt_full_v1": _build_wildguard_prompt_full_v1,
+    "wildguard_response_full_v1": _build_wildguard_response_full_v1,
+    "civil_toxicity_pool_v1": _build_civil_toxicity_pool_v1,
+}
+
+
+def build(names: list[str] | None = None, *, force: bool = False) -> None:
+    """Build and freeze samples (all by default). A sample whose manifest exists is skipped
+    unless force, which rebuilds it; a deterministic rebuild leaves the manifest unchanged."""
+    from sysone.env import load_env
+
+    load_env()
+    for name in names or list(BUILDERS):
+        if (MANIFEST_DIR / name / "manifest.json").exists() and not force:
+            print(f"{name}: frozen already, skipped")
+            continue
+        items, meta = BUILDERS[name]()
+        print(f"{name}: {len(items)} items from {meta['source_stats']}")
+        print("  ", freeze_items(items, name, meta, force=force))
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("command", choices=["build"])
+    parser.add_argument("names", nargs="*", choices=[[], *BUILDERS], help="samples to build (default: all)")
     parser.add_argument("--force", action="store_true", help="rebuild a sample whose manifest exists (must match)")
     args = parser.parse_args()
-    build(force=args.force)
+    build(args.names or None, force=args.force)
 
 
 if __name__ == "__main__":

@@ -36,6 +36,11 @@ bedrock:
   # The E.1xx reviewer. From the AmazonBedrock offer for us-east-2, publication date 2026-11-02
   # (read 2026-11-03): USE2-gpt-oss-20b-{input,output}-tokens and their -flex variants.
   openai.gpt-oss-20b-1:0:                     {input: 0.07, output: 0.30, flex: {input: 0.035, output: 0.15}}
+  # E.102's second reviewer. Same offer and date: USE2-Qwen3-32B-{input,output}-tokens and -flex.
+  qwen.qwen3-32b-v1:0:                        {input: 0.15, output: 0.60, flex: {input: 0.075, output: 0.30}}
+  # Candidate reviewers, smoke-tested 2026-11-04 (same offer and date; standard and -flex usage types).
+  mistral.magistral-small-2509:               {input: 0.50, output: 1.50, flex: {input: 0.25, output: 0.75}}
+  nvidia.nemotron-nano-3-30b:                 {input: 0.06, output: 0.24, flex: {input: 0.03, output: 0.12}}
 
 gemini:
   # Paid-tier Gemini API prices from ai.google.dev/gemini-api/docs/pricing (checked 2026-10-21,

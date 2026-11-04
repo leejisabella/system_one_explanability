@@ -148,7 +148,9 @@ def _usage(resp) -> dict[str, Any]:
             "service_tier": resp.service_tier, "latency_s": resp.latency_s, "wall_s": resp.wall_s}
 
 
-def jev_step(config: E101Config, run: Run, client: GuardedClient, samples: dict[str, list[Item]]) -> None:
+def jev_step(config: E101Config, run: Run, client: GuardedClient, samples: dict[str, list[Item]], *,
+             experiment: str = EXPERIMENT) -> None:
+    """Jev on every item of every sample, jev_samples times. Shared with later E.1xx runners."""
     writer = run.writer("jev_decisions")
     done = {(r["sample"], r["item_id"], r["sample_index"]) for r in writer.rows() if r["status"] == "ok"}
     models = {name: JevDecisionModel(client, task=TASKS[items[0].task].jev) for name, items in samples.items()}
@@ -159,7 +161,7 @@ def jev_step(config: E101Config, run: Run, client: GuardedClient, samples: dict[
         name, item, k = t
         base = {"run_id": run.run_id, "sample": name, "item_id": item.item_id, "task": item.task,
                 "sample_index": k, "label": item.label, "strata": item.strata}
-        tags = {"experiment": EXPERIMENT, "step": "jev", "sample": name, "item_id": item.item_id,
+        tags = {"experiment": experiment, "step": "jev", "sample": name, "item_id": item.item_id,
                 "sample_index": str(k)}
         try:
             result = models[name].decide(TASKS[item.task].policy, item.text, sample_index=k, tags=tags)
@@ -210,6 +212,33 @@ def proposals_step(config: E101Config, run: Run, samples: dict[str, list[Item]])
     return out
 
 
+def review_work(run: Run, models: dict[tuple[str, str], Reviewer], *, experiment: str = EXPERIMENT,
+                role: str = "reviewer") -> Callable[[tuple[str, str, Item, Proposal | None, int]], dict[str, Any]]:
+    """The worker for one reviewer request: (alias, sample, item, proposal or None, sample index)
+    to a result row. `role` is "reviewer", or "reference" for a model that only decides alone."""
+
+    def work(t: tuple[str, str, Item, Proposal | None, int]) -> dict[str, Any]:
+        alias, name, item, p, k = t
+        condition = p.condition if p else ALONE
+        base = {"run_id": run.run_id, "reviewer": alias, "role": role, "sample": name, "item_id": item.item_id,
+                "task": item.task, "condition": condition, "sample_index": k, "label": item.label,
+                "strata": item.strata, "proposed_label": p.label if p else None,
+                "proposed_correct": p.correct if p else None, "confidence_shown": p.confidence if p else None}
+        tags = {"experiment": experiment, "step": "review", "reviewer": alias, "sample": name,
+                "item_id": item.item_id, "condition": condition, "sample_index": str(k)}
+        try:
+            r = models[(alias, name)].decide(item.text, p.label if p else None, p.confidence if p else None,
+                                             sample_index=k, tags=tags)
+        except ProviderError as e:
+            return {**base, "status": "error", "error": str(e), "ts": now_iso()}
+        return {**base, "status": "ok", "final_label": r.final_label, "verdict": r.verdict,
+                "consistent": r.consistent, "parse_ok": r.parse_ok, "parse_error": r.parse_error,
+                "raw_text": None if r.parse_ok else r.response.text[:2000], "request_key": r.request_key,
+                **_usage(r.response), "ts": now_iso()}
+
+    return work
+
+
 def review_step(config: E101Config, run: Run, reviewers: dict[str, GuardedClient], samples: dict[str, list[Item]],
                 proposals: dict[str, dict[str, list[Proposal]]]) -> None:
     writer = run.writer("reviews")
@@ -234,27 +263,9 @@ def review_step(config: E101Config, run: Run, reviewers: dict[str, GuardedClient
                         if p.condition in wanted:
                             yield alias, name, item, p, 0
 
-    def work(t: tuple[str, str, Item, Proposal | None, int]) -> dict[str, Any]:
-        alias, name, item, p, k = t
-        condition = p.condition if p else ALONE
-        base = {"run_id": run.run_id, "reviewer": alias, "sample": name, "item_id": item.item_id, "task": item.task,
-                "condition": condition, "sample_index": k, "label": item.label, "strata": item.strata,
-                "proposed_label": p.label if p else None, "proposed_correct": p.correct if p else None,
-                "confidence_shown": p.confidence if p else None}
-        tags = {"experiment": EXPERIMENT, "step": "review", "reviewer": alias, "sample": name,
-                "item_id": item.item_id, "condition": condition, "sample_index": str(k)}
-        try:
-            r = models[(alias, name)].decide(item.text, p.label if p else None, p.confidence if p else None,
-                                             sample_index=k, tags=tags)
-        except ProviderError as e:
-            return {**base, "status": "error", "error": str(e), "ts": now_iso()}
-        return {**base, "status": "ok", "final_label": r.final_label, "verdict": r.verdict,
-                "consistent": r.consistent, "parse_ok": r.parse_ok, "parse_error": r.parse_error,
-                "raw_text": None if r.parse_ok else r.response.text[:2000], "request_key": r.request_key,
-                **_usage(r.response), "ts": now_iso()}
-
     pending = (t for t in tasks() if (t[0], t[1], t[2].item_id, t[3].condition if t[3] else ALONE, t[4]) not in done)
-    run_parallel(pending, work, writer, workers=config.workers, max_consecutive_errors=config.max_consecutive_errors)
+    run_parallel(pending, review_work(run, models), writer, workers=config.workers,
+                 max_consecutive_errors=config.max_consecutive_errors)
 
 
 def _spec_info(spec: ModelSpec) -> dict[str, Any]:

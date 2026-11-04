@@ -18,10 +18,13 @@ On branch `e101-cascade-deference`: Jev decides first and a reasoning model (gpt
 - **The cascade doesn't pay off.** Reviewing takes 25–45% more reasoning tokens than deciding alone, and no confidence threshold beats the better single model.
 - **Safety:** on WildGuard, the reviewer let 7 of the 12 harmful prompts Jev passed through, and 0 of the 12 that random errors passed.
 
-**Next, E.102:**
-- a powered Civil Comments run (Jev screens a large pool, then review its errors plus a random sample);
-- a second reviewer from a different family, to tell shared bias from difficulty;
-- a harder WildGuard sample or the response-harmfulness view.
+**E.102 is built and dry-run tested, and has not been run live** ([research_docs/13](research_docs/13_cascade_deference.md#e102-powered-deference-test-with-a-reference-model-part-1); budget $8 Bedrock, $1.50 TypeSafe).
+- Jev screens 3,000 new Civil Comments items and all of WildGuardTest, in both views (prompt and response harmfulness).
+- gpt-oss-20b, the only reviewer, then reviews Jev's errors, matched random errors and a 400-item random subsample, deciding each item alone 5 times.
+- Qwen3-32B decides the subsample alone, as a **non-reasoning reference model**: Bedrock serves no thinking mode for it. It's the third point of the error-overlap comparison.
+- The confidence conditions and the p-sweep are dropped: confidence had no measurable effect, and only the proposed decision moved the reviewer.
+
+Next: `scripts/preflight_e102.py`, then Stage 1 (`--steps jev`), then Stage 2.
 
 ## What exists
 

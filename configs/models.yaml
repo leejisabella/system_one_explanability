@@ -76,6 +76,14 @@ reviewer:
   service_tier: flex
   reasoning_effort: medium
 
+reviewer_qwen:
+  # E.102's second reviewer (research_docs/13): open-weight (Apache 2.0), Qwen family, a
+  # different family from Jev's TypeSafe and from gpt-oss. Qwen3 thinks by default; Bedrock's
+  # Converse API takes no reasoning setting for it.
+  provider: bedrock
+  model: qwen.qwen3-32b-v1:0
+  service_tier: flex
+
 decision_alt:
   # A second decision model for Experiment 8 (generalization beyond Jev). Amazon family.
   provider: bedrock
