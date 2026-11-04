@@ -64,7 +64,7 @@ def test_roles_keep_model_families_apart(registry):
 
 def test_every_used_provider_has_a_project_cap(registry):
     assert {registry.spec(a).provider for a in registry.models} <= set(registry.project_caps_usd)
-    assert registry.project_caps_usd == {"bedrock": 50.0, "gemini": 50.0, "typesafe": 5.0, "openrouter": 0.0}
+    assert registry.project_caps_usd == {"bedrock": 50.0, "gemini": 50.0, "typesafe": 5.0, "openrouter": 0.0, "local": 0.0}
 
 
 def test_jev_is_typesafe_latest_and_priced(registry):

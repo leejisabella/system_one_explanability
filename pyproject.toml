@@ -19,6 +19,18 @@ data = [
     "pyarrow>=26.0.1",
 ]
 dev = ["pytest>=8.0"]
+# Part 2 post-training (research_docs/14), on the GPU machine only: `uv sync --group train`.
+# Pinned to the 2025 series the training scripts were written against (transformers 4.55 added
+# gpt-oss; peft 0.17 added target_parameters, LoRA on its expert weights). Newer major releases
+# changed APIs the scripts use; upgrading is a deliberate step, checked with a smoke test.
+train = [
+    "accelerate>=1.10,<2",
+    "datasets>=4.0,<5",
+    "peft>=0.17,<0.18",
+    "torch>=2.8,<2.10",
+    "transformers>=4.55,<4.58",
+    "trl>=0.21,<0.24",
+]
 
 [build-system]
 requires = ["hatchling"]

@@ -226,3 +226,6 @@ results/
 data/
 # ...but not the write-ups' derived tables (aggregates only, no item text)
 !research_analyses/*/data/
+
+# Part 2 model weights: LoRA adapters, merged checkpoints (tens of GB)
+checkpoints/

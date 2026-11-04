@@ -15,6 +15,7 @@ project_caps_usd:
   gemini: 50.00      # GCP (Gemini API)
   typesafe: 5.00     # Jev
   openrouter: 0.00   # not used
+  local: 0.00        # self-hosted vLLM (Part 2): $0 per token; GPU hours are paid and tracked outside the harness
 
 # Planning allocation per experiment (research_docs/12). Not enforced: re-estimate from
 # measured costs before each experiment and compare against what is left.

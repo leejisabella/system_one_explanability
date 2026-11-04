@@ -1,0 +1,26 @@
+# E.105: reasoning traces for E.104's mix, then the training datasets (research_docs/14).
+# Bedrock only. About 17,000 examples (every review-format mix row, and every mix item alone), 2 to 4
+# reviewer samples each: about 40,000 gpt-oss-20b calls (~$3), plus the teacher on unsolved examples (~$0.6).
+
+source_run: e104-v1-REPLACE          # the E.104 run whose mix.jsonl this traces
+samples: [civil_toxicity_train_v1, wildguard_prompt_train_v1, wildguard_response_train_v1]
+datasets:
+  - name: part2_all_v1               # E.106/E.107: every training pool
+    samples: [civil_toxicity_train_v1, wildguard_prompt_train_v1, wildguard_response_train_v1]
+  - name: part2_no_responses_v1      # E.108's held-out domain: no WildGuard responses in training
+    samples: [civil_toxicity_train_v1, wildguard_prompt_train_v1]
+reviewer: reviewer                   # Bedrock gpt-oss-20b, Part 1's reviewer: its own traces (rejection sampling)
+teacher: teacher                     # Bedrock gpt-oss-120b, for examples the reviewer never solves
+min_samples: 2                       # stop once there is a correct trace and a wrong one, or this many tries
+max_samples: 4
+teacher_samples: 2
+reviewer_temperature: null
+reviewer_reasoning_max_tokens: 4096
+reviewer_max_output_tokens: 256
+max_rows_per_sample: null            # e.g. 100 for a pilot
+workers: 8
+max_items: null
+use_cache: false
+max_consecutive_errors: 10
+steps: [traces, teacher, export]
+run_provider_caps_usd: {bedrock: 8.00, typesafe: 0.01}   # no Jev calls; TypeSafe needs a positive cap

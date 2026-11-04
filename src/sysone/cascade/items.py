@@ -26,6 +26,15 @@ Samples:
 - wildguard_response_full_v1 (E.102): every WildGuardTest response with a harmfulness label,
   shown with its prompt; conversations over 12,000 characters are left out.
 - civil_toxicity_pool_v1 (E.102): 750 per cell, as civil_toxicity_v1 but none of its items.
+
+Training pools for Part 2 (E.104, research_docs/14). Never used for testing, and disjoint from
+every test sample above:
+- civil_toxicity_train_v1: as civil_toxicity_pool_v1, 1,500 per cell, none of the E.101 or E.102
+  items. Toxic comments are scarce among the unused test-set comments (3,060), so the no-identity
+  toxic cell contributes all it has.
+- wildguard_prompt_train_v1, wildguard_response_train_v1: WildGuardTrain (GPT-4 labels, no
+  annotator agreement), 1,250 per cell of adversarial x label. Rows whose prompt appears in
+  WildGuardTest are dropped (none did at the pinned revision).
 """
 
 from __future__ import annotations
@@ -53,6 +62,8 @@ WILDGUARD_SOURCE = {"repo": "allenai/wildguardmix", "revision": "d29c47f41c8b513
                     "path": "test/wildguard_test.parquet", "license": "ODC-BY (gated)"}
 CIVIL_SOURCE = {"repo": "pietrolesci/civilcomments-wilds", "revision": "c227534cc0a34cf21db6a0bf0edd0f9050c8b305",
                 "path": "raw/train-00000-of-00001.parquet", "license": "CC0 (Civil Comments)"}
+WILDGUARD_TRAIN_SOURCE = {**WILDGUARD_SOURCE, "path": "train/wildguard_train.parquet",
+                          "labels": "GPT-4 (WildGuardTrain); training only"}
 # The revision the Jev-boost set names: clm-project/jev-boost-kn-civil-comments-sata-*.
 CIVIL_TRAIN_SOURCES = [
     {"repo": "google/civil_comments", "revision": "f2970eb3a55777454c94069077cc8d9b5866312d",
@@ -107,12 +118,16 @@ def stratified_sample(rows: list[dict[str, Any]], key: Callable[[dict[str, Any]]
 
 
 def wildguard_items(rows: Iterable[dict[str, Any]], *, n_per_cell: int | None, seed: int,
-                    max_chars: int) -> tuple[list[Item], dict]:
-    """WildGuardTest rows (in file order) to prompt-harmfulness items; n_per_cell None takes all."""
+                    max_chars: int, id_prefix: str = "wgt", exclude_prompts: frozenset[str] = frozenset()
+                    ) -> tuple[list[Item], dict]:
+    """WildGuard rows (in file order) to prompt-harmfulness items; n_per_cell None takes all.
+    Rows whose prompt is in exclude_prompts (another split's) are dropped."""
     pool, dropped = [], Counter()
     for i, r in enumerate(rows):
         if r.get("prompt_harm_label") not in WILDGUARD_PROMPT.labels:
             dropped["no_prompt_label"] += 1
+        elif r.get("prompt") in exclude_prompts:
+            dropped["prompt_in_excluded_split"] += 1
         elif not r.get("prompt") or len(r["prompt"]) > max_chars:
             dropped["too_long_or_empty"] += 1
         else:
@@ -120,44 +135,63 @@ def wildguard_items(rows: Iterable[dict[str, Any]], *, n_per_cell: int | None, s
     picked = pool if n_per_cell is None else stratified_sample(
         pool, lambda r: (bool(r["adversarial"]), r["prompt_harm_label"]), n_per_cell, seed, row_id=lambda r: r["_index"])
     items = [Item(
-        item_id=f"wgt-{r['_index']:04d}",
+        item_id=f"{id_prefix}-{r['_index']:0{5 if id_prefix != 'wgt' else 4}d}",
         dataset="wildguard_prompt",
         task=WILDGUARD_PROMPT.name,
         text=r["prompt"],
         label=r["prompt_harm_label"],
         strata={"adversarial": "adversarial" if r["adversarial"] else "vanilla",
-                "annotator_agreement": "low" if (r.get("prompt_harm_agreement") or 3) < 3 else "high"},
+                "annotator_agreement": _wildguard_agreement(r, "prompt_harm_agreement")},
         meta={"source_index": r["_index"], "subcategory": r.get("subcategory"),
               "prompt_harm_agreement": r.get("prompt_harm_agreement")},
     ) for r in picked]
     return items, {"pool": len(pool), "dropped": dict(dropped)}
 
 
-def wildguard_response_items(rows: Iterable[dict[str, Any]], *, max_chars: int) -> tuple[list[Item], dict]:
-    """WildGuardTest rows (in file order) to response-harmfulness items: the conversation is the
-    prompt and the response, and the label is the response's."""
+def _wildguard_agreement(row: dict[str, Any], key: str) -> str:
+    # WildGuardTest has three annotators (2 of 3 is low agreement); WildGuardTrain has no agreement.
+    if key not in row:
+        return "unknown"
+    return "low" if (row.get(key) or 3) < 3 else "high"
+
+
+def wildguard_response_items(rows: Iterable[dict[str, Any]], *, max_chars: int, id_prefix: str = "wgr",
+                             exclude_prompts: frozenset[str] = frozenset(), n_per_cell: int | None = None,
+                             seed: int = 0) -> tuple[list[Item], dict]:
+    """WildGuard rows (in file order) to response-harmfulness items: the conversation is the
+    prompt and the response, and the label is the response's. n_per_cell None takes all;
+    otherwise that many per cell of adversarial x label."""
     items, dropped = [], Counter()
     for i, r in enumerate(rows):
         if r.get("response_harm_label") not in WILDGUARD_RESPONSE.labels or not r.get("response"):
             dropped["no_response_label"] += 1
+            continue
+        if r.get("prompt") in exclude_prompts:
+            dropped["prompt_in_excluded_split"] += 1
             continue
         text = f"User prompt:\n{r['prompt']}\n\nAI assistant's response:\n{r['response']}"
         if len(text) > max_chars:
             dropped["too_long"] += 1
             continue
         items.append(Item(
-            item_id=f"wgr-{i:04d}",
+            item_id=f"{id_prefix}-{i:0{5 if id_prefix != 'wgr' else 4}d}",
             dataset="wildguard_response",
             task=WILDGUARD_RESPONSE.name,
             text=text,
             label=r["response_harm_label"],
             strata={"adversarial": "adversarial" if r["adversarial"] else "vanilla",
-                    "annotator_agreement": "low" if (r.get("response_harm_agreement") or 3) < 3 else "high",
+                    "annotator_agreement": _wildguard_agreement(r, "response_harm_agreement"),
                     "response": r.get("response_refusal_label") or "unknown"},
             meta={"source_index": i, "subcategory": r.get("subcategory"), "prompt_harm_label": r.get("prompt_harm_label"),
                   "response_harm_agreement": r.get("response_harm_agreement")},
         ))
-    return items, {"pool": len(items), "dropped": dict(dropped)}
+    pool = len(items)
+    if n_per_cell is not None:
+        by_id = {i.item_id: i for i in items}
+        picked = stratified_sample([{"id": i.item_id, "cell": (i.strata["adversarial"], i.label)} for i in items],
+                                   lambda r: r["cell"], n_per_cell, seed, row_id=lambda r: r["id"])
+        items = sorted((by_id[r["id"]] for r in picked), key=lambda i: i.item_id)
+    return items, {"pool": pool, "dropped": dict(dropped)}
 
 
 def civil_items(rows: Iterable[dict[str, Any]], train_texts: set[str], *, n_per_cell: int, seed: int,
@@ -317,12 +351,46 @@ def _build_civil_toxicity_pool_v1() -> tuple[list[Item], dict]:
     return items, _civil_meta(settings, stats, excluded_samples=["civil_toxicity_v1"])
 
 
+def _wildguard_test_prompts() -> frozenset[str]:
+    return frozenset(r["prompt"] for r in _parquet_rows(download(WILDGUARD_SOURCE), ["prompt"]))
+
+
+def _build_civil_toxicity_train_v1() -> tuple[list[Item], dict]:
+    rows, train_texts = _civil_rows()
+    earlier = ("civil_toxicity_v1", "civil_toxicity_pool_v1")
+    exclude = frozenset(i.meta["jigsaw_id"] for name in earlier for i in load_items(name)[0])
+    settings = {"n_per_cell": 1500, "seed": 104, "max_chars": 4000}
+    items, stats = civil_items(rows, train_texts, exclude_ids=exclude, **settings)
+    return items, _civil_meta(settings, stats, excluded_samples=list(earlier), use="training only (Part 2)")
+
+
+def _build_wildguard_prompt_train_v1() -> tuple[list[Item], dict]:
+    settings = {"n_per_cell": 1250, "seed": 104, "max_chars": 8000}
+    items, stats = wildguard_items(_parquet_rows(download(WILDGUARD_TRAIN_SOURCE)), id_prefix="wgtrain-p",
+                                   exclude_prompts=_wildguard_test_prompts(), **settings)
+    return items, {"source": WILDGUARD_TRAIN_SOURCE, "task": WILDGUARD_PROMPT.name, "sampling": settings,
+                   "source_stats": stats, "stratified_on": ["adversarial", "label"],
+                   "excluded_if_prompt_in": WILDGUARD_SOURCE, "use": "training only (Part 2)"}
+
+
+def _build_wildguard_response_train_v1() -> tuple[list[Item], dict]:
+    settings = {"n_per_cell": 1250, "seed": 104, "max_chars": 12000}
+    items, stats = wildguard_response_items(_parquet_rows(download(WILDGUARD_TRAIN_SOURCE)), id_prefix="wgtrain-r",
+                                            exclude_prompts=_wildguard_test_prompts(), **settings)
+    return items, {"source": WILDGUARD_TRAIN_SOURCE, "task": WILDGUARD_RESPONSE.name, "sampling": settings,
+                   "source_stats": stats, "stratified_on": ["adversarial", "label"],
+                   "excluded_if_prompt_in": WILDGUARD_SOURCE, "use": "training only (Part 2)"}
+
+
 BUILDERS: dict[str, Callable[[], tuple[list[Item], dict]]] = {
     "wildguard_prompt_v1": _build_wildguard_prompt_v1,
     "civil_toxicity_v1": _build_civil_toxicity_v1,
     "wildguard_prompt_full_v1": _build_wildguard_prompt_full_v1,
     "wildguard_response_full_v1": _build_wildguard_response_full_v1,
     "civil_toxicity_pool_v1": _build_civil_toxicity_pool_v1,
+    "civil_toxicity_train_v1": _build_civil_toxicity_train_v1,
+    "wildguard_prompt_train_v1": _build_wildguard_prompt_train_v1,
+    "wildguard_response_train_v1": _build_wildguard_response_train_v1,
 }
 
 

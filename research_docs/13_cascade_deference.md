@@ -275,4 +275,4 @@ See [research_analyses/E103](../research_analyses/E103/README.md).
 
 - **Rationales.** Fluent rationales for both Jev's labels and the flipped labels.
 - **A reasoning reference from another family**, if one becomes affordable. For example, Qwen3 with thinking on our own GPUs during Part 2.
-- **Part 2.** Post-training the reviewer, with entire upstream models held out for testing.
+- **Part 2.** Post-training the reviewer, with entire upstream models held out for testing: built, see [14_part2_posttraining.md](14_part2_posttraining.md).

@@ -34,6 +34,10 @@ def _default_provider(name: str) -> Provider:
         from sysone.clients.bedrock import BedrockProvider
 
         return BedrockProvider()
+    if name == "local":
+        from sysone.clients.local import LocalProvider
+
+        return LocalProvider()
     if name == "gemini":
         from sysone.clients.gemini import GeminiProvider
 

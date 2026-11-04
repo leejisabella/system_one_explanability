@@ -49,6 +49,31 @@ In plain terms:
 - Part 2 should train the reviewer to be *right* on the items Jev finds hard, not just to disagree with Jev, and should report deference next to override and accept rates, since deference can improve while nothing useful changes.
 - Part 2 (E.104 on, post-training gpt-oss-20b) waits for a GPU.
 
+## Part 2: post-training the reviewer (E.104–E.108, built 2026-11-04, not run)
+
+On branch `e104-part2-posttraining`, which merges after `e101-cascade-deference`. The design, the pre-registered success criteria and the step-by-step runbook are in [research_docs/14](research_docs/14_part2_posttraining.md).
+
+In plain terms:
+- **Jev finds the reviewer's blind spots; the gold labels teach.** Jev screens fresh training pools, and its mistakes mark the items the reviewer probably gets wrong too.
+- **Training examples show Jev's proposal** and target the gold label: override Jev when it's wrong, accept when it's right. Each example carries a reasoning trace that reaches the right answer, written by the reviewer itself where it can, otherwise by gpt-oss-120b.
+- **A control arm** is trained on the same items and labels without Jev's proposal, so "robust to Jev" can be told apart from "just a better classifier".
+- **The evaluation re-measures the base model on the same GPU stack** as the trained ones, on E.102's frozen test plan, with E.103's Llama, Qwen and Nova as held-out upstream models.
+
+What exists:
+- **Training pools, frozen and disjoint from every test sample:** `civil_toxicity_train_v1` (5,545), `wildguard_prompt_train_v1` (5,000) and `wildguard_response_train_v1` (5,000).
+- **Runners:**
+  - E.104: Jev screen and mix;
+  - E.105: traces and paired dataset export;
+  - E.106: evaluation of any set of reviewers, with the five pre-registered criteria computed as pass or fail.
+- **GPU scripts:** SFT, DPO, saving the bf16 base, merging (the `train` dependency group), and vLLM serving (`scripts/serve_part2.sh`).
+- **A self-hosted client** (`local` provider).
+- **A preflight** (`scripts/preflight_part2.py`).
+- **Tests:** offline, in `tests/test_part2.py`. Dry runs of E.104 → E.105 → `--check` and of the evaluation pass on the real pools and the real E.102 and E.103 runs.
+
+Not done yet:
+- **No live run.** E.104 would cost about $1.4 TypeSafe and E.105 about $3–4 Bedrock (estimates).
+- **The GPU scripts have never run on a GPU.** The first session starts with the smoke test in the runbook.
+
 ## What exists
 
 | Piece | Where | State |

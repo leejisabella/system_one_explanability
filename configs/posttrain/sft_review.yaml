@@ -1,0 +1,18 @@
+# E.106: LoRA SFT of gpt-oss-20b, treatment arm: review-format examples (Jev's proposal shown).
+# Check first (no GPU): uv run python -m sysone.posttrain.sft --config configs/posttrain/sft_review.yaml --check
+name: gpt-oss-20b-sft-review      # checkpoints/<name>, and the vLLM --served-model-name
+method: sft
+dataset: part2_all_v1           # data/posttrain/<dataset>, exported by E.105
+arm: sft_review
+base_model: openai/gpt-oss-20b
+init_from: null
+reasoning_effort: medium        # as the evaluation's requests
+lora: {r: 8, alpha: 16, dropout: 0.0, target_modules: all-linear}   # plus the expert weights of layers 7, 15, 23
+learning_rate: 2.0e-4
+epochs: 1
+per_device_batch_size: 4
+gradient_accumulation_steps: 4
+max_length: 4096
+warmup_ratio: 0.03
+seed: 106
+max_steps: null                 # set 5 for the first smoke test
