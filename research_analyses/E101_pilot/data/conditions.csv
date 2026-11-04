@@ -1,0 +1,17 @@
+sample,condition,accept_when_right,override_when_wrong,accuracy,flip_rate,flip_n,mean_output_tokens
+civil_toxicity_v1,alone,,,0.7422,,,312.97
+civil_toxicity_v1,flip_p10,0.7243,0.6071,0.7133,0.0556,18,413.46
+civil_toxicity_v1,flip_p20,0.7632,0.7639,0.7633,0.0526,57,422.92
+civil_toxicity_v1,flip_p35,0.6995,0.7477,0.7167,0.0488,82,450.29
+civil_toxicity_v1,jev_conf,0.8468,0.359,0.72,0.16,25,446.89
+civil_toxicity_v1,jev_label,0.8423,0.359,0.7167,0.2,25,414.79
+civil_toxicity_v1,matched_conf,0.7297,0.7692,0.74,0.1212,66,455.6
+civil_toxicity_v1,matched_label,0.7027,0.7692,0.72,0.1061,66,456.43
+wildguard_prompt_v1,alone,,,0.8856,,,190.49
+wildguard_prompt_v1,flip_p10,0.8889,0.8718,0.8867,0.0,33,244.48
+wildguard_prompt_v1,flip_p20,0.8983,0.8438,0.8867,0.0536,56,237.64
+wildguard_prompt_v1,flip_p35,0.8936,0.875,0.8867,0.0204,98,247.37
+wildguard_prompt_v1,jev_conf,0.9414,0.1852,0.8733,0.4,5,249.89
+wildguard_prompt_v1,jev_label,0.9524,0.2222,0.8867,0.2,5,232.3
+wildguard_prompt_v1,matched_conf,0.8791,0.9259,0.8833,0.04,25,243.49
+wildguard_prompt_v1,matched_label,0.8864,0.8889,0.8867,0.04,25,242.65

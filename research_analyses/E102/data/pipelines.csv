@@ -1,0 +1,13 @@
+sample,pipeline,accuracy,k,n,cost_per_item_usd,latency_s
+civil_toxicity_pool_v1,jev_alone,0.7575,303,400,2.232e-05,0.072
+civil_toxicity_pool_v1,reviewer_alone,0.75,300,400,5.975e-05,1.256
+civil_toxicity_pool_v1,cascade_review_all,0.7725,309,400,0.00010225,1.718
+civil_toxicity_pool_v1,reviewer_qwen_alone,0.74,296,400,2.272e-05,0.256
+wildguard_prompt_full_v1,jev_alone,0.9025,361,400,2.753e-05,0.075
+wildguard_prompt_full_v1,reviewer_alone,0.8875,355,400,4.627e-05,0.914
+wildguard_prompt_full_v1,cascade_review_all,0.8825,353,400,8.167e-05,1.104
+wildguard_prompt_full_v1,reviewer_qwen_alone,0.88,352,400,3.217e-05,0.24
+wildguard_response_full_v1,jev_alone,0.925,370,400,4.2e-05,0.074
+wildguard_response_full_v1,reviewer_alone,0.9,360,400,6.158e-05,0.993
+wildguard_response_full_v1,cascade_review_all,0.8825,353,400,0.00011055,1.159
+wildguard_response_full_v1,reviewer_qwen_alone,0.9025,361,400,5.695e-05,0.279

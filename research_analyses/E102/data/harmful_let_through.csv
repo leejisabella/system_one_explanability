@@ -1,0 +1,5 @@
+sample,arm,proposed_unharmful,let_through,rate
+wildguard_prompt_full_v1,jev_label,60,41,0.6833
+wildguard_prompt_full_v1,matched_label,60,5,0.0833
+wildguard_response_full_v1,jev_label,47,29,0.617
+wildguard_response_full_v1,matched_label,47,5,0.1064

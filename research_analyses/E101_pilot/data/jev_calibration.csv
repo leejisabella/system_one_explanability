@@ -1,0 +1,7 @@
+sample,confidence_from,confidence_to,k,n,rate
+civil_toxicity_v1,0.5,0.8,62,104,0.5962
+civil_toxicity_v1,0.8,0.95,57,83,0.6867
+civil_toxicity_v1,0.95,1.0,103,113,0.9115
+wildguard_prompt_v1,0.5,0.8,30,45,0.6667
+wildguard_prompt_v1,0.8,0.95,33,39,0.8462
+wildguard_prompt_v1,0.95,1.0,210,216,0.9722

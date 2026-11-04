@@ -1,0 +1,5 @@
+sample,condition,n_wrong,always_right,sometimes_right,never_right
+civil_toxicity_v1,jev_label,78,16,19,43
+civil_toxicity_v1,matched_label,78,56,15,7
+wildguard_prompt_v1,jev_label,27,3,9,15
+wildguard_prompt_v1,matched_label,27,21,4,2

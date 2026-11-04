@@ -1,0 +1,3 @@
+sample,n_items,jev_wrong,reviewer_alone_wrong,both_wrong,both_wrong_if_independent,agree_with_each_other
+civil_toxicity_v1,300,78,72,53,18.7,256
+wildguard_prompt_v1,300,27,33,22,3.0,284
