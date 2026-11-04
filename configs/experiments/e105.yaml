@@ -2,7 +2,7 @@
 # Bedrock only. About 17,000 examples (every review-format mix row, and every mix item alone), 2 to 4
 # reviewer samples each: about 40,000 gpt-oss-20b calls (~$3), plus the teacher on unsolved examples (~$0.6).
 
-source_run: e104-v1-REPLACE          # the E.104 run whose mix.jsonl this traces
+source_run: e104-v1-2026-11-04         # the E.104 run whose mix.jsonl this traces
 samples: [civil_toxicity_train_v1, wildguard_prompt_train_v1, wildguard_response_train_v1]
 datasets:
   - name: part2_all_v1               # E.106/E.107: every training pool
