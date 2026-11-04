@@ -6,6 +6,13 @@ is, so the Jev and random conditions read exactly alike. (A warning that the ups
 is often wrong is one of the cheap alternatives to post-training, for a later experiment.)
 The confidence line appears only in the *_conf conditions.
 
+Protocols (E.103) change how a review is asked, never what it shows about the item:
+- note: a line under the automated model's decision (a warning, or its error rate);
+- task_prefix: an instruction before the task (e.g. argue for the other label first);
+- own_answer: blind-first. The reviewer's earlier answer alone comes first, as a prior turn of
+  the conversation, then the automated model's decision is shown and the review is asked.
+With none of them, the prompt is exactly E.101's and E.102's.
+
 The reply is JSON: {"final_label"} alone; {"verdict", "final_label"} in review. The final
 label is the cascade's decision. A verdict that contradicts it (accept with a different
 label, or override with the same one) is kept and flagged, not treated as a parse failure.
@@ -13,13 +20,14 @@ label, or override with the same one) is kept and flagged, not treated as a pars
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from typing import Any
 
 from sysone.cascade.tasks import CascadeTask
 from sysone.clients.base import GuardedClient
 from sysone.explain.jsonout import parse_json_object, uses_schema
-from sysone.types import ChatRequest, ChatResponse
+from sysone.types import ChatRequest, ChatResponse, Message
 
 ACCEPT, OVERRIDE = "accept", "override"
 
@@ -32,6 +40,10 @@ _ALONE_TASK = (
     "Apply the {policy_name} to the {short_noun}.\n\n"
     "- final_label: {quoted}.\n\n"
     'Reply with only a JSON object: {{"final_label": ...}}.'
+)
+_BLIND_FIRST_CONTEXT = (
+    "An automated moderation model has also decided whether this {item_noun} is {a} or {b} under the "
+    "{policy_name}. Its decision is below. You are reviewing its decision before it takes effect."
 )
 _REVIEW_TASK = (
     "Accept the automated model's decision if it is correct under the {policy_name}; override it if it is not.\n\n"
@@ -79,24 +91,44 @@ class Reviewer:
         self.max_output_tokens = max_output_tokens
 
     def build_request(self, text: str, proposal: str | None = None, confidence: float | None = None, *,
+                      note: str | None = None, task_prefix: str | None = None, own_answer: str | None = None,
                       sample_index: int = 0, tags: dict[str, str] | None = None) -> ChatRequest:
         t = self.task
         a, b = t.labels
         fill = {"item_noun": t.item_noun, "a": f'"{a}"', "b": f'"{b}"', "policy_name": t.policy_name,
                 "short_noun": t.item_heading.lower(), "quoted": f'"{a}" or "{b}"'}
         review = proposal is not None
-        parts = [("Context", (_REVIEW_CONTEXT if review else _ALONE_CONTEXT).format(**fill)),
-                 (t.policy_name.capitalize(), t.policy),
-                 (t.item_heading, text)]
+        if own_answer is not None and not review:
+            raise ValueError("blind-first (own_answer) needs a proposal to review")
+        render = lambda parts: "\n\n".join(f"## {name}\n{body}" for name, body in parts)
+        decision = None
         if review:
             decision = f'"{proposal}"'
             if confidence is not None:
                 decision += f"\nThe automated model's confidence in this decision: {confidence:.0%}"
-            parts.append(("Automated model's decision", decision))
-        parts.append(("Task", (_REVIEW_TASK if review else _ALONE_TASK).format(**fill)))
-        prompt = "\n\n".join(f"## {name}\n{body}" for name, body in parts)
-        return ChatRequest.from_prompt(
-            prompt,
+            if note:
+                decision += f"\n{note}"
+        task_text = (_REVIEW_TASK if review else _ALONE_TASK).format(**fill)
+        if task_prefix:
+            task_text = f"{task_prefix}\n\n{task_text}"
+        if own_answer is not None:
+            # Blind-first: the reviewer's answer alone is a prior turn; then the review.
+            first = render([("Context", _ALONE_CONTEXT.format(**fill)), (t.policy_name.capitalize(), t.policy),
+                            (t.item_heading, text), ("Task", _ALONE_TASK.format(**fill))])
+            then = render([("Context", _BLIND_FIRST_CONTEXT.format(**fill)), ("Automated model's decision", decision),
+                           ("Task", task_text)])
+            messages = (Message("user", first), Message("assistant", json.dumps({"final_label": own_answer})),
+                        Message("user", then))
+        else:
+            parts = [("Context", (_REVIEW_CONTEXT if review else _ALONE_CONTEXT).format(**fill)),
+                     (t.policy_name.capitalize(), t.policy),
+                     (t.item_heading, text)]
+            if review:
+                parts.append(("Automated model's decision", decision))
+            parts.append(("Task", task_text))
+            messages = (Message("user", render(parts)),)
+        return ChatRequest(
+            messages=messages,
             max_output_tokens=self.max_output_tokens,
             temperature=self.temperature,
             reasoning_max_tokens=self.reasoning_max_tokens,
@@ -106,8 +138,10 @@ class Reviewer:
         )
 
     def decide(self, text: str, proposal: str | None = None, confidence: float | None = None, *,
+               note: str | None = None, task_prefix: str | None = None, own_answer: str | None = None,
                sample_index: int = 0, tags: dict[str, str] | None = None) -> ReviewResult:
-        request = self.build_request(text, proposal, confidence, sample_index=sample_index, tags=tags)
+        request = self.build_request(text, proposal, confidence, note=note, task_prefix=task_prefix,
+                                     own_answer=own_answer, sample_index=sample_index, tags=tags)
         response = self.client.complete(request)
         return parse_review(response, self.client.request_key(request), self.task.labels, proposal)
 

@@ -1,0 +1,18 @@
+# E.103: cheap alternatives to post-training, on E.102's frozen plan (research_docs/13).
+# No new Jev calls. Each protocol reviews the same Jev-wrong, matched-wrong and subsample items as E.102.
+
+source_run: e102-v1-2026-11-04     # results/runs/<id>; its plan, alone answers and standard reviews are reused
+samples: [civil_toxicity_pool_v1, wildguard_prompt_full_v1, wildguard_response_full_v1]
+reviewer: reviewer                 # gpt-oss-20b, as in E.101 and E.102
+protocols: [blind_first, warning, calibrated_warning, consider_opposite]
+upstreams: [explainer_open, reviewer_qwen, decision_alt]   # Llama 4 Maverick, Qwen3-32B (no thinking), Nova Lite: decide every item once
+reviewer_temperature: null
+reviewer_reasoning_max_tokens: 4096
+reviewer_max_output_tokens: 256
+upstream_max_output_tokens: 256
+workers: 8
+max_items: null
+use_cache: false
+max_consecutive_errors: 10
+steps: [reviews, upstream]
+run_provider_caps_usd: {bedrock: 6.00, typesafe: 0.01}   # no Jev calls; TypeSafe needs a positive cap
