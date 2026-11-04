@@ -1,6 +1,6 @@
 # Project Status — start here
 
-Last updated: 2026-10-28 (Pilot 0 passes on refund_v1; preflight passed; Pilot 1 ready, with Llama replacing the blocked Claude explainer). Read this first when picking the project back up.
+Last updated: 2026-11-04 (E.101 cascade pilot done on branch `e101-cascade-deference`). Before that, 2026-10-28 (Pilot 0 passes on refund_v1; preflight passed; Pilot 1 ready, with Llama replacing the blocked Claude explainer). Read this first when picking the project back up.
 
 ## In one paragraph
 
@@ -8,7 +8,20 @@ We study whether explanations of opaque AI decisions give people verifiable grou
 
 ## Refined direction: cascade deference (E.1xx, started 2026-11-03)
 
-On branch `e101-cascade-deference`: Jev decides first and a reasoning model (gpt-oss-20b, open-weight) reviews its decision. Part 1 asks whether the reviewer accepts Jev's errors more often than random ones (the **flip rate**, measured against the reviewer alone). Design, datasets (WildGuardTest prompt harmfulness, Civil Comments toxicity) and go/no-go criteria: [research_docs/13](research_docs/13_cascade_deference.md). **E.101**, the go/no-go pilot, is built and dry-run tested and has not been run live (budget $8 Bedrock, $1 TypeSafe). Next: `scripts/preflight_e101.py`, then the live run.
+On branch `e101-cascade-deference`: Jev decides first and a reasoning model (gpt-oss-20b, open-weight) reviews its decision. Part 1 asks whether the reviewer accepts Jev's errors more often than random ones (the **flip rate**, measured against the reviewer alone). Design, datasets (WildGuardTest prompt harmfulness, Civil Comments toxicity) and go/no-go criteria: [research_docs/13](research_docs/13_cascade_deference.md).
+
+**E.101 ran 2026-11-04** (`e101-v1-2026-11-04`, commit `8716b2d`, $0.42 of the $8 + $1 budget, 7,800 requests, 0 failures; write-up in [research_analyses/E101_pilot/](research_analyses/E101_pilot/README.md)).
+- **GO on Civil Comments**, where Jev's error rate is 26% and the flip rate on its errors is 20% (5/25).
+- **NO-GO on WildGuard**: Jev is too accurate (9% errors) and beats the reviewer (91% vs. 89%).
+- **The main finding is shared errors, not deference.** Jev's errors fall on items the reviewer also gets wrong alone: 53 of 78 vs. 19 expected by chance on Civil Comments, 22 of 27 vs. 3 on WildGuard. This holds on items the annotators agreed on. So the reviewer overrides 36% of Jev's errors vs. 77% of matched random errors.
+- **Deference beyond difficulty** (20% vs. 11% on items the reviewer gets right alone) points the expected way but isn't significant yet.
+- **The cascade doesn't pay off.** Reviewing takes 25–45% more reasoning tokens than deciding alone, and no confidence threshold beats the better single model.
+- **Safety:** on WildGuard, the reviewer let 7 of the 12 harmful prompts Jev passed through, and 0 of the 12 that random errors passed.
+
+**Next, E.102:**
+- a powered Civil Comments run (Jev screens a large pool, then review its errors plus a random sample);
+- a second reviewer from a different family, to tell shared bias from difficulty;
+- a harder WildGuard sample or the response-harmfulness view.
 
 ## What exists
 
