@@ -64,15 +64,16 @@ Open decisions and setup tasks. Every model in [configs/models.yaml](configs/mod
 ## Part 2: post-training the reviewer (research_docs/14)
 
 - [x] **Built** 2026-11-04 on `e104-part2-posttraining`: training pools, E.104/E.105/evaluation runners, SFT/DPO scripts, vLLM client and serving, preflight, offline tests and dry runs.
-- [ ] **Merge order:** `e101-cascade-deference` first, then this branch.
+- [x] **Reviewer switched to Qwen3-14B** (2026-11-04, `part2-qwen-reviewer`), with the two criteria deviations in research_docs/14.
 - [ ] **GPU access:** one 80 GB GPU (A100 or H100) for training and serving; vLLM installed there.
 - [ ] **Preflight, then E.104** (≈ $1.4 TypeSafe): check in before running; read the contamination check in its report.
-- [ ] **E.105** (≈ $3–4 Bedrock): re-estimate from E.104's mix counts first; read how many Jev-wrong examples stay unsolved.
+- [ ] **E.105** (GPU, $0): base Qwen's traces, then the Qwen3-32B teacher's, one server at a time; read how many Jev-wrong examples stay unsolved, and how many traces were cut off at the 4,096-token reasoning budget.
 - [ ] **Commit the dataset manifests** (`benchmarks/posttrain/`) before any training.
 - [ ] **GPU smoke test:** 5 training steps, merge, serve, one request with reasoning returned (research_docs/14 runbook).
 - [ ] **E.106:** base on vLLM first, then `sft_review` and `sft_plain`; record GPU hours by hand.
 - [ ] **E.107** (DPO) and **E.108** (held-out domain) after E.106.
-- [ ] **RL (GRPO):** not built; only if SFT and DPO leave a gap on criterion 1.
+- [ ] **Criterion 2's bar for Qwen** (built): after E.106's `base_local`, run E.103 with `configs/experiments/e103_qwen.yaml`, then set `criteria.e103_bar_run` in `e106.yaml` to that run, before evaluating any trained reviewer.
+- [ ] **RL (GRPO):** not built; only if SFT and DPO leave a gap on criterion 1. With Qwen, include a shuffled-label control run: Qwen models have improved under RL with random rewards on math.
 
 ## Setup and verification
 

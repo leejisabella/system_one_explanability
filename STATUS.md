@@ -47,15 +47,15 @@ In plain terms:
 **What changes:**
 - E.102's finding is not an artifact of prompt wording, so Part 2 needs training. Its baseline is the standard prompt (override 40% / 30% / 29% of Jev's wrong labels, accept 87% / 95% / 93% of its right ones, cascade 77% / 88% / 88%), with the vote as a second bar.
 - Part 2 should train the reviewer to be *right* on the items Jev finds hard, not just to disagree with Jev, and should report deference next to override and accept rates, since deference can improve while nothing useful changes.
-- Part 2 (E.104 on, post-training gpt-oss-20b) waits for a GPU.
+- Part 2 (E.104 on, post-training a Qwen3-14B reviewer) waits for a GPU.
 
 ## Part 2: post-training the reviewer (E.104–E.108, built 2026-11-04, not run)
 
-On branch `e104-part2-posttraining`, which merges after `e101-cascade-deference`. The design, the pre-registered success criteria and the step-by-step runbook are in [research_docs/14](research_docs/14_part2_posttraining.md).
+Merged in PR #3. The design, the pre-registered success criteria and the step-by-step runbook are in [research_docs/14](research_docs/14_part2_posttraining.md). **The reviewer being trained is Qwen3-14B** (open-weight, Apache 2.0), self-hosted with thinking on, not Part 1's gpt-oss-20b (switched 2026-11-04 on `part2-qwen-reviewer`, before anything ran; reasons and the two criteria deviations in [research_docs/14](research_docs/14_part2_posttraining.md#why-qwen3-14b)). The untrained Qwen is evaluated first, which repeats Part 1's measures on a second reviewer.
 
 In plain terms:
 - **Jev finds the reviewer's blind spots; the gold labels teach.** Jev screens fresh training pools, and its mistakes mark the items the reviewer probably gets wrong too.
-- **Training examples show Jev's proposal** and target the gold label: override Jev when it's wrong, accept when it's right. Each example carries a reasoning trace that reaches the right answer, written by the reviewer itself where it can, otherwise by gpt-oss-120b.
+- **Training examples show Jev's proposal** and target the gold label: override Jev when it's wrong, accept when it's right. Each example carries a reasoning trace that reaches the right answer, written by the reviewer itself where it can, otherwise by Qwen3-32B.
 - **A control arm** is trained on the same items and labels without Jev's proposal, so "robust to Jev" can be told apart from "just a better classifier".
 - **The evaluation re-measures the base model on the same GPU stack** as the trained ones, on E.102's frozen test plan, with E.103's Llama, Qwen and Nova as held-out upstream models.
 
@@ -71,7 +71,7 @@ What exists:
 - **Tests:** offline, in `tests/test_part2.py`. Dry runs of E.104 → E.105 → `--check` and of the evaluation pass on the real pools and the real E.102 and E.103 runs.
 
 Not done yet:
-- **No live run.** E.104 would cost about $1.4 TypeSafe and E.105 about $3–4 Bedrock (estimates).
+- **No live run.** E.104 would cost about $1.4 TypeSafe (estimate); E.105 now runs on the GPU.
 - **The GPU scripts have never run on a GPU.** The first session starts with the smoke test in the runbook.
 
 ## What exists

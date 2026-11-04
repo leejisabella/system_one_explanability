@@ -29,12 +29,13 @@ def train(config: TrainConfig) -> Path:
 
     source = config.init_from or config.base_model
     tokenizer = AutoTokenizer.from_pretrained(source)
+    fmt = {"template_kwargs": config.template_kwargs(), "thinking_key": config.model_family.thinking_key}
 
     def dataset(path: Path) -> Dataset:
         rows = []
         for r in load_records(path):
-            prompt, chosen = render(tokenizer, r["prompt"], r["chosen"], reasoning_effort=config.reasoning_effort)
-            _, rejected = render(tokenizer, r["prompt"], r["rejected"], reasoning_effort=config.reasoning_effort)
+            prompt, chosen = render(tokenizer, r["prompt"], r["chosen"], **fmt)
+            _, rejected = render(tokenizer, r["prompt"], r["rejected"], **fmt)
             rows.append({"prompt": prompt, "chosen": chosen, "rejected": rejected})
         return Dataset.from_list(rows)
 
@@ -49,7 +50,8 @@ def train(config: TrainConfig) -> Path:
         max_length=config.max_length, warmup_ratio=config.warmup_ratio, bf16=True, logging_steps=10,
         save_strategy="epoch", eval_strategy="epoch" if val_ds is not None else "no", seed=config.seed, report_to="none",
     )
-    trainer = DPOTrainer(model=load_model(source, train=True), args=args, train_dataset=train_ds, eval_dataset=val_ds,
+    model = load_model(source, train=True, attn_implementation=config.model_family.train_attn_implementation)
+    trainer = DPOTrainer(model=model, args=args, train_dataset=train_ds, eval_dataset=val_ds,
                          processing_class=tokenizer, peft_config=lora_config(config))
     trainer.train()
     trainer.save_model(str(config.output_dir))

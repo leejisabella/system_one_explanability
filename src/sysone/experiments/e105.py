@@ -1,11 +1,12 @@
 """E.105: reasoning traces for the training mix, then the training datasets (research_docs/14).
 
-gpt-oss reasons before it answers, and training on bare labels would teach it to stop. So every
-example gets a reasoning trace that reaches the gold label, sampled from the reviewer itself
-(rejection sampling); the teacher (gpt-oss-120b) writes traces only for examples the reviewer
-never solves.
+The reviewer reasons before it answers, and training on bare labels would teach it to stop. So
+every example gets a reasoning trace that reaches the gold label, sampled from the reviewer itself
+(rejection sampling); the teacher writes traces only for examples the reviewer never solves.
+With the Qwen reviewer both are self-hosted (base_local: Qwen3-14B; teacher_local: Qwen3-32B),
+served one at a time, so run `--steps traces` and `--steps teacher` against their own servers.
 
-  traces   in rounds: the reviewer (Bedrock gpt-oss-20b, as in Part 1) samples each example until
+  traces   in rounds: the reviewer (the untrained base being trained) samples each example until
            it has a correct trace and either a wrong one (for a DPO pair) or min_samples tries, up
            to max_samples. Examples are every review-format row of E.104's mix, and every mix item
            in alone format (the plain-format control arm).

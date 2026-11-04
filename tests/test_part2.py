@@ -1,3 +1,4 @@
+import dataclasses
 import json
 from collections import Counter
 
@@ -215,14 +216,65 @@ def test_e105_traces_and_exports_paired_arms(tmp_path):
               data_dir=dirs["data_dir"], manifest_dir=dirs["manifest_dir"])
 
 
-def test_committed_training_configs_load():
-    from sysone.registry import CONFIG_DIR
+def test_committed_training_configs_load(tmp_path):
+    from sysone.registry import CONFIG_DIR, Registry
 
+    registry = Registry("t", results_dir=tmp_path)
+    served = {registry.spec(a).model for a in registry.models if registry.models[a]["provider"] == "local"}
     for path in sorted((CONFIG_DIR / "posttrain").glob("*.yaml")):
         config = TrainConfig.load(path)
         assert config.method in ("sft", "dpo") and config.arm.startswith(config.method)
+        # The Qwen reviewer, with thinking on, and a name vLLM serves under an alias.
+        assert config.family == "qwen3" and config.base_model == "Qwen/Qwen3-14B" and config.reasoning_effort is None
+        assert config.name in served
     for name, cls in (("e104", E104Config), ("e105", E105Config), ("e106", E106Config)):
         cls.load(CONFIG_DIR / "experiments" / f"{name}.yaml")
+    e105 = E105Config.load(CONFIG_DIR / "experiments" / "e105.yaml")
+    # E.105's traces are the self-hosted reviewer's own; no alias of it is priced above $0.
+    assert {registry.spec(a).provider for a in (e105.reviewer, e105.teacher)} == {"local"}
+    assert all(registry.spec(a).price.input_per_m == 0 for a in (e105.reviewer, e105.teacher))
+    e106 = E106Config.load(CONFIG_DIR / "experiments" / "e106.yaml")
+    # Criterion 4 leaves out the upstream model from the reviewer's own family.
+    assert set(e106.criteria["held_out_upstreams"]) == set(e106.upstreams) - {"reviewer_qwen"}
+
+
+def test_family_settings_render_the_reasoning_each_template_expects():
+    from sysone.posttrain.hf import render
+
+    qwen = TrainConfig(name="q", method="sft", dataset="d", arm="sft_review")
+    assert qwen.template_kwargs() == {"enable_thinking": True} and qwen.lora_target_parameters() == []
+    oss = TrainConfig(name="g", method="sft", dataset="d", arm="sft_review", base_model="openai/gpt-oss-20b",
+                      family="gpt-oss", reasoning_effort="medium")
+    assert oss.template_kwargs() == {"reasoning_effort": "medium"}
+    assert "7.mlp.experts.gate_up_proj" in oss.lora_target_parameters()
+
+    class QwenLikeTokenizer:
+        """Renders like Qwen3's template: the last assistant turn's reasoning_content as <think>."""
+
+        def apply_chat_template(self, messages, tokenize, add_generation_prompt=False, enable_thinking=True):
+            out = "".join(f"<|im_start|>{m['role']}\n" + (f"<think>\n{m['reasoning_content']}\n</think>\n\n"
+                                                         if m.get("reasoning_content") else "")
+                          + f"{m['content']}<|im_end|>\n" for m in messages)
+            return out + ("<|im_start|>assistant\n" if add_generation_prompt else "")
+
+    prompt = [{"role": "user", "content": "Decide."}]
+    completion = [{"role": "assistant", "thinking": "It reads as an insult.", "content": '{"final_label": "toxic"}'}]
+    head, body = render(QwenLikeTokenizer(), prompt, completion, template_kwargs=qwen.template_kwargs(),
+                        thinking_key=qwen.model_family.thinking_key)
+    assert head.endswith("<|im_start|>assistant\n")
+    assert body.startswith("<think>\nIt reads as an insult.\n</think>") and '"toxic"' in body
+    # The wrong key for this template drops the reasoning, and render refuses to train on that.
+    with pytest.raises(ValueError, match="dropped the reasoning"):
+        render(QwenLikeTokenizer(), prompt, completion, template_kwargs={}, thinking_key="thinking")
+
+
+def test_check_refuses_a_reasoning_setting_the_family_does_not_take(tmp_path):
+    with pytest.raises(ValueError, match="has no reasoning_effort"):
+        check(TrainConfig(name="t", method="sft", dataset="none", arm="sft_review", reasoning_effort="medium"),
+              data_dir=tmp_path, manifest_dir=tmp_path)
+    with pytest.raises(ValueError, match="set it as at evaluation"):
+        check(TrainConfig(name="t", method="sft", dataset="none", arm="sft_review", family="gpt-oss"),
+              data_dir=tmp_path, manifest_dir=tmp_path)
 
 
 # --- E.106 evaluation and its analysis ----------------------------------------------------------
@@ -268,3 +320,73 @@ def test_e106_evaluates_each_reviewer_on_the_e102_plan(tmp_path):
                          "4_transfers_to_held_out_upstreams", "5_beats_control_arm"}
     assert crit["5_beats_control_arm"]["pass"] is False  # no control arm was evaluated
     assert "vs_base" in summary["reviewers"]["sft_review"]["pooled"]
+    assert set(crit["4_transfers_to_held_out_upstreams"]["per_upstream"]) == {"up"}
+    # Criterion 4 counts only the listed upstream models; the rest are reviewed but not judged.
+    judged = summarize(plan, rows, upstream, reviewers=config.reviewers, difficulty_reviewer="base_local",
+                       upstreams=["up"], criteria={**config.criteria, "held_out_upstreams": ["other_family"]})
+    c4 = judged["criteria"]["sft_review"]["4_transfers_to_held_out_upstreams"]
+    assert c4["per_upstream"] == {} and c4["pass"] is False
+
+
+# --- criterion 2's bar for the Qwen reviewer: E.103 on an E.106 source run ------------------------
+
+def test_best_override_change_reproduces_the_preregistered_gpt_oss_bars():
+    from sysone.analysis.e103 import best_override_change
+    from sysone.registry import CONFIG_DIR, REPO_ROOT
+
+    summary = json.loads((REPO_ROOT / "research_analyses" / "E103" / "data" / "summary.json").read_text())
+    bars = E106Config.load(CONFIG_DIR / "experiments" / "e106.yaml").criteria["e103_best_override_change"]
+    assert best_override_change(summary) == bars
+
+
+def test_e103_reruns_the_protocols_on_the_base_reviewer_from_an_e106_run(tmp_path):
+    from sysone.analysis.e103 import STANDARD, analyze_run, best_override_change
+    from sysone.analysis.e106 import criteria_with_bars
+    from sysone.experiments.e103 import BLIND_FIRST, E103Config, run_e103
+
+    items = make_items(16)
+    status, source, _ = run_e102_toy(tmp_path, items)
+    assert status == "completed"
+    plan = source.writer("plan").rows()
+    guard = _guard(tmp_path, "e106")
+    config = E106Config(source_run=source.run_id, upstream_run="none", samples=["toy"],
+                        reviewers=["base_local", "sft_review"], upstreams=[], workers=4)
+    e106 = Run("e106", tmp_path)
+    reviewers = {a: _fake(a, FakeChatProvider(malformed_every=0), guard) for a in config.reviewers}
+    (tmp_path / "runs" / "none").mkdir(parents=True)
+    assert run_e106(config, e106, reviewers, samples={"toy": items}, source_dir=source.dir,
+                    upstream_dir=tmp_path / "runs" / "none") == "completed"
+
+    e103_config = E103Config(source_run="e106", plan_run=source.run_id, samples=["toy"], reviewer="base_local",
+                             upstreams=[], steps=["reviews"], workers=4)
+    # An E.106 run without the reviewer has no standard prompt to compare with.
+    with pytest.raises(ValueError, match="no reviews by 'sft_plain'"):
+        run_e103(dataclasses.replace(e103_config, reviewer="sft_plain"), Run("e103-x", tmp_path),
+                 _fake("sft_plain", FakeChatProvider(), guard), {}, samples={"toy": items}, source_dir=e106.dir,
+                 plan_dir=source.dir)
+    e103 = Run("e103-qwen", tmp_path)
+    assert run_e103(e103_config, e103, _fake("base_local", FakeChatProvider(malformed_every=0), guard), {},
+                    samples={"toy": items}, source_dir=e106.dir, plan_dir=source.dir) == "completed"
+    rows = e103.writer("reviews").rows()
+    per_protocol = (sum(not p["jev_correct"] for p in plan) + sum(not p["matched_correct"] for p in plan)
+                    + sum(p["in_subsample"] for p in plan))
+    assert len(rows) == per_protocol * len(e103_config.protocols)
+    # Blind-first commits to base_local's own first alone answer from E.106.
+    first = {r["item_id"]: r["final_label"] for r in e106.writer("reviews").rows()
+             if r["reviewer"] == "base_local" and r["condition"] == "alone" and r["sample_index"] == 0}
+    assert all(r["own_answer"] == first[r["item_id"]] for r in rows if r["protocol"] == BLIND_FIRST)
+    assert e103.manifest()["plan_run"] == source.run_id
+
+    summary = analyze_run(e103.dir, e106.dir, source.dir, reviewer="base_local")
+    standard = summary["samples"]["toy"]["protocols"][STANDARD]
+    # The standard prompt is base_local's reviews only, not sft_review's.
+    assert standard["n_reviews"] == sum(r["reviewer"] == "base_local" and r["condition"] != "alone"
+                                        for r in e106.writer("reviews").rows())
+    bars = best_override_change(summary)
+    assert set(bars) == {"toy"}
+    # E.106's analysis takes criterion 2's bars from that run once it is named.
+    assert criteria_with_bars({"e103_bar_run": "e103-qwen"}, tmp_path / "runs")["e103_best_override_change"] == bars
+    assert criteria_with_bars({"e103_best_override_change": {"toy": 0.5}}, tmp_path / "runs") == \
+        {"e103_best_override_change": {"toy": 0.5}}
+    with pytest.raises(ValueError, match="run and analyze E.103"):
+        criteria_with_bars({"e103_bar_run": "never-ran"}, tmp_path / "runs")

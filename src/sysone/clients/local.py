@@ -1,8 +1,8 @@
 """Self-hosted models behind an OpenAI-compatible chat-completions server (vLLM), for Part 2.
 
-A post-trained reviewer can't run on Bedrock's shared gpt-oss endpoint, so Part 2 serves
-models on its own GPU (research_docs/14). vLLM exposes /v1/chat/completions; this adapter
-sends the harness's ChatRequest there.
+A post-trained reviewer can't run on Bedrock's shared endpoints, so Part 2 serves its models
+(Qwen3-14B and its fine-tunes) on its own GPU (research_docs/14). vLLM exposes
+/v1/chat/completions; this adapter sends the harness's ChatRequest there.
 
 - The server's URL comes from LOCAL_LLM_BASE_URL (default http://localhost:8000/v1), and an
   optional LOCAL_LLM_API_KEY is sent as a bearer token (vLLM's --api-key).
@@ -10,7 +10,8 @@ sends the harness's ChatRequest there.
   hold the base model and each trained checkpoint under its own name.
 - max_tokens caps all generated tokens, reasoning included (as on Bedrock), so the reasoning
   budget is added to it.
-- reasoning_effort is sent as is; vLLM applies it through gpt-oss's chat template.
+- reasoning_effort is sent only if the alias sets one (gpt-oss's chat template takes it). Qwen3
+  aliases set none: Qwen3 thinks by default, and vLLM's qwen3 reasoning parser returns the trace.
 - vLLM returns the reasoning in message.reasoning_content (older releases) or
   message.reasoning (newer); reasoning_text reads either.
 - Calls cost nothing per token (pricing.yaml lists local models at $0). GPU hours are paid

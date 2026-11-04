@@ -1,13 +1,13 @@
-# E.108 (held-out domain, no WildGuard responses in training): LoRA SFT of gpt-oss-20b, control arm: the same items and gold labels, all in alone format.
+# E.108 (held-out domain, no WildGuard responses in training): LoRA SFT of Qwen3-14B, control arm.
 # Check first (no GPU): uv run python -m sysone.posttrain.sft --config configs/posttrain/sft_plain_no_responses.yaml --check
-name: gpt-oss-20b-sft-plain-no-responses      # checkpoints/<name>, and the vLLM --served-model-name
+name: qwen3-14b-sft-plain-no-responses      # checkpoints/<name>, and the vLLM --served-model-name
 method: sft
 dataset: part2_no_responses_v1           # data/posttrain/<dataset>, exported by E.105
 arm: sft_plain
-base_model: openai/gpt-oss-20b
+base_model: Qwen/Qwen3-14B
+family: qwen3                   # thinking on (enable_thinking), as vLLM serves it at evaluation
 init_from: null
-reasoning_effort: medium        # as the evaluation's requests
-lora: {r: 8, alpha: 16, dropout: 0.0, target_modules: all-linear}   # plus the expert weights of layers 7, 15, 23
+lora: {r: 8, alpha: 16, dropout: 0.0, target_modules: all-linear}
 learning_rate: 2.0e-4
 epochs: 1
 per_device_batch_size: 4

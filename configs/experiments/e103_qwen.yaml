@@ -1,0 +1,19 @@
+# E.103 for Part 2's Qwen reviewer: the four cheap protocols, rerun with the untrained Qwen3-14B
+# (base_local) on our own GPU, $0 (research_docs/14, "Deviations"). Its best protocol per pool is
+# criterion 2's bar. Run it after E.106 has evaluated base_local and before any trained reviewer.
+
+source_run: e106-v1-REPLACE        # the E.106 run holding base_local's standard reviews and alone record
+plan_run: e102-v1-2026-11-04       # E.102's frozen plan: the same items as every other evaluation
+samples: [civil_toxicity_pool_v1, wildguard_prompt_full_v1, wildguard_response_full_v1]
+reviewer: base_local               # served by vLLM, as in E.106
+protocols: [blind_first, warning, calibrated_warning, consider_opposite]
+upstreams: []                      # E.103's upstream decisions are model-independent: already in e103-v1-2026-11-04
+reviewer_temperature: null
+reviewer_reasoning_max_tokens: 4096
+reviewer_max_output_tokens: 256
+workers: 32                        # vLLM batches concurrent requests
+max_items: null
+use_cache: false
+max_consecutive_errors: 10
+steps: [reviews]
+run_provider_caps_usd: {bedrock: 0.01, typesafe: 0.01}   # GPU-only: a paid call is a mistake (caps must be positive)

@@ -90,49 +90,51 @@ decision_alt:
   model: amazon.nova-lite-v1:0
 
 teacher:
-  # Part 2 (E.105): writes reasoning traces for training items the reviewer can't solve on its own.
-  # gpt-oss-120b, the reviewer's larger sibling, so its traces read like the reviewer's.
+  # Part 2 (E.105), if traces come from Bedrock: gpt-oss-120b, for a gpt-oss reviewer. The Qwen
+  # reviewer's teacher is teacher_local below, so its traces read like the reviewer's own.
   provider: bedrock
   model: openai.gpt-oss-120b-1:0
   service_tier: flex
   reasoning_effort: medium
 
-# Part 2 reviewers on our own GPU (research_docs/14). Served by vLLM under these names
-# (--served-model-name); set LOCAL_LLM_BASE_URL to the server. All are gpt-oss-20b in bf16:
-# the base is the dequantized checkpoint saved by `sysone.posttrain.sft --save-base`, so it runs
-# at the same precision as the trained ones (the MXFP4 original would not).
+# Part 2 models on our own GPU (research_docs/14), served by vLLM under these names
+# (--served-model-name); set LOCAL_LLM_BASE_URL to the server. The reviewer is Qwen3-14B
+# (open-weight, Apache 2.0) with thinking on, Qwen3's default: no reasoning setting is sent.
+# Every reviewer is a bf16 checkpoint: the base saved by `sysone.posttrain.sft --save-base`, or
+# a merged one, so they all run at the same precision.
 base_local:
-  # The untrained reviewer, re-measured on the same stack as the trained ones (E.106's baseline).
+  # The untrained reviewer. E.105 samples its own traces from it (rejection sampling), and E.106
+  # re-measures it on the same stack as the trained ones (the baseline and the difficulty scale).
   provider: local
-  model: gpt-oss-20b-base
-  reasoning_effort: medium
+  model: qwen3-14b-base
+
+teacher_local:
+  # E.105's teacher: Qwen3-32B with thinking, the reviewer's larger sibling, for examples the
+  # reviewer never solves. Served on its own, after the reviewer's traces step.
+  provider: local
+  model: qwen3-32b-teacher
 
 sft_review:
   # SFT on review-format examples (Jev's proposal shown): the treatment arm.
   provider: local
-  model: gpt-oss-20b-sft-review
-  reasoning_effort: medium
+  model: qwen3-14b-sft-review
 
 sft_plain:
   # SFT on the same items and labels without any proposal: the "just a better classifier" control.
   provider: local
-  model: gpt-oss-20b-sft-plain
-  reasoning_effort: medium
+  model: qwen3-14b-sft-plain
 
 dpo_review:
   # E.107: DPO on review-format preference pairs, starting from sft_review.
   provider: local
-  model: gpt-oss-20b-dpo-review
-  reasoning_effort: medium
+  model: qwen3-14b-dpo-review
 
 sft_review_no_responses:
   # E.108: the treatment arm trained without WildGuard responses (the held-out domain).
   provider: local
-  model: gpt-oss-20b-sft-review-no-responses
-  reasoning_effort: medium
+  model: qwen3-14b-sft-review-no-responses
 
 sft_plain_no_responses:
   # E.108: its control arm.
   provider: local
-  model: gpt-oss-20b-sft-plain-no-responses
-  reasoning_effort: medium
+  model: qwen3-14b-sft-plain-no-responses

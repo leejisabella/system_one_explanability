@@ -1,14 +1,15 @@
-"""E.106: LoRA supervised fine-tuning of gpt-oss-20b on E.105's traces (research_docs/14).
+"""E.106: LoRA supervised fine-tuning of the reviewer (Qwen3-14B) on E.105's traces (research_docs/14).
 
 Usage (on the GPU machine, with `uv sync --group train`):
   uv run python -m sysone.posttrain.sft --config configs/posttrain/sft_review.yaml --check   # no GPU needed
-  uv run --group train python -m sysone.posttrain.sft --save-base checkpoints/gpt-oss-20b-base
+  uv run --group train python -m sysone.posttrain.sft --save-base checkpoints/qwen3-14b-base
   uv run --group train python -m sysone.posttrain.sft --config configs/posttrain/sft_review.yaml
   uv run --group train python -m sysone.posttrain.sft --config configs/posttrain/sft_review.yaml --merge
 
---check validates the config and dataset without torch. --save-base writes the dequantized bf16
-base the evaluation compares against. Training writes the LoRA adapter to checkpoints/<name>;
---merge then writes checkpoints/<name>-merged for vLLM to serve under --served-model-name <name>.
+--check validates the config and dataset without torch. --save-base writes the bf16 base the
+evaluation compares against (Qwen3 is bf16 on the Hub; gpt-oss's MXFP4 is dequantized). Training
+writes the LoRA adapter to checkpoints/<name>; --merge then writes checkpoints/<name>-merged for
+vLLM to serve under --served-model-name <name>.
 Every step writes train_info.json next to its output, with the config and the dataset's hashes.
 """
 
@@ -32,11 +33,12 @@ def train(config: TrainConfig) -> Path:
 
     source = config.init_from or config.base_model
     tokenizer = AutoTokenizer.from_pretrained(source)
+    fmt = {"template_kwargs": config.template_kwargs(), "thinking_key": config.model_family.thinking_key}
 
     def dataset(path: Path) -> Dataset:
         rows = []
         for r in load_records(path):
-            prompt, completion = render(tokenizer, r["prompt"], r["completion"], reasoning_effort=config.reasoning_effort)
+            prompt, completion = render(tokenizer, r["prompt"], r["completion"], **fmt)
             rows.append({"prompt": prompt, "completion": completion})
         return Dataset.from_list(rows)
 
@@ -52,7 +54,8 @@ def train(config: TrainConfig) -> Path:
         eval_strategy="epoch" if val_ds is not None else "no", seed=config.seed, report_to="none",
         completion_only_loss=True,
     )
-    trainer = SFTTrainer(model=load_model(source, train=True), args=args, train_dataset=train_ds, eval_dataset=val_ds,
+    model = load_model(source, train=True, attn_implementation=config.model_family.train_attn_implementation)
+    trainer = SFTTrainer(model=model, args=args, train_dataset=train_ds, eval_dataset=val_ds,
                          processing_class=tokenizer, peft_config=lora_config(config))
     trainer.train()
     trainer.save_model(str(config.output_dir))
@@ -71,8 +74,8 @@ def main() -> None:
     parser.add_argument("--config")
     parser.add_argument("--check", action="store_true", help="validate the config and dataset only (no torch)")
     parser.add_argument("--merge", action="store_true", help="merge the trained adapter into a bf16 checkpoint")
-    parser.add_argument("--save-base", metavar="DIR", help="save the dequantized bf16 base model to DIR and exit")
-    parser.add_argument("--base-model", default="openai/gpt-oss-20b", help="with --save-base")
+    parser.add_argument("--save-base", metavar="DIR", help="save the bf16 base model to DIR and exit")
+    parser.add_argument("--base-model", default="Qwen/Qwen3-14B", help="with --save-base")
     args = parser.parse_args()
 
     if args.save_base:

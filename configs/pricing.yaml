@@ -45,12 +45,13 @@ bedrock:
 local:
   # Self-hosted models behind vLLM (Part 2, research_docs/14), keyed by --served-model-name.
   # Nothing is billed per token; GPU time is paid outside the harness.
-  gpt-oss-20b-base:    {input: 0.0, output: 0.0}
-  gpt-oss-20b-sft-review: {input: 0.0, output: 0.0}
-  gpt-oss-20b-sft-plain:  {input: 0.0, output: 0.0}
-  gpt-oss-20b-dpo-review: {input: 0.0, output: 0.0}
-  gpt-oss-20b-sft-review-no-responses: {input: 0.0, output: 0.0}
-  gpt-oss-20b-sft-plain-no-responses:  {input: 0.0, output: 0.0}
+  qwen3-14b-base:          {input: 0.0, output: 0.0}
+  qwen3-32b-teacher:       {input: 0.0, output: 0.0}
+  qwen3-14b-sft-review:    {input: 0.0, output: 0.0}
+  qwen3-14b-sft-plain:     {input: 0.0, output: 0.0}
+  qwen3-14b-dpo-review:    {input: 0.0, output: 0.0}
+  qwen3-14b-sft-review-no-responses: {input: 0.0, output: 0.0}
+  qwen3-14b-sft-plain-no-responses:  {input: 0.0, output: 0.0}
 
 gemini:
   # Paid-tier Gemini API prices from ai.google.dev/gemini-api/docs/pricing (checked 2026-10-21,

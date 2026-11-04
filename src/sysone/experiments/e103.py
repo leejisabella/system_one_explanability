@@ -2,8 +2,13 @@
 
 No new Jev calls. Every review reuses an E.102 run's plan: the same items, Jev's wrong labels, the
 matched random wrong labels and the random subsample's correct labels, so each protocol is compared
-with E.102's standard review on identical items. Difficulty stays E.102's: the base reviewer's 5
-alone samples.
+with the source run's standard review on identical items. Difficulty is the source run's: the
+reviewer's 5 alone samples.
+
+The source run is E.102's for gpt-oss-20b (configs/experiments/e103.yaml). For Part 2's Qwen
+reviewer (configs/experiments/e103_qwen.yaml) it is the E.106 run once base_local has run there:
+its standard reviews, alone record and blind-first answers are base_local's rows, and plan_run
+points at E.102's run for the plan. Its result is criterion 2's bar (research_docs/14).
 
   reviews   each protocol reviews Jev-wrong (jev_label), matched-wrong (matched_label) and
             subsample (correct_label) items once:
@@ -18,6 +23,7 @@ alone samples.
 Usage:
   uv run python -m sysone.experiments.e103 --dry-run --source-run <e102 dry-run id>
   uv run python -m sysone.experiments.e103 --run-id <id>        # source_run from the config
+  uv run python -m sysone.experiments.e103 --config configs/experiments/e103_qwen.yaml --run-id <id>
 """
 
 from __future__ import annotations
@@ -59,8 +65,12 @@ OPPOSITE_PREFIX = ("Before you decide, make the strongest case you can for the o
 
 @dataclass(frozen=True)
 class E103Config:
+    # The run whose reviews are the standard prompt (and the difficulty record and blind-first's
+    # committed answers): E.102's, or E.106's for a Part 2 reviewer.
     source_run: str
     samples: list[str]
+    # The E.102 run whose plan.jsonl is reviewed, if source_run isn't an E.102 run; None: source_run.
+    plan_run: str | None = None
     reviewer: str = "reviewer"
     protocols: list[str] = field(default_factory=lambda: list(PROTOCOLS))
     upstreams: list[str] = field(default_factory=lambda: ["explainer_open", "reviewer_qwen", "decision_alt"])
@@ -136,7 +146,7 @@ def review_tasks(config: E103Config, plan: list[dict], items: dict[tuple[str, st
 
 
 def run_e103(config: E103Config, run: Run, reviewer: GuardedClient, upstreams: dict[str, GuardedClient], *,
-             samples: dict[str, list[Item]], source_dir: Path) -> str:
+             samples: dict[str, list[Item]], source_dir: Path, plan_dir: Path | None = None) -> str:
     unknown = set(config.steps) - set(STEPS)
     if unknown:
         raise ValueError(f"unknown steps {sorted(unknown)}; choose from {STEPS}")
@@ -145,11 +155,16 @@ def run_e103(config: E103Config, run: Run, reviewer: GuardedClient, upstreams: d
     if not config.use_cache:
         for c in (reviewer, *upstreams.values()):
             c.cache = None
-    plan = JsonlWriter(source_dir / "plan.jsonl").rows()
+    plan_dir = plan_dir or source_dir
+    plan = JsonlWriter(plan_dir / "plan.jsonl").rows()
     if not plan:
-        raise ValueError(f"{source_dir} has no plan.jsonl; E.103 needs a completed E.102 run")
+        raise ValueError(f"{plan_dir} has no plan.jsonl; E.103 needs a completed E.102 run (plan_run)")
     items = {(name, i.item_id): i for name, its in samples.items() for i in its}
-    own = first_alone_answers(JsonlWriter(source_dir / "reviews.jsonl").rows(), config.reviewer)
+    source_reviews = JsonlWriter(source_dir / "reviews.jsonl").rows()
+    if not any(r.get("reviewer") == config.reviewer for r in source_reviews):
+        raise ValueError(f"{source_dir} has no reviews by {config.reviewer!r}: the standard prompt to compare "
+                         "with is missing (for a Part 2 reviewer, run E.106 with it first)")
+    own = first_alone_answers(source_reviews, config.reviewer)
     error_rate = {s: sum(not p["jev_correct"] for p in plan if p["sample"] == s) / max(1, sum(p["sample"] == s for p in plan))
                   for s in samples}
     guard = reviewer.guard
@@ -157,6 +172,7 @@ def run_e103(config: E103Config, run: Run, reviewer: GuardedClient, upstreams: d
         experiment=EXPERIMENT, status="running", started_at=run.manifest().get("started_at", now_iso()),
         source_run={"path": str(source_dir), "run_id": source_dir.name, **{
             k: v for k, v in Run(source_dir.name, source_dir.parent.parent).manifest().items() if k in ("git", "status")}},
+        plan_run=plan_dir.name,
         jev_error_rate_by_sample={k: round(v, 4) for k, v in error_rate.items()},
         config=dataclasses.asdict(config),
         models={config.reviewer: _spec_info(reviewer.spec), **{a: _spec_info(c.spec) for a, c in upstreams.items()}},
@@ -227,7 +243,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--config", default=str(CONFIG_DIR / "experiments" / "e103.yaml"))
     parser.add_argument("--run-id")
-    parser.add_argument("--source-run", help="override the config's E.102 run")
+    parser.add_argument("--source-run", help="override the config's source run (E.102's, or E.106's for base_local)")
     parser.add_argument("--steps", nargs="+", choices=STEPS)
     parser.add_argument("--dry-run", action="store_true", help="fake models: no network, no cost")
     parser.add_argument("--results-dir", default=str(RESULTS_DIR))
@@ -242,6 +258,7 @@ def main() -> None:
     run_id = args.run_id or f"{EXPERIMENT}-{'dryrun-' if args.dry_run else ''}{stamp}"
     samples, _ = load_samples(config)
     source_dir = Path(args.results_dir) / "runs" / config.source_run
+    plan_dir = Path(args.results_dir) / "runs" / (config.plan_run or config.source_run)
 
     registry = Registry(run_id, results_dir=Path(args.results_dir), run_provider_caps_usd=config.run_provider_caps_usd)
     if args.dry_run:
@@ -259,8 +276,8 @@ def main() -> None:
     project = registry.project_status()
     run.update_manifest(project_spend_at_start=project)
     print("project spend so far: " + ", ".join(f"{p} ${v['spent_usd']:.4f} of ${v['cap_usd']:.2f}" for p, v in project.items()))
-    status = run_e103(config, run, reviewer, upstreams, samples=samples, source_dir=source_dir)
-    analyze_run(run.dir, source_dir)
+    status = run_e103(config, run, reviewer, upstreams, samples=samples, source_dir=source_dir, plan_dir=plan_dir)
+    analyze_run(run.dir, source_dir, plan_dir, reviewer=config.reviewer)
     print(f"run {run_id}: {status}")
     print(f"results: {run.dir}")
     print((run.dir / "report.md").read_text())

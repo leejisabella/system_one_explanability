@@ -8,7 +8,8 @@ Usage:
 Per training pool, on 2 items (the first and the longest): Jev decides once (E.104), and the reviewer
 and the teacher review a wrong label (E.105). Checks that every reply parses and that the reviewer's
 and teacher's reasoning comes back (E.105 can't export traces without it), then projects E.104's and
-E.105's cost from the measured cost per call. With --local, sends 2 alone decisions to that alias.
+E.105's cost from the measured cost per call. Self-hosted reviewers and teachers (the Qwen setup)
+are skipped here: check each against its server with --local, which sends one alone decision.
 """
 
 from __future__ import annotations
@@ -80,14 +81,20 @@ def main() -> None:
                 break
         else:
             jev = client(c4.jev, FakeDecisionProvider(malformed_every=0))
-            reviewer, teacher = client(c5.reviewer), client(c5.teacher)
+            # Self-hosted models need their own server, one at a time: checked with --local instead.
+            hosted = {alias: name for alias, name in (("reviewer", c5.reviewer), ("teacher", c5.teacher))
+                      if args.dry_run or registry.spec(name).provider != "local"}
+            for alias, name in (("reviewer", c5.reviewer), ("teacher", c5.teacher)):
+                if alias not in hosted:
+                    print(f"  {alias} ({name}) is self-hosted: run --local {name} with its server up")
+            clients = {alias: client(name) for alias, name in hosted.items()}
             for name, items in samples.items():
                 task = TASKS[items[0].task]
                 for item in (items[0], max(items, key=lambda i: len(i.text))):
                     d = JevDecisionModel(jev, task=task.jev).decide(task.policy, item.text, tags={"experiment": "preflight"})
                     report(f"jev/{name}/{item.item_id}", d.decision.parse_ok, d.response, needs_reasoning=False)
                     wrong = next(lab for lab in task.labels if lab != item.label)
-                    for alias, c in (("reviewer", reviewer), ("teacher", teacher)):
+                    for alias, c in clients.items():
                         r = Reviewer(c, task, reasoning_max_tokens=c5.reviewer_reasoning_max_tokens,
                                      max_output_tokens=c5.reviewer_max_output_tokens)
                         res = r.decide(item.text, wrong, tags={"experiment": "preflight", "step": "review"})

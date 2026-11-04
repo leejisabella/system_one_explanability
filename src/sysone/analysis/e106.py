@@ -187,16 +187,21 @@ def evaluate_criteria(R: dict[str, Any], criteria: dict[str, Any], upstreams: li
     out["2_beats_cheap_protocols"] = {
         "pass": bool(per) and all(v["e103_best"] is not None and v["change"] is not None and v["change"] > v["e103_best"]
                                   for v in per.values()),
-        "per_sample": per, "rule": "in every pool, override-when-wrong rises by more than the best E.103 protocol's change"}
+        "per_sample": per, "rule": "in every pool, override-when-wrong rises by more than the best E.103 protocol's change"
+                                   + (f" (bars from {criteria['e103_bar_run']})" if criteria.get("e103_bar_run")
+                                      else " (provisional: gpt-oss-20b's bars)")}
     cvb = P["cascade_vs_best_single"]
     out["3_cascade_beats_best_single"] = {
         "pass": (_lower(cvb) or 0) > 0, "change": cvb,
         "rule": "pooled: cascade accuracy beats the better of Jev alone and the reviewer alone (95% interval above 0)"}
-    ups = {m: vb["upstream"][m] for m in upstreams}
+    # Judged on criteria["held_out_upstreams"] if set: upstream models from another family than the
+    # reviewer. The others are still reviewed and reported, just not counted.
+    judged = [m for m in criteria.get("held_out_upstreams") or upstreams if m in upstreams]
+    ups = {m: vb["upstream"][m] for m in judged}
     out["4_transfers_to_held_out_upstreams"] = {
         "pass": bool(ups) and all((_lower(u["override_when_wrong"]) or 0) > 0 and u["accept_when_right"]["diff"] is not None
                                   and u["accept_when_right"]["diff"] >= -drop for u in ups.values()),
-        "per_upstream": ups, "rule": "pooled, for every held-out upstream model: criterion 1's rule"}
+        "per_upstream": ups, "rule": f"pooled, for every held-out upstream model ({', '.join(judged)}): criterion 1's rule"}
     vc = P.get("vs_control")
     out["5_beats_control_arm"] = {
         "pass": vc is not None and (_lower(vc["override_when_wrong_jev"]) or 0) > 0,
@@ -237,12 +242,30 @@ def report(summary: dict[str, Any], manifest: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def criteria_with_bars(criteria: dict[str, Any], runs_dir: Path) -> dict[str, Any]:
+    """Criterion 2's bar from the reviewer's own E.103 run (criteria["e103_bar_run"]), once it has
+    run: its best protocol per pool. Until then the config's e103_best_override_change stays."""
+    run_id = criteria.get("e103_bar_run")
+    if not run_id:
+        return criteria
+    path = runs_dir / run_id / "summary.json"
+    if not path.exists():
+        raise ValueError(f"criteria.e103_bar_run is {run_id!r}, but {path} is missing; run and analyze E.103 for "
+                         "this reviewer first (configs/experiments/e103_qwen.yaml), or unset it")
+    from sysone.analysis.e103 import best_override_change
+
+    return {**criteria, "e103_best_override_change": best_override_change(json.loads(path.read_text()))}
+
+
 def analyze_run(run_dir: str | Path, source_dir: str | Path, upstream_dir: str | Path, config: Any) -> dict[str, Any]:
     run_dir = Path(run_dir)
+    criteria = criteria_with_bars(config.criteria, Path(source_dir).parent)
     summary = summarize(_load(Path(source_dir) / "plan.jsonl"), _load(run_dir / "reviews.jsonl"),
                         _load(Path(upstream_dir) / "upstream.jsonl"), reviewers=config.reviewers,
                         difficulty_reviewer=config.difficulty_reviewer, upstreams=config.upstreams,
-                        criteria=config.criteria)
+                        criteria=criteria)
+    summary["criterion_2_bar"] = {"source": criteria.get("e103_bar_run") or "configs/experiments/e106.yaml (gpt-oss-20b)",
+                                  "bars": criteria.get("e103_best_override_change")}
     manifest = json.loads((run_dir / "manifest.json").read_text()) if (run_dir / "manifest.json").exists() else {}
     (run_dir / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n")
     (run_dir / "report.md").write_text(report(summary, manifest))

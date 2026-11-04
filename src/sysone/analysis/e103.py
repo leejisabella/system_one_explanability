@@ -2,8 +2,11 @@
 
 Usage:
   uv run python -m sysone.analysis.e103 results/runs/<e103 run> results/runs/<its E.102 source run>
+  uv run python -m sysone.analysis.e103 results/runs/<e103 run> results/runs/<E.106 run> \
+      --plan-dir results/runs/<E.102 run> --reviewer base_local     # a Part 2 reviewer (research_docs/14)
 
-Per sample and protocol (standard = E.102's own reviews of the same items):
+Per sample and protocol (standard = the source run's own reviews of the same items: E.102's for
+gpt-oss, E.106's base_local rows for the Qwen reviewer, whose plan is still E.102's):
 - **Deference at equal difficulty** (primary, research_docs/13): Jev's wrong labels accepted minus
   the matched random wrong labels accepted under the same protocol, at the same difficulty (the base
   reviewer's E.102 alone record, k of 5), with a bootstrap interval; per sample and pooled.
@@ -43,9 +46,12 @@ def paired_change(a: dict[str, bool], b: dict[str, bool], *, seed: int = 0) -> d
 
 
 def summarize(source_plan: list[dict], source_reviews: list[dict], reviews: list[dict],
-              upstream: list[dict]) -> dict[str, Any]:
+              upstream: list[dict], *, reviewer: str | None = None) -> dict[str, Any]:
+    """`reviewer` keeps only that alias's source rows as the standard reviews and the difficulty
+    record (an E.106 source run holds several reviewers); None keeps every reviewer row."""
     ok_src = [r for r in source_reviews if r["status"] == "ok" and r["parse_ok"]]
-    reviewer_src = [r for r in ok_src if r.get("role", "reviewer") == "reviewer"]
+    reviewer_src = [r for r in ok_src if r.get("role", "reviewer") == "reviewer"
+                    and (reviewer is None or r["reviewer"] == reviewer)]
     # The base reviewer's alone record per item (difficulty), and its first alone answer.
     k, n, first = Counter(), Counter(), {}
     for r in reviewer_src:
@@ -168,6 +174,17 @@ def summarize(source_plan: list[dict], source_reviews: list[dict], reviews: list
     return out
 
 
+def best_override_change(summary: dict[str, Any]) -> dict[str, float | None]:
+    """Per pool, the best protocol's paired change in Jev's wrong labels overridden: Part 2's
+    criterion 2 bar (research_docs/14), rounded as pre-registered."""
+    out: dict[str, float | None] = {}
+    for s, S in summary["samples"].items():
+        diffs = [P["vs_standard"]["override_when_wrong_jev"]["diff"] for P in S["protocols"].values() if "vs_standard" in P]
+        diffs = [d for d in diffs if d is not None]
+        out[s] = round(max(diffs), 3) if diffs else None
+    return out
+
+
 def _fmt_change(d: dict[str, Any]) -> str:
     if d["diff"] is None:
         return "–"
@@ -212,10 +229,13 @@ def report(summary: dict[str, Any], manifest: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def analyze_run(run_dir: str | Path, source_dir: str | Path) -> dict[str, Any]:
+def analyze_run(run_dir: str | Path, source_dir: str | Path, plan_dir: str | Path | None = None, *,
+                reviewer: str | None = None) -> dict[str, Any]:
+    """source_dir holds the standard reviews; plan_dir the plan (E.102's run), if not source_dir."""
     run_dir, source_dir = Path(run_dir), Path(source_dir)
-    summary = summarize(_load(source_dir / "plan.jsonl"), _load(source_dir / "reviews.jsonl"),
-                        _load(run_dir / "reviews.jsonl"), _load(run_dir / "upstream.jsonl"))
+    plan_dir = Path(plan_dir) if plan_dir else source_dir
+    summary = summarize(_load(plan_dir / "plan.jsonl"), _load(source_dir / "reviews.jsonl"),
+                        _load(run_dir / "reviews.jsonl"), _load(run_dir / "upstream.jsonl"), reviewer=reviewer)
     manifest = json.loads((run_dir / "manifest.json").read_text()) if (run_dir / "manifest.json").exists() else {}
     (run_dir / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n")
     (run_dir / "report.md").write_text(report(summary, manifest))
@@ -226,8 +246,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("run_dir")
     parser.add_argument("source_dir")
+    parser.add_argument("--plan-dir", help="the E.102 run with the plan, if source_dir is an E.106 run")
+    parser.add_argument("--reviewer", help="only this alias's source rows are the standard reviews")
     args = parser.parse_args()
-    analyze_run(args.run_dir, args.source_dir)
+    analyze_run(args.run_dir, args.source_dir, args.plan_dir, reviewer=args.reviewer)
     print((Path(args.run_dir) / "report.md").read_text())
 
 

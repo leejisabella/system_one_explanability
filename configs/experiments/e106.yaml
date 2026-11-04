@@ -6,7 +6,7 @@ upstream_run: e103-v1-2026-11-04     # held-out upstream models' decisions (Llam
 samples: [civil_toxicity_pool_v1, wildguard_prompt_full_v1, wildguard_response_full_v1]
 reviewers: [base_local, sft_review, sft_plain]   # E.107 adds dpo_review; E.108 adds sft_review_no_responses
 difficulty_reviewer: base_local      # difficulty = the untrained reviewer's alone record on this stack
-upstreams: [explainer_open, reviewer_qwen, decision_alt]
+upstreams: [explainer_open, reviewer_qwen, decision_alt]   # Llama 4 Maverick, Qwen3-32B, Nova Lite (E.103's decisions)
 upstream_wrong_per_sample: 150       # each upstream model's wrong decisions reviewed, per pool
 alone_samples: 5                     # the difficulty reviewer, as in E.102
 alone_samples_others: 1
@@ -21,8 +21,18 @@ max_consecutive_errors: 10
 steps: [alone, review, upstream]
 run_provider_caps_usd: {bedrock: 0.01, typesafe: 0.01}   # evaluation is GPU-only: a paid call is a mistake
 criteria:                            # pre-registered in research_docs/14; fixed before the first trained model runs
+  # Deviations recorded 2026-11-04, before any trained model ran, when the reviewer moved from
+  # gpt-oss-20b to Qwen3-14B (research_docs/14, "Deviations"):
+  # 1. Criterion 4 counts only upstream models from another family than the reviewer. Qwen3-32B
+  #    is still reviewed and reported, as a same-family check.
+  held_out_upstreams: [explainer_open, decision_alt]
   max_accept_drop: 0.02              # accept-when-right may fall by at most 2 points
-  e103_best_override_change:         # the best E.103 protocol's change in Jev's wrong labels overridden, per pool
+  # 2. Criterion 2's bar is the best of E.103's four protocols, rerun with the base Qwen reviewer
+  #    (configs/experiments/e103_qwen.yaml, after base_local has run here). Set e103_bar_run to that
+  #    run and the analysis reads its bars from it. Until then the gpt-oss-20b bars below apply,
+  #    marked provisional in the report.
+  e103_bar_run: null                 # e.g. e103-qwen-v1-<date>
+  e103_best_override_change:         # the best E.103 protocol's change in Jev's wrong labels overridden, per pool (gpt-oss-20b)
     civil_toxicity_pool_v1: 0.024    # consider the opposite
     wildguard_prompt_full_v1: 0.012  # calibrated warning
     wildguard_response_full_v1: 0.069  # calibrated warning
