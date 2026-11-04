@@ -99,3 +99,15 @@ def test_e103_end_to_end_on_a_toy_e102_run(tmp_path):
     status = run_e103(config, run, fake("reviewer"), {"up": fake("up")}, samples={"toy": items}, source_dir=source.dir)
     assert status == "completed" and len(run.writer("reviews").rows()) == len(rows)
     assert WILDGUARD_PROMPT.name == items[0].task
+
+
+def test_reasoning_text_reads_converse_reasoning_blocks():
+    from sysone.clients.bedrock import reasoning_text
+
+    raw = {"output": {"message": {"content": [
+        {"reasoningContent": {"reasoningText": {"text": "The comment insults ", "signature": "x"}}},
+        {"reasoningContent": {"reasoningText": {"text": "a person."}}},
+        {"text": '{"final_label": "toxic"}'}]}}}
+    assert reasoning_text(raw) == "The comment insults a person."
+    assert reasoning_text({"output": {"message": {"content": [{"text": "{}"}]}}}) is None
+    assert reasoning_text({}) is None and reasoning_text(None) is None
