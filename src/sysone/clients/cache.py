@@ -36,7 +36,7 @@ class ResponseCache:
         body = json.loads(row[0])
         body["usage"] = Usage(**body["usage"])
         # A cache hit costs nothing; the original cost is already in the ledger.
-        return ChatResponse(**{**body, "cost_usd": 0.0, "cached": True})
+        return ChatResponse(**{**body, "cost_usd": 0.0, "cached": True, "latency_s": None, "wall_s": None})
 
     def put(self, key: str, response: ChatResponse) -> None:
         body = json.dumps(dataclasses.asdict(response))

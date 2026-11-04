@@ -1,0 +1,8 @@
+# LLM judge over a completed Pilot 1 run: contestability and justification coding (src/sysone/explain/judge.py).
+
+pilot1_run: null               # run_id of a completed Pilot 1 run; or pass --pilot1-run
+judge: judge                   # alias in configs/models.yaml; must not share a family with an explainer
+temperature: null              # provider default
+reasoning_max_tokens: 1024     # cap on gpt-oss reasoning tokens; effort is in models.yaml
+use_cache: false               # true would reuse answers from earlier runs
+max_consecutive_errors: 10     # stop the run if this many requests in a row fail

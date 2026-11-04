@@ -182,6 +182,8 @@ def run_pilot0(config: Pilot0Config, run: Run, client: GuardedClient, *, benchma
                         "cached": resp.cached,
                         "input_tokens": resp.usage.input_tokens,
                         "output_tokens": resp.usage.output_tokens,
+                        "latency_s": resp.latency_s,
+                        "wall_s": resp.wall_s,
                         "request_key": result.request_key,
                         "ts": now_iso(),
                     })

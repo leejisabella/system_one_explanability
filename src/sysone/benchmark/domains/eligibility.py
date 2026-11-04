@@ -211,6 +211,7 @@ DOMAIN = Domain(
     basis_fields=basis_fields,
     policy_basis=policy_basis,
     harmed_party="applicant",
+    adverse_labels=("ineligible",),
     # Finding an eligible household ineligible harms it.
     harm=lambda r, outcome: ("ineligible", "high") if outcome == "eligible" else None,
 )

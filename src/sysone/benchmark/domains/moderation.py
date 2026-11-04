@@ -213,6 +213,7 @@ DOMAIN = Domain(
     basis_fields=basis_fields,
     policy_basis=policy_basis,
     harmed_party="author",
+    adverse_labels=("remove",),
     # Removing an allowed post harms its author.
     harm=lambda r, outcome: ("remove", "medium") if outcome == "allow" else None,
 )

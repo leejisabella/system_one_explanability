@@ -4,7 +4,7 @@ pilot0_run: null               # run_id of a completed Pilot 0 run; or pass --pi
 # Claude Haiku 5.5 (explainer_bedrock) is blocked on this AWS account (Marketplace subscription
 # refused, 2026-10-28), so Llama 4 Maverick takes its place; Claude joins later if AWS unblocks it.
 explainers: [explainer_open, explainer_gemini]   # aliases in configs/models.yaml
-conditions: [free_form, structured, decision_probabilities]
+conditions: [free_form, structured, decision_probabilities, own_decision]   # own_decision: explainer explains its own decision (explainer-only pipeline); never simulated
 simulator: simulator           # must not be Jev, an explainer, or from an explainer's model family
 explainer_decision_samples: 3  # independent explainer decisions per variant, like Jev's 3 in Pilot 0
 explainer_temperature: null    # null = provider default
@@ -14,3 +14,5 @@ simulator_reasoning_max_tokens: 2048   # cap on gpt-oss reasoning tokens (added 
 simulator_seed: null           # Bedrock's Converse API has no seed parameter
 use_cache: false               # true would reuse answers from earlier runs
 max_consecutive_errors: 10     # stop the run if this many requests in a row fail
+steps: [decisions, explanations, simulations]   # [decisions] alone is a screening run; resume it with all steps
+explain_cases: all             # or "separating": only cases where Jev, an explainer's own decision and the policy don't all agree

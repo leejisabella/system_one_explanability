@@ -137,12 +137,72 @@ The basis can be run, so each variant yields two predictions from one call:
 [src/sysone/experiments/pilot1.py](../src/sysone/experiments/pilot1.py), configured in [configs/experiments/pilot1.yaml](../configs/experiments/pilot1.yaml), with the explainer and simulator wrappers in [src/sysone/explain/](../src/sysone/explain/) and the analysis in [src/sysone/analysis/pilot1.py](../src/sysone/analysis/pilot1.py).
 
 - **Input:** a completed Pilot 0 run. Jev's decision on each variant is the majority of its 3 Pilot 0 samples, with probabilities averaged. Variants where the samples tie are left out of scoring, and cases whose original ties are not explained (listed in the manifest as `skipped_cases_jev_tie`).
-- **Conditions:** `free_form` and `structured` (one explanation per explainer per case, given Jev's decision only), and `decision_probabilities` (no explainer call: the simulator is shown Jev's decision and averaged probabilities).
+- **Conditions:** `free_form` and `structured` (one explanation per explainer per case, given Jev's decision only), and `decision_probabilities` (no explainer call: the simulator is shown Jev's decision and averaged probabilities). Added 2026-10-28 and on in the config: `own_decision`, the explainer's plain-language explanation of *its own* majority decision on the original case ("You decided ..."), for the explainer-only pipeline below. It is judged but never simulated, since the simulator predicts Jev; cases where the explainer's own samples tie get none.
 - **Explainers:** `explainer_open` (Llama 4 Maverick) and `explainer_gemini` (Gemini 3.1 Flash-Lite, thinking level `minimal`). The plan was Claude Haiku 5.5 (`explainer_bedrock`) in Llama's place, but on 2026-10-28 AWS refused the Marketplace subscription Claude needs for this account, even with the use-case form approved. If AWS unblocks it, Claude is added as a third explainer on the same Pilot 0 decisions. Each makes 3 independent decisions per variant, with the same question and rotating option order Jev gets. Bedrock models get the JSON format in the prompt and their reply is parsed; Gemini gets a JSON schema.
 - **Steps run in order and resume:** explainer decisions, then explanations, then simulations. A saved explanation is never regenerated, even if the explainer changes.
+- **Screening and case selection** (added 2026-10-28): `steps: [decisions]` runs the first step alone, and its report's identification table shows whether the explainers' own decisions ever stand apart from Jev and the policy (see [Whose answer](#whose-answer-jev-the-explainer-or-the-policy)). Resuming the same `run_id` with all steps continues without re-asking the decisions. `explain_cases: separating` then explains and simulates only the cases with a hidden variant where the three answers don't all agree; the manifest lists them as `explained_cases`.
+- **Any benchmark:** the domain comes from the benchmark's meta, which sets the policy, case text, options and prompts ([04](04_datasets_and_benchmark.md#domains-built-2026-10-28)). Refund prompts are byte-identical to the ones Pilot 1 ran with.
 - **Version lock:** each model is locked to the first version that answers (`model_versions` in the manifest), as for Jev in Pilot 0.
 - **Volume with two explainers on benchmark v1:** 1,128 explainer decisions, 296 explanations, and 684 simulator calls (114 hidden variants × the control, 4 explained groups and the baseline). Projected from the preflight's measured costs per call (2026-10-28): about $0.10 for Llama 4 Maverick and $0.09 for the simulator on AWS, and $0.12 for Gemini 3.1 Flash-Lite on GCP, about $0.31 in all. The live run's ledger replaces these estimates.
-- **Not built yet:** contestability scoring against the verified defects, which needs the LLM judge.
+- **Contestability** is scored afterwards by the LLM judge, below.
+
+### Whose answer: Jev, the explainer or the policy
+
+Experiment 1 asks whether a frozen explanation carries Jev's decisions or the explainer's own. Each hidden variant has three answers that can differ: Jev's decision, the explainer's own majority decision (from its 3 independent decisions), and the policy's outcome. The simulator without any explanation already leans toward the policy, because it reads the policy. So a raw match rate overstates whatever happens to coincide with the policy.
+
+[src/sysone/analysis/pilot1.py](../src/sysone/analysis/pilot1.py) (`whose_answer`, `identification`) measures each answer's **pull**: the simulator's match rate with the explanation minus its match rate in the control, on the hidden variants where that answer differs from both others.
+
+| Pull toward | Scored on variants where | Reads as |
+|---|---|---|
+| Jev | Jev differs from both the policy and the explainer's own decision | the explanation carries Jev's behavior |
+| the explainer's own | the explainer's own decision differs from both Jev and the policy | the explanation carries the explainer's view ("explains itself") |
+| the policy | Jev and the explainer agree against the policy | the explanation pulls toward (positive) or away from (negative) the policy |
+
+Variants where all three differ are reported as match counts. A pull on fewer than 10 variants is reported as "too few". The identification table counts, per explainer, how often each answer stands apart; it needs only the explainer decisions, so a screening run produces it.
+
+**Why this was needed:** in Pilot 1, Gemini's own decision matched the policy on every variant where Jev departed from it, so "Gemini's explanations predict Gemini" and "they restate the policy" were the same observation. Re-analyzed with this measure (2026-10-28), Pilot 1 identifies neither explainer's own pull: Gemini's own answer stands apart on 0 of 114 hidden variants, Llama's on 2 ([research_analyses/E1_pilot1](../research_analyses/E1_pilot1/README.md#6-whose-decisions-does-the-explanation-predict-jevs-or-the-explainers)).
+
+### Cost and latency of each pipeline
+
+The practical question behind Experiment 1: if explanations of Jev's decisions don't give people grounds to contest them, is it better to skip Jev and let the more capable explainer model decide, and explain its own decision? [src/sysone/analysis/pipelines.py](../src/sysone/analysis/pipelines.py) costs every way of deciding a case from the calls the runs actually made.
+
+**Latency is logged on every call** (from 2026-10-28): `GuardedClient` times each provider request and records `latency_s` (the successful attempt) and `wall_s` (the whole call, including failed attempts and retry backoff) in the spending log and on every saved row of Pilot 0, Pilot 1 and the judge. Cache hits record none. The preflight prints each call's latency and the mean per kind. Runs from before then (Pilot 0 and Pilot 1 on refund_v1) have cost but no latency.
+
+| Pipeline | Calls per case |
+|---|---|
+| Jev decides | one Jev decision |
+| Jev + explainer explains (`free_form` or `structured`) | Jev's decision, then the explainer's explanation of it, on every case |
+| Jev + explainer explains adverse decisions | the explanation only when Jev's decision is one the person would contest (refund: deny; moderation: remove; fraud: block; eligibility: ineligible; none for tool selection and routing) |
+| explainer decides | one explainer decision |
+| explainer decides and explains | its decision, then its `own_decision` explanation |
+
+Per pipeline: cost per case (and per 1,000 cases), latency mean / median / 95th percentile with the calls run one after the other, decision accuracy against ground truth and the harmful-decision rate (both per single decision call, not the majority of 3), and, with a judge run, the share of wrong decisions whose explanation gives grounds to contest them (flags the conflict, or names the verified defect and questions it or cites the correcting source). The simulator and judge are evaluation instruments, so their calls aren't part of any pipeline's cost. Written by the Pilot 1 runner (`pipelines.md` in the run folder, without grounds) and by the judge runner (in the judge's run folder, with grounds).
+
+**On `pilot1-v1b` (refund_v1, cost only):** Jev decides for about $0.03 per 1,000 cases; an explainer deciding costs $0.11 (Llama) to $0.13 (Gemini) per 1,000, about 4–5× Jev; explaining every Jev decision adds $0.29–0.63 per 1,000, and explaining only denials about half that. Per single call, the explainers decided slightly more accurately than Jev on this benchmark (64–66% vs 61%). All of these are small absolute amounts; latency and grounds to contest need a new run and the judge.
+
+### LLM judge as built
+
+[src/sysone/explain/judge.py](../src/sysone/explain/judge.py) (prompt and parsing), [src/sysone/experiments/judge.py](../src/sysone/experiments/judge.py) (runner), [src/sysone/analysis/judge.py](../src/sysone/analysis/judge.py) (metrics and human agreement), configured in [configs/experiments/judge.yaml](../configs/experiments/judge.yaml). Model: `judge` in [configs/models.yaml](../configs/models.yaml), gpt-oss-120b on Bedrock flex, reasoning effort low, from a different family than every explainer (the runner refuses otherwise).
+
+- **Input:** a completed Pilot 1 run. One judgment per explanation an explainer wrote (free-form and structured); the decision-and-probabilities baseline has no text to judge. Output goes to the judge's own run folder (`judgments.jsonl`), so the Pilot 1 run is unchanged. Resumable and version-locked like the other runners.
+- **What the judge sees:** what the explainer saw (the policy, the original case file, Jev's decision), the explanation, and **evaluator facts** the explainer never saw: the policy's outcome on the case file, the ground-truth outcome, whether Jev's decision is right, and each verified defect (a corrupted field with its recorded and true values, or overriding evidence that appears only in an attachment) with the sources that hold the true value.
+- **What it answers** (a fixed JSON structure):
+
+| Field | Values |
+|---|---|
+| `justification` | `flags_conflict` (says the decision may be wrong or should be reviewed), `false_premise` (supports it with a false statement about the case file or policy), `invented_fact` (supports it with a fact or rule in neither), `accurate` (supports it with true reasons). The first three are the codes Pilot 1's explanations of Jev's wrong approvals were hand-coded with. |
+| `names_defect_field`, `questions_defect_value`, `cites_correcting_evidence` | true / false, or null when the case has no verified defect |
+| `recommends_review` | true / false |
+| `quote` | the shortest verbatim excerpt supporting the justification code; the runner checks it is really in the explanation (`quote_found`) |
+
+- **Metrics** per explainer and condition ([06](06_evaluation_metrics.md#72-contestability)):
+  - **Wrong decisions defended / flagged:** on cases where Jev's original decision is wrong under ground truth, the share coded `false_premise` or `invented_fact`, and the share coded `flags_conflict`. Split by why Jev is wrong: it followed a corrupted or incomplete record, or it misapplied the policy to what it was shown.
+  - **Contestability:** on wrong decisions with a verified defect (a corrupted field, or overlooked evidence in an attachment), the share that name the defective fact *and* either question it or cite the source that would correct it.
+  - **Flags Jev's own policy errors:** on wrong decisions with no defect, the share that flag the conflict or recommend review.
+  - **False alarms:** on correct decisions, the share coded `flags_conflict`.
+  - **Quote check:** the share of supporting quotes found verbatim.
+- **Validation before use:** the judge's codes are reported as measurements only after they are scored against human labels (`--labels`, agreement and Cohen's κ per field). Label CSVs have `case_id, explainer, condition` and any of the judged fields; Pilot 1's hand coding (`research_analyses/E1_pilot1/data/justification_coding.csv`, 12 explanations, one coder) loads as is. `--export-labeling sheet.csv --n 50` writes a blind sheet (case file, evaluator facts, explanation; no judge answers): about two thirds explanations of wrong decisions, policy misapplications first, the rest correct decisions, for false alarms. Plan: about 50 explanations, two coders.
+- **Cost:** on `pilot1-v1b`, 288 explanations at about 2,000 input and 500 output tokens each on flex, about $0.09 (estimate; the preflight now makes one judge call and projects it).
 
 ## Steps to get there
 
@@ -202,6 +262,17 @@ uv run python analysis/pilot0.py results/runs/<id>            # regenerate the r
 uv run python -m sysone.experiments.pilot1 --pilot0-run <pilot0 id> --dry-run         # fake explainers and simulator
 uv run python -m sysone.experiments.pilot1 --pilot0-run <pilot0 id> --run-id <id>    # live
 uv run python analysis/pilot1.py results/runs/<id>            # regenerate the Pilot 1 report
+
+# Screening: explainer decisions only (set steps: [decisions] in a copy of pilot1.yaml); resume later with all steps
+uv run python -m sysone.experiments.pilot1 --config <screen.yaml> --pilot0-run <pilot0 id> --run-id <id>
+
+uv run python -m sysone.experiments.judge --pilot1-run <pilot1 id> --dry-run       # fake judge
+uv run python -m sysone.experiments.judge --pilot1-run <pilot1 id> --run-id <id> --labels <labels.csv>   # live
+uv run python -m sysone.analysis.judge results/runs/<judge id> --labels <a.csv> <b.csv>   # rescore against labels
+uv run python -m sysone.analysis.judge results/runs/<judge id> --export-labeling sheet.csv --n 50
+uv run python -m sysone.analysis.pipelines results/runs/<pilot1 id> [--judge results/runs/<judge id>]   # cost, latency, quality per pipeline
+
+uv run python scripts/preflight.py --benchmark benchmarks/<name> [--only jev judge ...]   # one live request of each kind
 ```
 
 A Pilot 1 dry run needs a completed Pilot 0 run; a Pilot 0 dry run works.

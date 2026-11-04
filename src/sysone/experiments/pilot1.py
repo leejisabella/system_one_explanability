@@ -16,6 +16,12 @@ skipped. Three steps, each resumable:
    predicts Jev's decision once without any explanation (the control) and once with
    each frozen explanation.
 
+Screening: `steps: [decisions]` runs step 1 alone. Its report's identification table
+says whether the explainers' own decisions ever differ from both Jev and the policy, which
+the "explains itself" question needs, before anything is spent on explanations. Resume
+the same run_id with all steps to continue. `explain_cases: separating` then explains
+and simulates only the cases with a hidden variant where the three answers don't all agree.
+
 Usage:
   uv run python -m sysone.experiments.pilot1 --pilot0-run <id> --dry-run   # fake models, no cost
   uv run python -m sysone.experiments.pilot1 --pilot0-run <id> --run-id <id>
@@ -40,7 +46,8 @@ from typing import Any, TypeVar
 
 import yaml
 
-from sysone.analysis.pilot1 import JevVariantDecision, analyze_run, jev_decisions
+from sysone.analysis import pipelines
+from sysone.analysis.pilot1 import JevVariantDecision, analyze_run, explainer_majorities, jev_decisions
 from sysone.benchmark.adapter import adapter_for
 from sysone.benchmark.store import load_benchmark
 from sysone.budget.guard import BudgetError
@@ -56,6 +63,7 @@ from sysone.clients.base import (
 from sysone.clients.fake import FakeChatProvider
 from sysone.explain.explainer import (
     EXPLAINED_CONDITIONS,
+    OWN_DECISION,
     ExplainerModel,
     decision_probabilities_text,
     explanation_record,
@@ -69,7 +77,12 @@ from sysone.types import ChatResponse
 EXPERIMENT = "pilot1"
 DECISION_PROBABILITIES = "decision_probabilities"
 CONDITIONS = (*EXPLAINED_CONDITIONS, DECISION_PROBABILITIES)
+# Opt-in: each explainer explains its own majority decision on the original case, for the
+# "explainer model alone" pipeline. Never simulated (the simulator predicts Jev).
+ALL_CONDITIONS = (*CONDITIONS, OWN_DECISION)
 CONTROL = "control"
+STEPS = ("decisions", "explanations", "simulations")
+CASE_SELECTIONS = ("all", "separating")
 # The explainer recorded for explanations no explainer wrote (the decision_probabilities baseline).
 NO_EXPLAINER = "none"
 
@@ -95,16 +108,25 @@ class Pilot1Config:
     # Off by default, as in Pilot 0. Resuming a run never needs the cache.
     use_cache: bool = False
     max_consecutive_errors: int = 10
+    # Which steps to run, in order. ("decisions",) is a screening run.
+    steps: tuple[str, ...] = STEPS
+    # "separating": explain and simulate only cases with a hidden variant where Jev's
+    # decision, an explainer's own decision and the policy's outcome don't all agree.
+    explain_cases: str = "all"
 
     def __post_init__(self) -> None:
-        unknown = set(self.conditions) - set(CONDITIONS)
+        unknown = set(self.conditions) - set(ALL_CONDITIONS)
         if unknown:
-            raise ValueError(f"unknown conditions {sorted(unknown)}; expected some of {CONDITIONS}")
+            raise ValueError(f"unknown conditions {sorted(unknown)}; expected some of {ALL_CONDITIONS}")
+        if not self.steps or set(self.steps) - set(STEPS):
+            raise ValueError(f"steps must be some of {STEPS}, got {self.steps}")
+        if self.explain_cases not in CASE_SELECTIONS:
+            raise ValueError(f"explain_cases must be one of {CASE_SELECTIONS}, got {self.explain_cases!r}")
 
     @classmethod
     def load(cls, path: str | Path) -> Pilot1Config:
         raw = yaml.safe_load(Path(path).read_text())
-        for key in ("explainers", "conditions"):
+        for key in ("explainers", "conditions", "steps"):
             if key in raw:
                 raw[key] = tuple(raw[key])
         return cls(**raw)
@@ -153,6 +175,8 @@ def _response_fields(response: ChatResponse, request_key: str) -> dict[str, Any]
         "reasoning_tokens": response.usage.reasoning_tokens,
         "finish_reason": response.finish_reason,
         "service_tier": response.service_tier,
+        "latency_s": response.latency_s,
+        "wall_s": response.wall_s,
         "request_key": request_key,
     }
 
@@ -255,11 +279,19 @@ def run_pilot1(config: Pilot1Config, run: Run, clients: dict[str, GuardedClient]
     texts = {v.variant_id: adapter.render(v) for c in cases for v in c.variants}
     explainable = [c for c in cases if c.case_id not in skipped]
 
+    def separating(case: Any, own: dict[tuple[str, str], str | None]) -> bool:
+        for v in case.variants[1:]:
+            answers = {jev.get(v.variant_id, none).label, str(v.policy_outcome)}
+            answers |= {own.get((a, v.variant_id)) for a in config.explainers}
+            if None not in answers and len(answers) > 1:
+                return True
+        return False
+
     status = "completed"
     try:
         # 1. Independent decisions.
         done = set(_latest_ok(decisions_w, lambda r: (r["explainer"], r["variant_id"], r["sample_index"])))
-        for alias in config.explainers:
+        for alias in (config.explainers if "decisions" in config.steps else ()):
             explainer = ExplainerModel(clients[alias], temperature=config.explainer_temperature,
                                        reasoning_max_tokens=config.explainer_reasoning_max_tokens, setting=setting)
             for case in cases:
@@ -289,17 +321,30 @@ def run_pilot1(config: Pilot1Config, run: Run, clients: dict[str, GuardedClient]
                             **_response_fields(result.response, result.request_key), "ts": now_iso(),
                         })
 
+        if config.explain_cases == "separating" and {"explanations", "simulations"} & set(config.steps):
+            own = explainer_majorities([r for r in decisions_w.rows() if r["status"] == "ok"])
+            explainable = [c for c in explainable if separating(c, own)]
+            run.update_manifest(explained_cases=sorted(c.case_id for c in explainable))
+
         # 2. Frozen explanations.
         frozen = _latest_ok(explanations_w, lambda r: r["explanation_id"])
-        for condition in config.conditions:
+        own_majority = (explainer_majorities([r for r in decisions_w.rows() if r["status"] == "ok"])
+                        if OWN_DECISION in config.conditions else {})
+        for condition in (config.conditions if "explanations" in config.steps else ()):
             for alias in ([NO_EXPLAINER] if condition == DECISION_PROBABILITIES else config.explainers):
                 for case in explainable:
                     explanation_id = f"{alias}/{condition}/{case.case_id}"
                     if explanation_id in frozen:
                         continue
                     jev_original = jev[case.original.variant_id]
+                    # The decision this explanation explains: Jev's, or the explainer's own.
+                    explained = (own_majority.get((alias, case.original.variant_id)) if condition == OWN_DECISION
+                                 else jev_original.label)
+                    if explained is None:
+                        continue  # the explainer's own samples tied or failed to parse
                     base = {
                         "run_id": run.run_id, "explanation_id": explanation_id, "explainer": alias,
+                        "explained_decision": explained,
                         "condition": condition, "case_id": case.case_id, "case_type": str(case.case_type),
                         "variant_id": case.original.variant_id, "jev_decision": jev_original.label,
                         "jev_probabilities": jev_original.probabilities,
@@ -317,7 +362,7 @@ def run_pilot1(config: Pilot1Config, run: Run, clients: dict[str, GuardedClient]
                         tags = {"experiment": EXPERIMENT, "step": "explanation", "explainer": alias,
                                 "condition": condition, "case_id": case.case_id}
                         result = attempt(explanations_w, base, lambda: explainer.explain(
-                            condition, policy, texts[case.original.variant_id], jev_original.label, tags=tags))
+                            condition, policy, texts[case.original.variant_id], explained, tags=tags))
                         if result is None:
                             continue
                         row = {**base, "status": "ok", **explanation_record(result),
@@ -335,9 +380,12 @@ def run_pilot1(config: Pilot1Config, run: Run, clients: dict[str, GuardedClient]
         targets += [
             (r["explanation_id"], r["explainer"], r["condition"], r["case_id"], r["explanation_text"])
             for r in frozen.values()
-            if r["parse_ok"] and r["condition"] in config.conditions and r["case_id"] in by_case
+            if r["parse_ok"] and r["condition"] in config.conditions and r["condition"] != OWN_DECISION
+            and r["case_id"] in by_case
         ]
         done = set(_latest_ok(simulations_w, lambda r: (r["explanation_id"], r["variant_id"])))
+        if "simulations" not in config.steps:
+            targets = []
         for explanation_id, alias, condition, case_id, explanation_text in targets:
             case = by_case[case_id]
             jev_original = jev[case.original.variant_id]
@@ -425,6 +473,7 @@ def main() -> None:
     print("project spend so far: " + ", ".join(f"{p} ${v['spent_usd']:.4f} of ${v['cap_usd']:.2f}" for p, v in project.items()))
     status = run_pilot1(config, run, clients, pilot0_dir=pilot0_dir)
     analyze_run(run.dir)
+    pipelines.analyze_run(run.dir)
     print(f"run {run_id}: {status}")
     print(f"results: {run.dir}")
     print((run.dir / "report.md").read_text())

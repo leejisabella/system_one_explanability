@@ -126,3 +126,7 @@ class ChatResponse:
     raw: dict[str, Any]
     cached: bool = False
     service_tier: str | None = None
+    # Seconds the successful attempt took at the provider, and the whole call including
+    # failed attempts and retry backoff. None for cached responses (no provider call).
+    latency_s: float | None = None
+    wall_s: float | None = None

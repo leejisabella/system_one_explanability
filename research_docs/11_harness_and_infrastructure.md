@@ -15,7 +15,7 @@ Chosen 2026-10-27 under the project budget (see *Project budget* below). Prices 
 | Explainer | `explainer_gemini` | Vertex AI, global endpoint | Gemini 3.1 Flash-Lite (`gemini-3.1-flash-lite`), thinking level `minimal` | $0.25 / $1.50 |
 | Explainer in Pilot 1 (replacing Claude) and open-weight explainer (stretch goal) | `explainer_open` | Bedrock | Llama 4 Maverick (`us.meta.llama4-maverick-17b-instruct-v1:0`) | $0.24 / $0.97 |
 | Simulator (Pilot 1 faithfulness scoring) | `simulator` | Bedrock | gpt-oss-120b (`openai.gpt-oss-120b-1:0`), flex tier, reasoning effort `low` | $0.15 / $0.60; flex $0.075 / $0.30 |
-| LLM judge (Pilot 2 onward) | `judge` | Bedrock | same as the simulator | same |
+| LLM judge (Experiment 1 onward) | `judge` | Bedrock | same as the simulator | same |
 | Second decision model (Experiment 8) | `decision_alt` | Bedrock | Amazon Nova Lite (`amazon.nova-lite-v1:0`) | $0.06 / $0.24 |
 
 **Where the prices come from.** Bedrock: AWS's official Price List files for us-east-2 (offers `AmazonBedrock` and `AmazonBedrockFoundationModels`, published 2026-10-12, read 2026-10-27), standard on-demand rows. Cross-Region profiles (`us.`, `global.`) are billed at these prices; Claude's `global.` profile is 10% cheaper than its `us.` profile. The Bedrock pricing web page did not load its price tables, so it was not used. Gemini: ai.google.dev/gemini-api/docs/pricing, checked 2026-10-21 and again 2026-10-27. TypeSafe: docs.typesafe.ai/models, checked 2026-10-26.
@@ -71,7 +71,7 @@ Every call goes through `GuardedClient` → `CostGuard` ([src/sysone/budget/guar
    - An explicit error response from the provider is logged at $0.
    - A timeout or dropped connection might have been billed, so it is charged at its worst case.
    - There are at most 2 retries, all made by the harness. The Bedrock and Gemini SDKs' own retries are switched off, so no attempt bypasses the cost guard.
-6. **Spending log.** Every attempt is appended to `results/runs/<run_id>/ledger.jsonl`, including its tokens, estimated and actual cost, cost source, the service tier requested and served, `model_used` and tags. A resumed run reads its earlier spend from this file, and the project caps are summed from all of these files. Each run prints the project spend so far and saves it in its manifest (`project_spend_at_start`).
+6. **Spending log.** Every attempt is appended to `results/runs/<run_id>/ledger.jsonl`, including its tokens, estimated and actual cost, cost source, the service tier requested and served, `model_used`, latency (`latency_s` for the successful attempt, `wall_s` for the whole call with retries; from 2026-10-28) and tags. A resumed run reads its earlier spend from this file, and the project caps are summed from all of these files. Each run prints the project spend so far and saves it in its manifest (`project_spend_at_start`).
 7. **Cache.** Identical requests are cached in `results/cache/responses.sqlite` and cost $0 on reuse. Experiments can turn it off; Pilot 0 does by default, so each new run queries Jev afresh. A repeated sample of the same request gets its own `sample_index`, so stability sampling still makes real calls.
 
 The project caps are only as complete as `results/`: deleting a run folder removes its spend from the totals. The AWS and GCP consoles remain the authoritative record. Backstops outside the harness (recommended): AWS Budgets and GCP budget alerts, for example at $40 each. They only send alerts; they don't stop spending.
@@ -124,4 +124,4 @@ scripts/smoke_test.py   one tiny live call per alias
 tests/              offline tests (fake provider, mocked HTTP and SDK clients)
 ```
 
-The benchmark, Jev decision wrapper, run store, and the Pilot 0 and Pilot 1 runners are described in [12_first_experiments_roadmap.md](12_first_experiments_roadmap.md). Planned next: the access layer, contestability scoring with the judge, and the stretch-goal S1 harness.
+The benchmark, Jev decision wrapper, run store, and the Pilot 0 and Pilot 1 runners are described in [12_first_experiments_roadmap.md](12_first_experiments_roadmap.md). The judge (`sysone.experiments.judge`, analysis in `sysone.analysis.judge`) scores a finished Pilot 1 run's explanations into its own run folder and refuses a judge from an explainer's family. Planned next: the access layer and the stretch-goal S1 harness.

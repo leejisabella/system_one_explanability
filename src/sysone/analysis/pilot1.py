@@ -12,6 +12,20 @@ explanation's implied decision is obtained"):
   variant's record. Deterministic, with no simulator.
 Plus Jev-explainer disagreement: the two models' independent majority decisions compared.
 
+Whose answer the explanation carries (Experiment 1's "Jev's answers or the explainer's
+own"). Jev's decision, the explainer's own majority decision and the policy's outcome can
+each differ on a hidden variant, and the simulator without any explanation already leans
+toward the policy. So each answer's pull is measured as the simulator's match rate with
+the explanation minus its match rate in the control, on the variants where that answer
+stands apart:
+- toward Jev, where Jev differs from both the policy and the explainer's own decision;
+- toward the explainer's own decision, where it differs from both the policy and Jev;
+- toward the policy, where it differs from both.
+Pilot 1 could not separate "the explanation carries the explainer's view" from "it
+restates the policy", because Gemini's own decisions matched the policy on every variant
+where Jev departed from it. The identification counts (from the explainer decisions
+alone, so also on a decisions-only screening run) say whether a benchmark can.
+
 Jev's decision on a variant is its Pilot 0 majority; variants where it tied are left out.
 Contestability scoring against the verified defects needs the LLM judge and is not here yet.
 
@@ -46,6 +60,8 @@ from sysone.types import ChatResponse, Usage
 
 CONTROL = "control"
 STRUCTURED = "structured"
+# Fewer variants than this where an answer stands apart, and its pull is reported as not identified.
+MIN_IDENTIFYING = 10
 
 
 @dataclass(frozen=True)
@@ -201,6 +217,82 @@ def _option_b(explanations: list[dict[str, Any]], hidden: dict[str, list[str]], 
     }
 
 
+def explainer_majorities(decisions: list[dict[str, Any]]) -> dict[tuple[str, str], str | None]:
+    """Each explainer's own majority decision per variant, keyed by (explainer, variant_id)."""
+    labels: dict[tuple[str, str], list[str]] = defaultdict(list)
+    for r in decisions:
+        if r["parse_ok"]:
+            labels[(r["explainer"], r["variant_id"])].append(r["decision"])
+    return {k: majority(ls) for k, ls in labels.items()}
+
+
+def standing_apart(jev: str, own: str, policy: str) -> str | None:
+    """Which of the three answers differs from both others, if exactly one does ("all" if all three differ)."""
+    if len({jev, own, policy}) == 3:
+        return "all"
+    if jev == own == policy:
+        return None
+    return "jev" if own == policy else "own" if jev == policy else "policy"
+
+
+def identification(own: dict[tuple[str, str], str | None], jev: dict[str, str | None], kinds: dict[str, str],
+                   policy: dict[str, str]) -> dict[str, Any]:
+    """On hidden variants: how often each answer stands apart, per explainer. Needs only decisions."""
+    out = {}
+    for alias in sorted({a for a, _ in own}):
+        counts: Counter[str] = Counter()
+        for (a, vid), mine in own.items():
+            if a != alias or kinds.get(vid) == "original" or mine is None or jev.get(vid) is None:
+                continue
+            counts["n"] += 1
+            counts[f"apart:{standing_apart(jev[vid], mine, policy[vid])}"] += 1
+        # Variants where the explainer's view and the policy can be told apart (own != policy and own != Jev).
+        n_own = counts["apart:own"] + counts["apart:all"]
+        out[alias] = {**dict(sorted(counts.items())), "own_identifiable": n_own >= MIN_IDENTIFYING}
+    return out
+
+
+def _pull(rows: list[dict[str, Any]], control: dict[str, dict[str, Any]], answer: str) -> dict[str, Any]:
+    with_hits = sum(r["predicted_decision"] == answer_of(r, answer) for r in rows)
+    ctl_hits = sum(control[r["variant_id"]]["predicted_decision"] == answer_of(r, answer) for r in rows)
+    n = len(rows)
+    return {"n": n, "with_explanation": _share(with_hits, n), "control": _share(ctl_hits, n),
+            "pull": round((with_hits - ctl_hits) / n, 4) if n else None, "identified": n >= MIN_IDENTIFYING}
+
+
+def answer_of(r: dict[str, Any], answer: str) -> str:
+    return {"jev": r["jev_decision"], "own": r["own_decision"], "policy": r["policy_outcome"]}[answer]
+
+
+def whose_answer(simulations: list[dict[str, Any]], control: dict[str, dict[str, Any]],
+                 own: dict[tuple[str, str], str | None], policy: dict[str, str]) -> dict[str, Any]:
+    """Per explainer and condition: each answer's pull on the variants where it stands apart."""
+    groups: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
+    for r in simulations:
+        if r["condition"] == CONTROL or not r["parse_ok"] or r["jev_decision"] is None:
+            continue
+        mine = own.get((r["explainer"], r["variant_id"]))
+        if mine is None or r["variant_id"] not in policy or not control.get(r["variant_id"], {}).get("parse_ok"):
+            continue
+        groups[(r["explainer"], r["condition"])].append(
+            {**r, "own_decision": mine, "policy_outcome": policy[r["variant_id"]]})
+    out = {}
+    for (alias, condition), rows in sorted(groups.items()):
+        apart = defaultdict(list)
+        for r in rows:
+            apart[standing_apart(r["jev_decision"], r["own_decision"], r["policy_outcome"])].append(r)
+        out[f"{alias}/{condition}"] = {
+            "toward_jev": _pull(apart["jev"], control, "jev"),
+            "toward_own": _pull(apart["own"], control, "own"),
+            "toward_policy": _pull(apart["policy"], control, "policy"),
+            # All three differ: the cleanest test, reported as match counts.
+            "all_three_differ": {"n": len(apart["all"]), **{
+                f"matches_{a}": sum(r["predicted_decision"] == answer_of(r, a) for r in apart["all"])
+                for a in ("jev", "own", "policy")}},
+        }
+    return out
+
+
 def _disagreement(decisions: list[dict[str, Any]], jev: dict[str, str | None],
                   kinds: dict[str, str], policy: dict[str, str]) -> dict[str, Any]:
     """Jev's and each explainer's independent majority decisions, compared."""
@@ -248,6 +340,7 @@ def summarize(explainer_decisions: list[dict[str, Any]], explanations: list[dict
               kinds: dict[str, str], policy: dict[str, str], jev: dict[str, str | None],
               ledger: list[dict[str, Any]] | None = None, lang: BasisLanguage = REFUND_BASIS) -> dict[str, Any]:
     control = {r["variant_id"]: r for r in simulations if r["condition"] == CONTROL}
+    own = explainer_majorities(explainer_decisions)
     groups: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
     for r in simulations:
         if r["condition"] != CONTROL:
@@ -285,6 +378,8 @@ def summarize(explainer_decisions: list[dict[str, Any]], explanations: list[dict
         "simulations_repaired": sum(bool(r.get("repaired")) and bool(r["parse_ok"]) for r in simulations),
         "option_b_structured_executed": _option_b(explanations, hidden, records, jev, lang),
         "jev_explainer_disagreement": _disagreement(explainer_decisions, jev, kinds, policy),
+        "identification": identification(own, jev, kinds, policy),
+        "whose_answer": whose_answer(simulations, control, own, policy),
         "model_versions": dict(versions.most_common()),
         "cost": {
             "total_usd": round(sum(cost_by_model.values()), 6),
@@ -343,6 +438,29 @@ def render_report(s: dict[str, Any], run_id: str = "") -> str:
             f"| {a} | {cell(d['parse'])} | {cell(dis['originals']) if 'originals' in dis else 'n/a'} | "
             f"{cell(dis['variants']) if 'variants' in dis else 'n/a'} | {cell(dis['all']) if 'all' in dis else 'n/a'} | "
             f"{pct(d['explainer_unanimous_share'])} | {pct(d['explainer_policy_agreement'])} |")
+    out += ["", "**Whose answer the explanation carries** (pull = simulator's match rate with the explanation minus "
+            "the control's, on hidden variants where that answer differs from both others)", "",
+            "| Explainer / condition | Toward Jev | Toward explainer's own | Toward policy | All three differ |",
+            "|---|---|---|---|---|"]
+
+    def pull(p: dict[str, Any]) -> str:
+        if not p["n"]:
+            return "no variants"
+        mark = "" if p["identified"] else ", too few"
+        return f"{p['pull']:+.0%} (n={p['n']}{mark})"
+
+    for g, w in s["whose_answer"].items():
+        a3 = w["all_three_differ"]
+        out.append(f"| {g} | {pull(w['toward_jev'])} | {pull(w['toward_own'])} | {pull(w['toward_policy'])} | "
+                   + (f"n={a3['n']}: Jev {a3['matches_jev']}, own {a3['matches_own']}, policy {a3['matches_policy']}"
+                      if a3["n"] else "none") + " |")
+    out += ["", "**Identification** (hidden variants, from the explainers' own decisions): how often each answer "
+            f"stands apart; \"too few\" is under {MIN_IDENTIFYING}.", "",
+            "| Explainer | Variants | Jev apart | Own apart | Policy apart | All differ | Own view identifiable |",
+            "|---|---|---|---|---|---|---|"]
+    for a, c in s["identification"].items():
+        out.append(f"| {a} | {c.get('n', 0)} | {c.get('apart:jev', 0)} | {c.get('apart:own', 0)} | "
+                   f"{c.get('apart:policy', 0)} | {c.get('apart:all', 0)} | {'yes' if c['own_identifiable'] else 'no'} |")
     out += ["", f"**Model versions:** {s['model_versions']}", ""]
     c = s["cost"]
     out += [f"**Cost:** ${c['total_usd']:.4f} total; by model {c['by_model_usd']}; by step {c['by_step_usd']}", ""]

@@ -234,6 +234,7 @@ DOMAIN = Domain(
     basis_fields=basis_fields,
     policy_basis=policy_basis,
     harmed_party="cardholder",
+    adverse_labels=("block",),
     # Blocking a transaction the policy approves harms the cardholder.
     harm=lambda r, outcome: ("block", severity(r["amount_usd"])) if outcome == "approve" else None,
 )

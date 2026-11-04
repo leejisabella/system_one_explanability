@@ -12,6 +12,8 @@ The explainer plays two separate roles, in separate requests that never share co
 Explanation conditions:
 - "free_form": a plain-language explanation.
 - "structured": the explanation as a basis (see sysone.explain.basis), plus a short summary.
+- "own_decision": a plain-language explanation of the explainer's own decision, for the
+  pipeline where the explainer model decides and explains with no Jev at all.
 
 The prompts describe the decision domain through an ExplainSetting; the default is the
 refund one, whose prompts are unchanged.
@@ -32,6 +34,7 @@ from sysone.types import ChatRequest, ChatResponse
 
 FREE_FORM = "free_form"
 STRUCTURED = "structured"
+OWN_DECISION = "own_decision"
 EXPLAINED_CONDITIONS = (FREE_FORM, STRUCTURED)
 
 
@@ -70,6 +73,11 @@ _EXPLAIN_CONTEXT = (
 )
 _FREE_FORM_TASK = (
     "Explain why the system reached this decision: which facts in the case file and which parts of the "
+    "{policy_name} it was based on. Write plain prose, at most 200 words."
+)
+_OWN_CONTEXT = "You decided the {case_noun} below by applying the {policy_name} to the case file."
+_OWN_TASK = (
+    "Explain why you reached this decision: which facts in the case file and which parts of the "
     "{policy_name} it was based on. Write plain prose, at most 200 words."
 )
 _STRUCTURED_TASK = (
@@ -168,9 +176,19 @@ class ExplainerModel:
 
     def build_explanation_request(self, condition: str, policy: str, case_text: str, jev_decision: str, *,
                                   tags: dict[str, str] | None = None) -> ChatRequest:
+        st = self.setting
+        if condition == OWN_DECISION:
+            prompt = _sections(
+                ("Context", _OWN_CONTEXT.format(case_noun=st.case_noun, policy_name=st.policy_name)),
+                (st.policy_heading, policy),
+                ("Case file", case_text),
+                ("Your decision", jev_decision),
+                ("Task", _OWN_TASK.format(policy_name=st.policy_name)),
+            )
+            return self._request(prompt, max_tokens=self.explanation_max_tokens, schema=None, sample_index=0,
+                                 tags=tags or {})
         if condition not in EXPLAINED_CONDITIONS:
             raise ValueError(f"unknown explanation condition {condition!r}")
-        st = self.setting
         if condition == FREE_FORM:
             task = _FREE_FORM_TASK.format(policy_name=st.policy_name)
         else:
@@ -190,7 +208,7 @@ class ExplainerModel:
                 tags: dict[str, str] | None = None) -> Explanation:
         request = self.build_explanation_request(condition, policy, case_text, jev_decision, tags=tags)
         response, key = self._send(request)
-        if condition == FREE_FORM:
+        if condition in (FREE_FORM, OWN_DECISION):
             text = response.text.strip()
             error = None if text else "empty explanation"
             return Explanation(condition, text or None, None, None, error is None, error, response, key)

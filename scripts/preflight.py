@@ -6,8 +6,8 @@ Usage:
   uv run python scripts/preflight.py --dry-run        # fake models: no network, no cost
   uv run python scripts/preflight.py --benchmark benchmarks/fraud_v1   # another benchmark (default: Pilot 0's)
 
-Sends: one Jev decision; per explainer, one decision per variant kind (8), one free-form and one structured
-explanation; and two simulations (the no-explanation control and one with the structured
+Sends: one Jev decision; per explainer, one decision per variant kind (8), one free-form, one structured
+and one own-decision explanation; and two simulations (the no-explanation control and one with the structured
 explanation). That exercises the real prompts, JSON schemas, thinking level and flex tier,
 which a one-word smoke test does not. It reports whether each answer parsed, its tokens,
 cost and the service tier served, then projects the cost of full Pilot 0 and Pilot 1 runs
@@ -31,13 +31,14 @@ from sysone.clients.base import GuardedClient, ModelSpec, ProviderError
 from sysone.clients.fake import FakeChatProvider, FakeDecisionProvider
 from sysone.decision.jev import JevDecisionModel
 from sysone.env import load_env
-from sysone.explain.explainer import FREE_FORM, STRUCTURED, ExplainerModel
+from sysone.explain.explainer import FREE_FORM, OWN_DECISION, STRUCTURED, ExplainerModel
+from sysone.explain.judge import Judge, evaluator_facts
 from sysone.explain.simulator import Simulator
 from sysone.registry import CONFIG_DIR, REPO_ROOT, Registry
 
 # Explainer roles are the aliases in configs/experiments/pilot1.yaml.
 EXPLAINERS = tuple(yaml.safe_load((CONFIG_DIR / "experiments" / "pilot1.yaml").read_text())["explainers"])
-ROLES = ("jev", *EXPLAINERS, "simulator")
+ROLES = ("jev", *EXPLAINERS, "simulator", "judge")
 
 
 def main() -> None:
@@ -78,6 +79,7 @@ def main() -> None:
         return c
 
     costs: dict[str, list[float]] = defaultdict(list)
+    latencies: dict[str, list[float]] = defaultdict(list)
     failures = 0
 
     def report(alias: str, kind: str, ok: bool, response, error: str | None = None) -> None:
@@ -88,10 +90,13 @@ def main() -> None:
         failures += truncated and ok
         print(f"  {alias:18} {kind:22} {'OK  ' if ok and not truncated else 'FAIL'} in/out {u.input_tokens}/{u.output_tokens} "
               f"(reasoning {u.reasoning_tokens}) ${response.cost_usd:.6f}"
+              + (f" {response.latency_s:.2f}s" if response.latency_s is not None else "")
               + (f" tier={response.service_tier}" if response.service_tier else "")
               + ("  CUT OFF at the output cap" if truncated else "")
               + (f"  {error}" if error else ""))
         costs[f"{alias}/{kind}"].append(response.cost_usd)
+        if response.latency_s is not None:
+            latencies[f"{alias}/{kind}"].append(response.latency_s)
 
     # Used if Jev isn't asked: any option exercises the explainer and simulator prompts.
     jev_label, structured_text = adapter.labels[0], None
@@ -113,7 +118,7 @@ def main() -> None:
                 d = explainer.decide(policy, render_case_text(v), sample_index=i,
                                      tags={**tags, "step": "explainer_decision"})
                 report(alias, "decision", d.parse_ok, d.response, d.parse_error)
-            for condition in (FREE_FORM, STRUCTURED):
+            for condition in (FREE_FORM, STRUCTURED, OWN_DECISION):
                 e = explainer.explain(condition, policy, original, jev_label,
                                       tags={**tags, "step": "explanation", "condition": condition})
                 report(alias, f"explanation:{condition}", e.parse_ok, e.response, e.parse_error)
@@ -127,6 +132,12 @@ def main() -> None:
                 s = sim.simulate(policy, original, jev_label, text, variant,
                                  tags={"experiment": "preflight", "step": "simulation"})
                 report("simulator", kind, s.parse_ok, s.response, s.parse_error or s.basis_error)
+        if "judge" in args.only:
+            judge = Judge(client("judge"), reasoning_max_tokens=1024, setting=setting)
+            j = judge.judge(policy, original, jev_label, structured_text or "The system followed the policy.",
+                            evaluator_facts(case, jev_label, str(case.original.policy_outcome)),
+                            tags={"experiment": "preflight", "step": "judgment"})
+            report("judge", "judgment", j.parse_ok, j.response, j.parse_error)
     except (ProviderError, BudgetError) as e:
         failures += 1
         print(f"  STOPPED: {e}")
@@ -138,9 +149,10 @@ def main() -> None:
     volume = {
         "jev/decision": n_variants * p0["samples_per_variant"],
         **{f"{a}/decision": n_variants * p1["explainer_decision_samples"] for a in EXPLAINERS},
-        **{f"{a}/explanation:{c}": n_cases for a in EXPLAINERS for c in (FREE_FORM, STRUCTURED)},
+        **{f"{a}/explanation:{c}": n_cases for a in EXPLAINERS for c in (FREE_FORM, STRUCTURED, OWN_DECISION)},
         "simulator/simulation:control": n_hidden,
         "simulator/simulation:explained": n_hidden * (2 * n_explainers + 1),
+        "judge/judgment": n_cases * 2 * n_explainers,
     }
     print("\nProjected cost of full runs from these measurements (no retries or failures counted):")
     total = 0.0
@@ -148,8 +160,10 @@ def main() -> None:
         if costs.get(key):
             per_call = sum(costs[key]) / len(costs[key])
             total += per_call * n
-            print(f"  {key:42} {n:5} calls × ${per_call:.6f} = ${per_call * n:.4f}")
-    print(f"  total ≈ ${total:.4f}  (Pilot 0 = the jev line; Pilot 1 = the rest)")
+            lat = latencies.get(key)
+            mean_s = f", {sum(lat) / len(lat):.2f}s per call" if lat else ""
+            print(f"  {key:42} {n:5} calls × ${per_call:.6f} = ${per_call * n:.4f}{mean_s}")
+    print(f"  total ≈ ${total:.4f}  (Pilot 0 = the jev line; the judge = its line; Pilot 1 = the rest)")
     print(f"\n{'ALL OK' if not failures else f'{failures} FAILED'}; spent ${registry.guard.spent_usd:.6f}; "
           f"project spend now: {registry.project_status()}")
     raise SystemExit(1 if failures else 0)

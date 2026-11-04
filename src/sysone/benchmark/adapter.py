@@ -39,6 +39,8 @@ class BenchmarkAdapter:
     threshold_group: str
     # Who a harmful decision harms, or None where no decision harms the person in the case.
     harmed_party: str | None
+    # Options the person in the case would contest; empty where none is adverse.
+    adverse_labels: tuple[str, ...]
     _render: Callable[[Any], str]
     _evaluate: Callable[[Any], tuple[str, str]]
 
@@ -97,6 +99,7 @@ def refund_adapter(params: PolicyParams = PolicyParams()) -> BenchmarkAdapter:
         threshold_rules=frozenset({"R5_within_window", "R5_outside_window"}),
         threshold_group="date window",
         harmed_party="customer",
+        adverse_labels=("deny",),
         _render=render_case_text,
         _evaluate=ev,
     )
@@ -120,6 +123,7 @@ def domain_adapter(domain: Domain, params: Any = None) -> BenchmarkAdapter:
         threshold_rules=domain.threshold_rules,
         threshold_group=f"{domain.sweep.field} threshold",
         harmed_party=domain.harmed_party,
+        adverse_labels=domain.adverse_labels,
         _render=lambda variant: domain.render(variant.record, variant.exception_in),
         _evaluate=ev,
     )

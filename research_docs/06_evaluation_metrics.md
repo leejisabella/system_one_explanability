@@ -11,6 +11,7 @@ We separate four classes of metrics for the main program. Stretch-goal metrics a
   - **Covered rate:** the fraction of hidden variants an explanation determines at all, as reported by the simulator. A measure of explanation completeness.
   - **Structured-explanation executed agreement (Option B):** for explainers asked for structured explanations, the explanation run directly against each variant's record. Deterministic, with no simulator. These scores are reported separately, never blended. Details in [12_first_experiments_roadmap.md](12_first_experiments_roadmap.md#how-an-explanations-implied-decision-is-obtained).
 - **Jev–explainer disagreement:** the rate at which Jev's and the explainer's independent decisions differ on the same cases and variants.
+- **Pull toward Jev, the explainer's own decision, or the policy:** the simulator's match rate with the explanation minus the control's, on the hidden variants where that answer differs from both others. Answers whether an explanation carries Jev's behavior or the explainer's view, net of the simulator's lean toward the policy; reported as "too few" on under 10 variants ([12](12_first_experiments_roadmap.md#whose-answer-jev-the-explainer-or-the-policy)).
 - **Normalized Simulatability Gain** (Mayne et al., 2026).
 - Frequency of unsupported explanatory claims.
 
@@ -21,6 +22,8 @@ We separate four classes of metrics for the main program. Stretch-goal metrics a
 - **Review recommendation accuracy:** Does the system correctly distinguish cases warranting independent review from cases lacking a demonstrated basis?
 - False-positive and false-negative rates.
 - Time or query cost required to discover the first valid ground for review.
+
+**As implemented for Experiment 1** (the LLM judge, [12](12_first_experiments_roadmap.md#llm-judge-as-built)): recall is the share of explanations of wrong decisions with a verified defect that name the defective fact and question it or cite the source that corrects it; the false-positive side is the share of explanations of correct decisions that flag a conflict. Explanations are also coded for how they justify a wrong decision (flags it, false premise, invented fact, accurate). Judge codes count as measurements only after agreement with human labels is reported.
 
 ## 7.3 Reliability and uncertainty
 
@@ -40,6 +43,10 @@ Because we will not recruit participants, we use computationally defined measure
 - Whether verified evidence supports correction of an erroneous decision in the synthetic adjudication environment.
 
 **We will not interpret these metrics as direct evidence of real human trust, comprehension, or appeal success.**
+
+## 7.4b Cost and latency
+
+- **Cost per decided case** and **latency per case** (mean, median, 95th percentile) for each way of deciding: Jev alone; Jev plus an explanation of every decision, or of adverse decisions only; the explainer model alone; the explainer deciding and explaining itself. Set against each pipeline's decision accuracy, harmful-decision rate and share of wrong decisions with grounds to contest ([12](12_first_experiments_roadmap.md#cost-and-latency-of-each-pipeline)). Every model call's latency is logged.
 
 ## 7.5 (Stretch) Explainer alignment metrics
 
