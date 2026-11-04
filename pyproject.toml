@@ -15,6 +15,9 @@ dependencies = [
 analysis = [
     "matplotlib>=3.11.2",
 ]
+data = [
+    "pyarrow>=26.0.1",
+]
 dev = ["pytest>=8.0"]
 
 [build-system]

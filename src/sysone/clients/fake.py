@@ -118,6 +118,11 @@ class FakeChatProvider(Provider):
             reply = {"justification": codes[digest[4] % 4], "names_defect_field": flag,
                      "questions_defect_value": flag, "cites_correcting_evidence": None if flag is None else False,
                      "recommends_review": bool(digest[5] % 2), "quote": "the system"}
+        elif step == "review":
+            final = _schema_labels(request.json_schema)[digest[1] % 2] if request.json_schema else "unknown"
+            reply = {"final_label": final}
+            if "verdict" in (request.json_schema or {}).get("properties", {}):
+                reply = {"verdict": ("accept", "override")[digest[4] % 2], **reply}
         elif step == "simulation":
             weights = [digest[4 + i] + 1 for i in range(len(labels))]
             probs = [round(w / sum(weights), 2) for w in weights[:-1]]
@@ -133,7 +138,7 @@ def _schema_labels(schema: dict[str, Any] | None) -> tuple[str, ...] | None:
     """The options in an explainer-decision, structured-explanation or simulation schema,
     if the request has one."""
     props = (schema or {}).get("properties", {})
-    for key in ("decision", "predicted_decision"):
+    for key in ("decision", "predicted_decision", "final_label"):
         if "enum" in props.get(key, {}):
             return tuple(props[key]["enum"])
     if "basis" in props:

@@ -221,3 +221,6 @@ __marimo__/
 
 # Harness outputs (spending logs, response cache, experiment results)
 results/
+
+# Downloaded datasets and frozen item text (gated sources; rebuild from the committed manifests)
+data/

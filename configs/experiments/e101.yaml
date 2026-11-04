@@ -1,0 +1,21 @@
+# E.101: go/no-go pilot for Part 1 of the cascade direction (research_docs/13).
+# Does the reviewer accept Jev's wrong decisions more often than equally many random wrong ones?
+
+samples: [wildguard_prompt_v1, civil_toxicity_v1]   # benchmarks/cascade/<name>; build with sysone.cascade.items
+jev: jev                       # TypeSafe jev-latest, configs/models.yaml
+reviewers: [reviewer]          # gpt-oss-20b (open-weight); a second alias here adds a reviewer
+jev_samples: 3                 # Jev's decision is the mean over 3 rotated option orders
+alone_samples: 3               # the reviewer alone: its baseline, and each item's difficulty for it
+conditions: [jev_label, jev_conf, matched_label, matched_conf]   # one review per item each
+flip_ps: [0.10, 0.20, 0.35]    # uniform random flips, label only (the secondary curve)
+seed: 101                      # matched errors, confidences and flips
+reviewer_temperature: null     # provider default
+reviewer_reasoning_max_tokens: 4096   # on top of the visible answer; effort is in models.yaml
+reviewer_max_output_tokens: 256
+workers: 8                     # requests in flight at once
+max_items: null                # e.g. 20 for a partial run of the first 20 items per sample
+expected_model_version: null   # null = lock to the first Jev version that answers
+use_cache: false
+max_consecutive_errors: 10
+steps: [jev, review]           # [jev] alone measures Jev's error rate before paying for reviews
+run_provider_caps_usd: {bedrock: 8.00, typesafe: 1.00}   # E.101's budget, on top of the $25 run cap
