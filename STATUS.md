@@ -1,6 +1,6 @@
 # Project Status — start here
 
-Last updated: 2026-11-04 (E.101 cascade pilot done on branch `e101-cascade-deference`). Before that, 2026-10-28 (Pilot 0 passes on refund_v1; preflight passed; Pilot 1 ready, with Llama replacing the blocked Claude explainer). Read this first when picking the project back up.
+Last updated: 2026-11-04 (E.101–E.103 cascade experiments done on branch `e101-cascade-deference`; Part 2 waits for a GPU). Before that, 2026-10-28 (Pilot 0 passes on refund_v1; preflight passed; Pilot 1 ready, with Llama replacing the blocked Claude explainer). Read this first when picking the project back up.
 
 ## In one paragraph
 
@@ -32,6 +32,22 @@ In plain terms:
 - Future E.1xx experiments use the difficulty-matched deference estimate as their primary measure.
 - Part 2 has two problems to fix: deference, the smaller one, and shared blind spots, which resisting Jev can't fix.
 - The natural next experiment is blind-first and the other cheap alternatives, measured at equal difficulty.
+
+**E.103 ran 2026-11-04** (`e103-v1-2026-11-04`, commit `82c4b70`, $2.25 of a $6 cap, no Jev calls; write-up in [research_analyses/E103/](research_analyses/E103/README.md)). On E.102's exact items, gpt-oss-20b reviewed again under four cheap protocols: blind-first (it answers alone before seeing Jev's decision), a warning, a calibrated warning (Jev's real error rate) and consider-the-opposite. Llama 4 Maverick, Qwen3-32B and Nova Lite decided every pool item, as held-out upstream models for Part 2.
+
+In plain terms:
+- **No prompt change fixes the problem.** Under every protocol the reviewer overrides about the same share of Jev's mistakes (37–43% on Civil Comments against 40%), and cascade accuracy moves by at most ±3 points, never clearly.
+- **Blind-first shrinks measured deference but not the harm.** Pooled deference drops from +7.0 to +2.7 points (interval includes zero). Jev's wrong labels still get through as often (63%); the reviewer now accepts more *random* ones, because it sticks with its first answer, right or wrong.
+- **Warnings don't help; the honest one backfires.** "Wrong about 25% of the time" raised deference on Civil Comments (+12 points).
+- **Shared blind spots are untouched:** 91–100% of Jev's wrong labels are accepted on items the reviewer never gets right alone, under every protocol.
+- **About half or more of Jev's harmful misses still get through** (47–64%, against 62–68% with the standard prompt).
+- **Best no-training pipeline:** a majority vote of Jev, gpt-oss and Qwen (77% / 92% / 93%), within noise of Jev alone.
+- **The upstream models are fair held-out tests:** their error rates (24–28%, 12–13%, 9–10%) and overlap with Jev (phi 0.50–0.62) are close to gpt-oss's.
+
+**What changes:**
+- E.102's finding is not an artifact of prompt wording, so Part 2 needs training. Its baseline is the standard prompt (override 40% / 30% / 29% of Jev's wrong labels, accept 87% / 95% / 93% of its right ones, cascade 77% / 88% / 88%), with the vote as a second bar.
+- Part 2 should train the reviewer to be *right* on the items Jev finds hard, not just to disagree with Jev, and should report deference next to override and accept rates, since deference can improve while nothing useful changes.
+- Part 2 (E.104 on, post-training gpt-oss-20b) waits for a GPU.
 
 ## What exists
 

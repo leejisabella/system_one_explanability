@@ -13,6 +13,7 @@ Results write-ups, one folder per experiment. The plans live in [research_docs/]
 | **Refined direction (E.1xx): cascade deference** | | [research_docs/13](../research_docs/13_cascade_deference.md) |
 | E.101: Jev → reviewer go/no-go pilot (Part 1) | [E101_pilot/](E101_pilot/README.md) | Done 2026-11-04: GO on Civil Comments, NO-GO on WildGuard; Jev's and the reviewer's errors overlap far beyond chance, residual deference not yet significant |
 | E.102: deference beyond shared difficulty (Part 1, powered) | [E102/](E102/README.md) | Done 2026-11-04: the reviewer accepts far more of Jev's mistakes than random ones, mostly because they share blind spots; at equal difficulty about +7 points of real deference remain; two thirds of the harmful content Jev misses also gets past the reviewer |
+| E.103: cheap alternatives to post-training (the Part 2 baseline) | [E103/](E103/README.md) | Done 2026-11-04: no prompt change (blind-first, two warnings, consider-the-opposite) catches more of Jev's mistakes or makes the cascade more accurate; blind-first shrinks measured deference only by accepting random mistakes more; shared blind spots untouched (91–100% accepted), so Part 2 needs training |
 
 ## What goes in each folder
 

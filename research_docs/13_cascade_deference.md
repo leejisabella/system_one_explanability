@@ -261,9 +261,18 @@ uv run python -m sysone.experiments.e103 --run-id e103-v1-<date>
 uv run python -m sysone.analysis.e103 results/runs/<run_id> results/runs/e102-v1-2026-11-04
 ```
 
+### Results (2026-11-04)
+
+See [research_analyses/E103](../research_analyses/E103/README.md).
+- Hypothesis 1 is partly supported. Blind-first lowers pooled deference from +7.0 to +2.7 [−3.5, +8.7] and keeps accept-when-right within 1.3 points. But it does so by accepting more random mistakes (55% → 61% at Jev's difficulty), not fewer of Jev's (63% under both).
+- Hypothesis 2: no trade-off, because the warnings have almost no effect. The calibrated warning raises deference on Civil Comments (+12.1 [+6.0, +18.2]). No protocol raises cascade accuracy by more than 1.2 points.
+- Hypothesis 3 is supported (91–100%).
+- Hypothesis 4 is supported.
+
+**For Part 2:** the baseline is the standard prompt, since no protocol beats it. Train for being right on Jev's hard items, not for disagreeing with Jev. Report deference alongside override-when-wrong and accept-when-right.
+
 ## Later in the 100s (not built)
 
 - **Rationales.** Fluent rationales for both Jev's labels and the flipped labels.
-- **Cheap alternatives.** A warning prompt, label only, confidence, and blind-first (the reviewer commits to an answer before seeing Jev's).
 - **A reasoning reference from another family**, if one becomes affordable. For example, Qwen3 with thinking on our own GPUs during Part 2.
 - **Part 2.** Post-training the reviewer, with entire upstream models held out for testing.
