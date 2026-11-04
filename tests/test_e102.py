@@ -155,3 +155,19 @@ def test_e102_refuses_a_changed_plan(tmp_path):
     path.write_text("".join(json.dumps(r) + "\n" for r in rows))
     with pytest.raises(ValueError, match="differs"):
         _run(tmp_path, items)
+
+
+def test_standardized_diff_removes_difficulty_composition():
+    from sysone.analysis.e102 import standardized_diff
+
+    # Within each difficulty level both arms accept at the same rate, but Jev's errors sit on the
+    # hard level: the raw gap is large, the difficulty-matched gap is zero.
+    easy, hard = ("s", 5, 5), ("s", 3, 5)
+    jev = [(easy, False)] * 10 + [(hard, True)] * 5 + [(hard, False)] * 5
+    matched = [(easy, False)] * 40 + [(hard, True)] * 1 + [(hard, False)] * 1
+    d = standardized_diff(jev, matched, lambda st: True, reps=200)
+    assert d["jev_rate"] == 0.25 and d["matched_at_jev_difficulty"] == 0.25 and d["diff"] == 0.0
+    raw = sum(a for _, a in jev) / len(jev) - sum(a for _, a in matched) / len(matched)
+    assert raw > 0.2
+    only_easy = standardized_diff(jev, matched, lambda st: st[1] == 5, reps=200)
+    assert only_easy["n_jev"] == 10 and only_easy["diff"] == 0.0

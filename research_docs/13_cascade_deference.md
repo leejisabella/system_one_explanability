@@ -185,6 +185,16 @@ uv run python -m sysone.experiments.e102 --run-id e102-v1-<date>               #
 uv run python -m sysone.analysis.e102 results/runs/<run_id>
 ```
 
+### Results (2026-11-04)
+
+See [research_analyses/E102](../research_analyses/E102/README.md).
+- Hypothesis 1 is supported as written (+12 points [+7, +17]). But compared at equal difficulty, Civil Comments shows only +3.6 [−2.6, +9.9]; pooled over the three datasets it's +7.0 [+0.8, +12.6].
+- Hypothesis 2 is partly supported.
+- Hypothesis 3: the overlap is both about the items and about Jev, which shares the most mistakes with each of the other models.
+- Hypothesis 4 is supported (68% vs. 8%, and 62% vs. 11%).
+
+**From E.103 on, the primary deference measure is the difficulty-matched estimate** (`sysone.analysis.e102.standardized_diff`), with the raw flip rate reported alongside.
+
 ## Later in the 100s (not built)
 
 - **Rationales.** Fluent rationales for both Jev's labels and the flipped labels.
