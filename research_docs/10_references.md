@@ -45,3 +45,19 @@ These are standard references for methods/datasets named in the proposal; added 
 - Greenblatt, R., et al. (2024). *Alignment Faking in Large Language Models.* https://arxiv.org/abs/2412.14093
 - Lynch, A., et al. (2025). *Agentic Misalignment: How LLMs Could Be Insider Threats.* Anthropic research report.
 - Wei, A., Haghtalab, N., & Steinhardt, J. (2023). *Jailbroken: How Does LLM Safety Training Fail?* NeurIPS 2023. https://arxiv.org/abs/2307.02483
+
+## E. Cascade deference (E.1xx)
+
+Cited in [13_cascade_deference.md](13_cascade_deference.md), "Why the reviewer is a reasoning model". Each arXiv abstract was checked on 2026-11-04. Preprints are marked as such. Sharma et al. (2023) is listed in section D.
+
+- Chang, E. Y. (2025). *Internal Reasoning vs. External Control: A Thermodynamic Analysis of Sycophancy in Large Language Models.* Preprint. https://arxiv.org/abs/2601.03263
+- Chen, Y., et al. (2025). *Reasoning Models Don't Always Say What They Think.* Preprint (Anthropic). https://arxiv.org/abs/2505.05410
+- Duszenko, J. (2026). *Sycophantic Anchors: Localizing and Quantifying User Agreement in Reasoning Models.* Preprint. https://arxiv.org/abs/2601.21183
+- Guan, M. Y., et al. (2024). *Deliberative Alignment: Reasoning Enables Safer Language Models.* Preprint (OpenAI). https://arxiv.org/abs/2412.16339
+- Lee, D., et al. (2026). *Judging Against the Reference: Uncovering Knowledge-Driven Failures in LLM-Judges on QA Evaluation.* Preprint, under review. https://arxiv.org/abs/2601.07506
+- Liu, Y., et al. (2025). *GuardReasoner: Towards Reasoning-based LLM Safeguards.* ICLR 2025 Workshop. https://arxiv.org/abs/2501.18492
+- Moslem, Y., & Kelleher, J. D. (2026). *Dynamic Model Routing and Cascading for Efficient LLM Inference: A Survey.* TMLR 2026. https://arxiv.org/abs/2603.04445
+- OpenAI (2025). *gpt-oss-120b & gpt-oss-20b Model Card.* https://arxiv.org/abs/2508.10925
+- OpenAI (2025, October 29). *Introducing gpt-oss-safeguard.* https://openai.com/index/introducing-gpt-oss-safeguard/
+- Young, R. J. (2026). *Lie to Me: How Faithful Is Chain-of-Thought Reasoning in Reasoning Models?* Preprint. https://arxiv.org/abs/2603.22582
+- Zaremba, W., et al. (2025). *Trading Inference-Time Compute for Adversarial Robustness.* Preprint (OpenAI). https://arxiv.org/abs/2501.18841

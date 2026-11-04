@@ -52,6 +52,26 @@ Every condition also reports both sides of the trade-off: **override when wrong*
 - **The reviewer** is **gpt-oss-20b** on Bedrock (alias `reviewer`): flex tier, reasoning effort medium. At $0.07 / $0.30 per 1M tokens ($0.035 / $0.15 on flex), it is the cheapest reasoning model available to this account. Every Gemini model costs more, and Gemini Flash-Lite 3.1 costs $0.25 / $1.50. It is open-weight (Apache 2.0), so Part 2 can post-train the same model Part 1 measures.
 - **Adding a reviewer.** Add an alias to `reviewers` in `configs/experiments/e101.yaml`. A second reviewer from another family is the start of the shared-bias test.
 
+### Why the reviewer is a reasoning model
+
+A non-reasoning reviewer would run fine, but it would answer a weaker question. The question here is whether a model that **reasons before it answers** still defers to a cheap model's mistakes. That needs a reasoning reviewer, for six reasons.
+
+1. **Real cascades escalate to reasoning models.** In a cascade, a cheap model answers first and harder cases go to a stronger model (Moslem & Kelleher, 2026). In moderation, that stronger model is now usually a reasoning model that reads a written policy and thinks it through: GuardReasoner (Liu et al., 2025), deliberative alignment (Guan et al., 2024) and gpt-oss-safeguard (OpenAI, 2025). gpt-oss-safeguard is fine-tuned from gpt-oss, the same family as our reviewer. Jev → gpt-oss-20b is the cascade people actually deploy, so results on it apply to real systems.
+
+2. **Reasoning is supposed to protect the reviewer, so deference despite reasoning is the informative result.** More reasoning makes models more robust to adversarial inputs (Zaremba et al., 2025). Reasoning over a safety policy reduces both jailbreaks and over-refusal (Guan et al., 2024). Non-reasoning models are already known to defer to an answer they're given: they agree with users (Sharma et al., 2023) and grade against an incorrect reference answer (Lee et al., 2026). A non-reasoning reviewer that accepts Jev's errors would just confirm that. A reasoning reviewer is the most favorable case for the cascade, so deference there is the result that matters.
+
+3. **Whether reasoning helps here is still an open question.** Recent work shows that reasoning models' chains of thought move toward a suggested wrong answer. Duszenko (2026) finds the specific sentences where the model commits to agreeing. Chang (2025) finds cases where the reasoning is correct and the final answer still follows the suggestion. Those studies cover user pressure in chat and Q&A. Ours covers a decision from another model in moderation, with a difficulty-matched random control (see E.102).
+
+4. **The chain of thought is evidence, but imperfect.** Reasoning models often use a hint without mentioning it (Chen et al., 2025: often in under 20% of cases where they use it). In open-weight reasoning models, the thinking tokens mention a hint far more often than the final answer does (87.5% vs. 28.6%, pooled over 12 models). Sycophancy hints are among the least often mentioned, at 53.9% (Young, 2026). gpt-oss-20b is open-weight and Bedrock returns its full reasoning, so we can read why it accepted a proposal, not just that it did. **Not logged yet:** the Bedrock client keeps only the answer text (`_parse_converse` in `sysone/clients/bedrock.py`). Saving the reasoning blocks is the first step before any analysis of them.
+
+5. **The cost question is about reasoning.** A cascade is supposed to save effort: reviewing a proposal should take less thinking than deciding from scratch. That can only be measured on a model that spends reasoning tokens. E.101 measured the opposite: reviewing took 25–45% *more* output tokens than deciding alone ([E.101 write-up](../research_analyses/E101_pilot/README.md#4-reviewing-costs-more-than-deciding)).
+
+6. **Part 2 trains reasoning.** Post-training can reward reasoning that checks the item on its own over reasoning that adopts the proposal. This needs open weights and a reasoning model; gpt-oss-20b is both (Apache 2.0; OpenAI, 2025). Chen et al. (2025) also warn that outcome-based RL improves faithfulness only up to a plateau, so Part 2 should check the reasoning traces, not only the final labels.
+
+**The cost of this choice.** The reviewer and the reference model (Qwen3-32B, which Bedrock serves only without thinking) differ in two ways at once: model family and whether they reason. So a gap in error overlap between them can't be attributed to either one alone (see "The reference model" below). A reasoning reference from another family would separate the two.
+
+Full citations: [10_references.md, section E](10_references.md#e-cascade-deference-e1xx).
+
 ## E.101: go/no-go pilot (Part 1)
 
 **Question.** In these domains, is there a deference phenomenon worth studying? In other words, does the reviewer accept Jev's wrong decisions on items it would get right alone?
@@ -144,7 +164,7 @@ Run Stage 1 alone with `--steps jev` and look at Jev's error counts before payin
 Qwen3-32B (alias `reviewer_qwen`) decides each subsample alone and **never reviews**. It is a **reference model**: the third point of the error-overlap comparison (Jev–gpt-oss, Jev–Qwen, gpt-oss–Qwen).
 
 - **It is not a reasoning model.** Bedrock serves Qwen3-32B only without thinking (tested 2026-11-04): `/think` in the prompt or system message, and four request fields, all left it answering in about 17 tokens. Nemotron Nano 3 behaves the same. Magistral Small reasons with its system prompt, but at about 30 times gpt-oss's cost.
-- **Why a non-reasoning reference is still useful.** The reviewer must be a reasoning model; a reference only decides alone. It answers "would an unrelated model make Jev's errors too?". A lower overlap could also come from it not reasoning, and the write-up has to say so.
+- **Why a non-reasoning reference is still useful.** The reviewer must be a reasoning model (see "Why the reviewer is a reasoning model" above); a reference only decides alone. It answers "would an unrelated model make Jev's errors too?". A lower overlap could also come from it not reasoning, and the write-up has to say so.
 
 ### Dropped from E.101
 
