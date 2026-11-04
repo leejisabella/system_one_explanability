@@ -37,7 +37,8 @@ The stretch goal is subordinate to the main question. It reuses the same benchma
 | 10 | [10_references.md](10_references.md) | All citations, including stretch-goal references |
 | 11 | [11_harness_and_infrastructure.md](11_harness_and_infrastructure.md) | Model access, cost caps ($2/call, $25/run), harness code layout |
 | 12 | [12_first_experiments_roadmap.md](12_first_experiments_roadmap.md) | Pilot 0 (first experiment), steps to get there, results storage layout |
-| 13 | [13_cascade_deference.md](13_cascade_deference.md) | Refined direction (E.1xx): Jev → reviewer cascade, flip rate, datasets, E.101 go/no-go pilot |
+| 13 | [13_cascade_deference.md](13_cascade_deference.md) | Refined direction (E.1xx), Part 1: Jev → reviewer cascade, flip rate, datasets, E.101–E.103 |
+| 14 | [14_part2_posttraining.md](14_part2_posttraining.md) | Part 2 (E.104–E.108): post-training the reviewer, training pools, traces, control arm, pre-registered criteria, runbook |
 | — | [ai_use_disclosure.md](ai_use_disclosure.md) | AI-use disclosure |
 
 ## Intended contributions (summary)

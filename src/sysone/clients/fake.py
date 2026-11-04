@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import hashlib
 import json
 from collections.abc import Iterable
@@ -123,6 +124,10 @@ class FakeChatProvider(Provider):
             reply = {"final_label": final}
             if "verdict" in (request.json_schema or {}).get("properties", {}):
                 reply = {"verdict": ("accept", "override")[digest[4] % 2], **reply}
+            # A reasoning trace in a self-hosted server's format, so Part 2's trace export has one.
+            result = ok_result(json.dumps(reply), model=self.version)
+            return dataclasses.replace(result, raw={"choices": [{"message": {
+                "reasoning_content": f"Fake reasoning {digest[5]}: weighing the policy against the content."}}]})
         elif step == "simulation":
             weights = [digest[4 + i] + 1 for i in range(len(labels))]
             probs = [round(w / sum(weights), 2) for w in weights[:-1]]

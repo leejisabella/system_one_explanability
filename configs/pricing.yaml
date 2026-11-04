@@ -42,6 +42,16 @@ bedrock:
   mistral.magistral-small-2509:               {input: 0.50, output: 1.50, flex: {input: 0.25, output: 0.75}}
   nvidia.nemotron-nano-3-30b:                 {input: 0.06, output: 0.24, flex: {input: 0.03, output: 0.12}}
 
+local:
+  # Self-hosted models behind vLLM (Part 2, research_docs/14), keyed by --served-model-name.
+  # Nothing is billed per token; GPU time is paid outside the harness.
+  gpt-oss-20b-base:    {input: 0.0, output: 0.0}
+  gpt-oss-20b-sft-review: {input: 0.0, output: 0.0}
+  gpt-oss-20b-sft-plain:  {input: 0.0, output: 0.0}
+  gpt-oss-20b-dpo-review: {input: 0.0, output: 0.0}
+  gpt-oss-20b-sft-review-no-responses: {input: 0.0, output: 0.0}
+  gpt-oss-20b-sft-plain-no-responses:  {input: 0.0, output: 0.0}
+
 gemini:
   # Paid-tier Gemini API prices from ai.google.dev/gemini-api/docs/pricing (checked 2026-10-21,
   # re-checked 2026-10-27).

@@ -1,0 +1,25 @@
+# E.104: Jev screens the Part 2 training pools; the training mix is saved (research_docs/14).
+# TypeSafe only. About 46,600 Jev requests (15,545 items x 3), about $1.4 at E.102's measured cost per request.
+
+samples: [civil_toxicity_train_v1, wildguard_prompt_train_v1, wildguard_response_train_v1]   # training pools only
+jev: jev
+jev_samples: 3                 # as in E.101 and E.102: Jev's decision is the mean of 3 rotated samples
+mix:
+  jev_right_per_wrong: 2.0     # Jev-right review examples (target: accept) per Jev-wrong one (target: override)
+  matched_wrong_per_wrong: 0.0 # random wrong labels on Jev-right items (target: override); off by default
+  alone_per_wrong: 1.0         # alone-format examples per Jev-wrong one
+  val_fraction: 0.05           # held out by item hash for validation loss
+  max_jev_wrong: null          # null = every Jev-wrong item
+  seed: 104
+test_run: e102-v1-2026-11-04   # the report compares Jev's error rates with E.102's test pools
+test_pool_of:
+  civil_toxicity_train_v1: civil_toxicity_pool_v1
+  wildguard_prompt_train_v1: wildguard_prompt_full_v1
+  wildguard_response_train_v1: wildguard_response_full_v1
+workers: 8
+max_items: null
+expected_model_version: jev-1.14.0   # Part 1's version; a new Jev release should be a decision, not a surprise
+use_cache: false
+max_consecutive_errors: 10
+steps: [jev, mix]
+run_provider_caps_usd: {typesafe: 2.50}

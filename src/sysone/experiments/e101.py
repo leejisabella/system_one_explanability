@@ -52,6 +52,7 @@ from sysone.cascade.reviewer import Reviewer
 from sysone.cascade.tasks import TASKS
 from sysone.clients.base import GuardedClient, ModelNotConfigured, ModelSpec, ModelVersionChanged, ProviderError, VersionLock
 from sysone.clients.bedrock import reasoning_text
+from sysone.clients.local import reasoning_text as local_reasoning_text
 from sysone.clients.fake import FakeChatProvider, FakeDecisionProvider
 from sysone.decision.jev import JevDecisionModel
 from sysone.env import load_env
@@ -144,7 +145,8 @@ def run_parallel(tasks: Iterable[Any], work: Callable[[Any], dict[str, Any]], wr
 
 def _usage(resp) -> dict[str, Any]:
     # The reasoning is saved from E.103 on (research_docs/13, "Why the reviewer is a reasoning model").
-    return {"reasoning": reasoning_text(resp.raw), "model_used": resp.model_used, "cost_usd": resp.cost_usd, "cached": resp.cached,
+    # Bedrock's Converse blocks, or a self-hosted server's reasoning field (Part 2).
+    return {"reasoning": reasoning_text(resp.raw) or local_reasoning_text(resp.raw), "model_used": resp.model_used, "cost_usd": resp.cost_usd, "cached": resp.cached,
             "input_tokens": resp.usage.input_tokens, "output_tokens": resp.usage.output_tokens,
             "reasoning_tokens": resp.usage.reasoning_tokens, "finish_reason": resp.finish_reason,
             "service_tier": resp.service_tier, "latency_s": resp.latency_s, "wall_s": resp.wall_s}

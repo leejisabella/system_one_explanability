@@ -1,0 +1,19 @@
+# E.107: DPO on the reviewer's own correct vs. wrong traces, starting from the merged SFT treatment checkpoint.
+# Check first (no GPU): uv run python -m sysone.posttrain.dpo --config configs/posttrain/dpo_review.yaml --check
+name: gpt-oss-20b-dpo-review
+method: dpo
+dataset: part2_all_v1
+arm: dpo_review
+base_model: openai/gpt-oss-20b
+init_from: checkpoints/gpt-oss-20b-sft-review-merged
+reasoning_effort: medium
+lora: {r: 8, alpha: 16, dropout: 0.0, target_modules: all-linear}
+learning_rate: 5.0e-6           # DPO wants a far smaller rate than SFT
+epochs: 1
+per_device_batch_size: 2
+gradient_accumulation_steps: 8
+max_length: 4096
+warmup_ratio: 0.1
+dpo_beta: 0.1
+seed: 107
+max_steps: null

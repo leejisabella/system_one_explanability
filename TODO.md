@@ -61,6 +61,19 @@ Open decisions and setup tasks. Every model in [configs/models.yaml](configs/mod
 - [ ] **Small-run option** (`--max-cases`) for trying a few cases before a full run (offered, not built).
 - [ ] **Within-run Jev query reuse** for Experiments 3–4 (planned in research_docs/11 *Project budget*).
 
+## Part 2: post-training the reviewer (research_docs/14)
+
+- [x] **Built** 2026-11-04 on `e104-part2-posttraining`: training pools, E.104/E.105/evaluation runners, SFT/DPO scripts, vLLM client and serving, preflight, offline tests and dry runs.
+- [ ] **Merge order:** `e101-cascade-deference` first, then this branch.
+- [ ] **GPU access:** one 80 GB GPU (A100 or H100) for training and serving; vLLM installed there.
+- [ ] **Preflight, then E.104** (≈ $1.4 TypeSafe): check in before running; read the contamination check in its report.
+- [ ] **E.105** (≈ $3–4 Bedrock): re-estimate from E.104's mix counts first; read how many Jev-wrong examples stay unsolved.
+- [ ] **Commit the dataset manifests** (`benchmarks/posttrain/`) before any training.
+- [ ] **GPU smoke test:** 5 training steps, merge, serve, one request with reasoning returned (research_docs/14 runbook).
+- [ ] **E.106:** base on vLLM first, then `sft_review` and `sft_plain`; record GPU hours by hand.
+- [ ] **E.107** (DPO) and **E.108** (held-out domain) after E.106.
+- [ ] **RL (GRPO):** not built; only if SFT and DPO leave a gap on criterion 1.
+
 ## Setup and verification
 
 - [x] Project caps per provider: AWS $50, GCP $50, TypeSafe $5, enforced across all runs ([configs/budget.yaml](configs/budget.yaml)).
