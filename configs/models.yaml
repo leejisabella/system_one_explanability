@@ -66,6 +66,24 @@ judge:
   service_tier: flex
   reasoning_effort: low
 
+reviewer:
+  # The cascade experiments' reviewer (E.1xx, research_docs/13): reviews Jev's decisions.
+  # Open-weight (Apache 2.0) so Part 2 can post-train it, and the cheapest reasoning model on
+  # Bedrock for this account (2026-11-03). OpenAI family like the simulator and judge, which
+  # E.1xx doesn't use: its ground truth is human labels.
+  provider: bedrock
+  model: openai.gpt-oss-20b-1:0
+  service_tier: flex
+  reasoning_effort: medium
+
+reviewer_qwen:
+  # E.102's second reviewer (research_docs/13): open-weight (Apache 2.0), Qwen family, a
+  # different family from Jev's TypeSafe and from gpt-oss. Qwen3 thinks by default; Bedrock's
+  # Converse API takes no reasoning setting for it.
+  provider: bedrock
+  model: qwen.qwen3-32b-v1:0
+  service_tier: flex
+
 decision_alt:
   # A second decision model for Experiment 8 (generalization beyond Jev). Amazon family.
   provider: bedrock

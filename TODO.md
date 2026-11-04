@@ -49,9 +49,14 @@ Open decisions and setup tasks. Every model in [configs/models.yaml](configs/mod
 - [x] **Five more decision domains** (2026-10-28): content moderation, fraud screening, tool selection, agent routing and benefit eligibility, frozen as `moderation_v1`, `fraud_v1`, `tools_v1`, `routing_v1`, `eligibility_v1`, each with a threshold sweep ([research_docs/04](research_docs/04_datasets_and_benchmark.md#domains-built-2026-10-28)).
 - [ ] **Pilot 0 on the new benchmarks** (Jev only): does Jev depart from each domain's threshold? Estimate the cost first; `scripts/preflight.py --benchmark benchmarks/<name> --only jev` checks one live request per benchmark.
 - [x] **Runners, analyses and prompts generalized** beyond refunds (2026-10-28), with per-domain basis languages. Refund prompts are pinned by a test (their cache keys must not change).
-- [ ] **LLM judge** for contestability scoring (does the explanation name the corrupted field?), and for coding explanations that justify wrong decisions (10 of 12 did in Pilot 1).
+- [x] **LLM judge** built (2026-10-28): contestability, justification codes, false alarms, quote check, agreement with human labels (Cohen's κ).
+- [ ] **Human labels for the judge:** about 50 explanations from the labeling sheet, ideally two coders; then report agreement before using judge numbers.
+- [ ] **Judge Pilot 1 live** (`pilot1-v1b`, ≈ $0.09) and check it against the 12 hand-coded justifications.
+- [x] **"Explains itself" measure** (2026-10-28): pull toward Jev / the explainer's own / the policy against the control, plus identification counts; a decisions-only screening step and `explain_cases: separating`.
+- [x] **Cost and latency per pipeline** (2026-10-28): latency logged on every call; `own_decision` explanations for the explainer-only pipeline; `sysone.analysis.pipelines` compares Jev alone, Jev + explanation (all or adverse only), the explainer alone, and the explainer deciding and explaining.
+- [ ] **Latency on a real run:** Pilot 0 and Pilot 1 on refund_v1 have cost but no latency; the next live runs record it.
+- [ ] **Screening runs** (explainer decisions only) on the new benchmarks, to pick where the explainers' own decisions stand apart from Jev and the policy.
 - [x] **Pilot 1:** how a frozen explanation's implied decision on each hidden variant is obtained (decided 2026-10-27): a simulator model with a structured response, scored against a no-explanation control, plus a structured-explanation condition run directly against the records. See [research_docs/12](research_docs/12_first_experiments_roadmap.md#how-an-explanations-implied-decision-is-obtained).
-- [ ] **Pilot 1 contestability scoring** against the verified defects, with the judge.
 - [ ] **Re-estimate costs** from Pilot 0 and Pilot 1's measured costs before each later experiment, against the allocations in [configs/budget.yaml](configs/budget.yaml).
 - [ ] **Small-run option** (`--max-cases`) for trying a few cases before a full run (offered, not built).
 - [ ] **Within-run Jev query reuse** for Experiments 3–4 (planned in research_docs/11 *Project budget*).

@@ -1,0 +1,2458 @@
+{
+  "excluded_if_text_in": [
+    {
+      "path": "data/train-00000-of-00002.parquet",
+      "repo": "google/civil_comments",
+      "revision": "f2970eb3a55777454c94069077cc8d9b5866312d"
+    },
+    {
+      "path": "data/train-00001-of-00002.parquet",
+      "repo": "google/civil_comments",
+      "revision": "f2970eb3a55777454c94069077cc8d9b5866312d"
+    }
+  ],
+  "items": [
+    {
+      "item_id": "cc-7001292",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7001613",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7002077",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7002355",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7002679",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7003075",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7003815",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7003911",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7005078",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7005742",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7008143",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7008725",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7009231",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7009341",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7009573",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7009704",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7010210",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7011928",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7013057",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7013754",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7014060",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7014109",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7014544",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7014705",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7015707",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7015836",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7017061",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7017090",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7017819",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7018286",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7018980",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7019046",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7019598",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7020391",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7020635",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7020949",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7021526",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7023963",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7024737",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7025109",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7025647",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7026612",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7026866",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7027702",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7028016",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7028091",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7029384",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7030284",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7030949",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7031104",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7031455",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7032100",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7032587",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7033296",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7033728",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7033944",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7036928",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7038158",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7038729",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7040051",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7040338",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7040482",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7041514",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7041736",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7042463",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7042905",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7043192",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7044420",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7044621",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7044722",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7044766",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7045012",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7045638",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7047406",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7048102",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7048732",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7050346",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7052495",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7053358",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7053508",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7053682",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7053872",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7054355",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7054365",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7054518",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7054528",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7057755",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7057769",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7057968",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7058587",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7058724",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7059268",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7059867",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7060027",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7060960",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7061133",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7061282",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7061402",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7061826",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7063121",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7063489",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7065723",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7065903",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7067797",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7068345",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7068351",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7068453",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7069603",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7070169",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7070446",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7070460",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7071797",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7072337",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7073007",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7073512",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7073616",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7073873",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7074109",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7075259",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7075698",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7075848",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7075976",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7076127",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7076501",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7076805",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7076949",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7078244",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7079513",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7079610",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7080384",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7081629",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7081734",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7084037",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7084118",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7085011",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7085102",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7087205",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7088382",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7089044",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7089914",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7090484",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7091208",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7091395",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7093907",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7095447",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7095900",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7096350",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7096972",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7097762",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7098654",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7099666",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7099895",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7100146",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7100743",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7101013",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7101171",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7101443",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7101806",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7102680",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7102981",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7103662",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7104620",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7105424",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7108900",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7109416",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7111282",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7111897",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7112072",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7112096",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7112882",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7113674",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7114366",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7114891",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7115151",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7115320",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7116002",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7116119",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7117189",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7117360",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7117689",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7118430",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7118731",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7119071",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7119147",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7119676",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7120031",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7120846",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7121346",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7121384",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7122245",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7122374",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7122741",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7122742",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7122898",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7123400",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7123573",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7125053",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7125536",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7126030",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7126583",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7127218",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7128287",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7129096",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7129274",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7130082",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7130275",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7130399",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7130450",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7130969",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7131307",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7134325",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7134784",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7135999",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7136908",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7137766",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7139108",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7139143",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7139749",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7140239",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7143521",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7144144",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7144714",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7145037",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7145146",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7145645",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7145731",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7146068",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7146081",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7146149",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7147011",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7147295",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7147713",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7147755",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7148015",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7148316",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7148331",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7148928",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7148951",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7149020",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7149273",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7150216",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7151486",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7151767",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7155513",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7156321",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7157190",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7159158",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7160306",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7162666",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7164807",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7165167",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7165618",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7165986",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7169064",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7169099",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7170455",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7171615",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7172476",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7173644",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7173972",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7174101",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7174937",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7175131",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7175202",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7175575",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7175932",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7177180",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7177363",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7177934",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7178007",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7178809",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7178969",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7179413",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7181459",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7181907",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7182059",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7182492",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7183531",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7183883",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7185209",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7185513",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7186073",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7186770",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7186938",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7187125",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7187479",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7187846",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7188062",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7188436",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7189072",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7189406",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7189844",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7189953",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7189975",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7190225",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7190741",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7191979",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7193577",
+      "label": "non_toxic",
+      "strata": {
+        "annotator_agreement": "high",
+        "identity": "no_identity"
+      }
+    },
+    {
+      "item_id": "cc-7193990",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    },
+    {
+      "item_id": "cc-7194113",
+      "label": "toxic",
+      "strata": {
+        "annotator_agreement": "low",
+        "identity": "identity"
+      }
+    }
+  ],
+  "jigsaw_test_min_id": 7000000,
+  "label_counts": {
+    "non_toxic": 150,
+    "toxic": 150
+  },
+  "n_items": 300,
+  "name": "civil_toxicity_v1",
+  "sampling": {
+    "max_chars": 4000,
+    "n_per_cell": 75,
+    "seed": 101
+  },
+  "sha256": "d99d5dfb589884b41fff3ec490ba857f3fac84cebede90b933dc0990085ea695",
+  "source": {
+    "license": "CC0 (Civil Comments)",
+    "path": "raw/train-00000-of-00001.parquet",
+    "repo": "pietrolesci/civilcomments-wilds",
+    "revision": "c227534cc0a34cf21db6a0bf0edd0f9050c8b305"
+  },
+  "source_stats": {
+    "dropped": {
+      "jigsaw_train_id": 405130,
+      "text_in_hf_train": 508
+    },
+    "pool": 42362
+  },
+  "strata_counts": {
+    "annotator_agreement": {
+      "high": 185,
+      "low": 115
+    },
+    "identity": {
+      "identity": 150,
+      "no_identity": 150
+    }
+  },
+  "stratified_on": [
+    "identity",
+    "label"
+  ],
+  "task": "civil_comments_toxicity",
+  "toxic_threshold": 0.5
+}

@@ -53,6 +53,7 @@ class Registry:
         config_dir: Path = CONFIG_DIR,
         results_dir: Path = RESULTS_DIR,
         provider_factory: Callable[[str], Provider] = _default_provider,
+        run_provider_caps_usd: dict[str, float] | None = None,
     ):
         self.models = yaml.safe_load((config_dir / "models.yaml").read_text())
         self.prices = PriceTable.load(config_dir / "pricing.yaml")
@@ -65,6 +66,7 @@ class Registry:
             run_cap_usd=float(budget["run_cap_usd"]),
             project_caps_usd=self.project_caps_usd,
             other_runs_spent_usd=spend_by_provider(results_dir, exclude_run=run_id),
+            run_provider_caps_usd=run_provider_caps_usd,
         )
         self.cache = ResponseCache(results_dir / "cache" / "responses.sqlite")
         self._provider_factory = provider_factory

@@ -1,0 +1,16 @@
+sample,estimate,diff,ci_lo,ci_hi,n_jev
+civil_toxicity_pool_v1,raw flip-rate difference,0.1197,0.0669,0.1696,270
+civil_toxicity_pool_v1,"difficulty-matched, eligible",0.0364,-0.0263,0.0989,270
+civil_toxicity_pool_v1,"difficulty-matched, strict",0.0345,-0.0039,0.0801,137
+civil_toxicity_pool_v1,"difficulty-matched, all_wrong_proposals",0.0623,0.0137,0.1091,750
+wildguard_prompt_full_v1,raw flip-rate difference,0.2374,0.0977,0.3772,42
+wildguard_prompt_full_v1,"difficulty-matched, eligible",0.1381,-0.1006,0.3399,42
+wildguard_prompt_full_v1,"difficulty-matched, strict",0.1231,-0.0444,0.3519,13
+wildguard_prompt_full_v1,"difficulty-matched, all_wrong_proposals",0.1562,0.0071,0.302,164
+wildguard_response_full_v1,raw flip-rate difference,0.241,0.1077,0.3872,39
+wildguard_response_full_v1,"difficulty-matched, eligible",0.2308,0.037,0.375,39
+wildguard_response_full_v1,"difficulty-matched, strict",0.1364,0.0,0.3,22
+wildguard_response_full_v1,"difficulty-matched, all_wrong_proposals",0.0694,-0.0504,0.1958,144
+pooled,"difficulty-matched, eligible",0.0702,0.0082,0.1255,351
+pooled,"difficulty-matched, strict",0.0542,0.0135,0.0961,172
+pooled,"difficulty-matched, all_wrong_proposals",0.0778,0.0314,0.122,1058

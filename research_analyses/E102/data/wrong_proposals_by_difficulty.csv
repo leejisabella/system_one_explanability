@@ -1,0 +1,7 @@
+sample,arm,always_right,mostly_right,sometimes_right,never_right
+civil_toxicity_pool_v1,jev_label,137,133,188,292
+civil_toxicity_pool_v1,matched_label,460,116,90,84
+wildguard_prompt_full_v1,jev_label,13,29,47,75
+wildguard_prompt_full_v1,matched_label,130,15,8,11
+wildguard_response_full_v1,jev_label,22,17,38,67
+wildguard_response_full_v1,matched_label,116,14,8,6

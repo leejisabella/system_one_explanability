@@ -167,6 +167,8 @@ class Domain:
     policy_basis: Callable[[Any], Basis]
     # Who a harmful decision harms ("author"), or None where no decision harms the person in the case.
     harmed_party: str | None = None
+    # Options the person in the case would contest ("remove"); empty where none is adverse.
+    adverse_labels: tuple[str, ...] = ()
     # (true record, true outcome) -> (the decision that would harm the person the
     # case is about, its severity), or None where no decision harms them.
     harm: Callable[[Rec, str], tuple[str, str] | None] = lambda record, outcome: None

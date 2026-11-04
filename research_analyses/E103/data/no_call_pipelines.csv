@@ -1,0 +1,10 @@
+sample,pipeline,accuracy,k,n,ci_lo,ci_hi
+civil_toxicity_pool_v1,jev_alone,0.7575,303,400,0.7132,0.7969
+civil_toxicity_pool_v1,reviewer_alone,0.75,300,400,0.7053,0.7899
+civil_toxicity_pool_v1,vote_jev_reviewer_qwen,0.7675,307,400,0.7237,0.8062
+wildguard_prompt_full_v1,jev_alone,0.9025,361,400,0.8695,0.9279
+wildguard_prompt_full_v1,reviewer_alone,0.8875,355,400,0.8528,0.9149
+wildguard_prompt_full_v1,vote_jev_reviewer_qwen,0.9175,367,400,0.8864,0.9407
+wildguard_response_full_v1,jev_alone,0.925,370,400,0.895,0.947
+wildguard_response_full_v1,reviewer_alone,0.9,360,400,0.8667,0.9257
+wildguard_response_full_v1,vote_jev_reviewer_qwen,0.9325,373,400,0.9036,0.9532

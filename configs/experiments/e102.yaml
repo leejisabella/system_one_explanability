@@ -1,0 +1,25 @@
+# E.102: powered test of deference beyond shared difficulty, with a reference model (research_docs/13).
+# Run steps [jev] first to screen, look at Jev's error counts, then resume the same run_id with all steps.
+
+samples: [civil_toxicity_pool_v1, wildguard_prompt_full_v1, wildguard_response_full_v1]   # build with sysone.cascade.items
+jev: jev                       # TypeSafe jev-latest
+reviewer: reviewer             # gpt-oss-20b, the only reviewer (a reasoning model)
+references: [reviewer_qwen]    # Qwen3-32B without thinking (Bedrock serves no thinking mode): decides the subsample alone, never reviews
+jev_samples: 3                 # as in E.101
+alone_samples: 5               # E.101 used 3; 5 makes "right alone" (flip-rate eligibility) more reliable
+reference_samples: 3
+subsample_size: 400            # random items per sample: accept-when-right, error overlap, pipelines
+seed: 102
+reviewer_temperature: null
+reviewer_reasoning_max_tokens: 4096
+reviewer_max_output_tokens: 256
+reference_max_output_tokens: 256
+workers: 8
+max_items: null
+expected_model_version: null   # null = lock to the first Jev version that answers
+use_cache: false
+max_consecutive_errors: 10
+steps: [jev, review, reference]
+run_provider_caps_usd: {bedrock: 8.00, typesafe: 1.50}
+# Dropped from E.101: the confidence conditions (showing Jev's confidence had no measurable effect;
+# only the proposed decision itself moved the reviewer) and the p-sweep (flat: random errors are the easy case).

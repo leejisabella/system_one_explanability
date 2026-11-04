@@ -58,22 +58,30 @@ class CostGuard:
         run_cap_usd: float,
         project_caps_usd: dict[str, float] | None = None,
         other_runs_spent_usd: dict[str, float] | None = None,
+        run_provider_caps_usd: dict[str, float] | None = None,
     ):
         """project_caps_usd: total allowed per provider across all runs, or None for no
         project caps. other_runs_spent_usd: what each provider has already cost in other
-        runs; this run's own spend is read from its ledger."""
+        runs; this run's own spend is read from its ledger. run_provider_caps_usd: total
+        allowed per provider in this run, on top of run_cap_usd (an experiment's budget,
+        e.g. E.101's $8 on Bedrock); providers not listed have only the run cap."""
         if per_call_cap_usd <= 0 or run_cap_usd <= 0:
             raise ValueError("cost caps must be positive")
         self.ledger = ledger
         self.per_call_cap_usd = per_call_cap_usd
         self.run_cap_usd = run_cap_usd
         self.project_caps_usd = project_caps_usd
+        self.run_provider_caps_usd = run_provider_caps_usd
+        if any(v <= 0 for v in (run_provider_caps_usd or {}).values()):
+            raise ValueError("cost caps must be positive")
         self._spent = ledger.total_spent()
         self._reserved = 0.0
         self._provider_spent: dict[str, float] = dict(other_runs_spent_usd or {})
+        self._run_provider_spent: dict[str, float] = {}
         for e in ledger.entries():
             provider = e.get("provider", "")
             self._provider_spent[provider] = self._provider_spent.get(provider, 0.0) + e.get("cost_usd", 0.0)
+            self._run_provider_spent[provider] = self._run_provider_spent.get(provider, 0.0) + e.get("cost_usd", 0.0)
         self._provider_reserved: dict[str, float] = {}
         self._tripped: str | None = None
         self._lock = threading.Lock()
@@ -88,6 +96,10 @@ class CostGuard:
     @property
     def spent_usd(self) -> float:
         return self._spent
+
+    def run_spent_usd(self, provider: str) -> float:
+        """What this provider has cost in this run."""
+        return self._run_provider_spent.get(provider, 0.0)
 
     def project_spent_usd(self, provider: str) -> float:
         """What this provider has cost across all runs, including this one."""
@@ -110,6 +122,14 @@ class CostGuard:
                     f"run {self.ledger.run_id}: ${committed:.4f} spent or in flight, worst-case "
                     f"${worst_case_usd:.4f} more would exceed run cap ${self.run_cap_usd:.2f}"
                 )
+            run_cap = (self.run_provider_caps_usd or {}).get(provider)
+            if run_cap is not None:
+                committed = self._run_provider_spent.get(provider, 0.0) + self._provider_reserved.get(provider, 0.0)
+                if committed + worst_case_usd > run_cap:
+                    raise RunBudgetExceeded(
+                        f"run {self.ledger.run_id}: {provider} ${committed:.4f} spent or in flight, worst-case "
+                        f"${worst_case_usd:.4f} more would exceed this run's {provider} cap ${run_cap:.2f}"
+                    )
             if self.project_caps_usd is not None and provider not in UNCAPPED_PROVIDERS:
                 cap = self.project_caps_usd.get(provider)
                 if cap is None:
@@ -133,6 +153,7 @@ class CostGuard:
             self._provider_reserved[reservation.provider] -= reservation.worst_case_usd
             self._spent += cost_usd
             self._provider_spent[reservation.provider] = self._provider_spent.get(reservation.provider, 0.0) + cost_usd
+            self._run_provider_spent[reservation.provider] = self.run_spent_usd(reservation.provider) + cost_usd
             over_cap = cost_usd > self.per_call_cap_usd
             if over_cap:
                 self._tripped = (

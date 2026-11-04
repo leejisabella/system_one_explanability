@@ -178,6 +178,17 @@ def _parse_converse(model: str, resp: dict) -> ProviderResult:
     )
 
 
+def reasoning_text(raw: dict) -> str | None:
+    """The reasoning a Converse response carried in its reasoningContent blocks (gpt-oss returns
+    its full reasoning there), or None if it has none. Read from the saved raw response, so
+    keeping it changes nothing about the request."""
+    blocks = (((raw or {}).get("output") or {}).get("message") or {}).get("content") or []
+    parts = [((b.get("reasoningContent") or {}).get("reasoningText") or {}).get("text") for b in blocks
+             if isinstance(b, dict) and "reasoningContent" in b]
+    text = "".join(p for p in parts if p)
+    return text or None
+
+
 def _family(model: str) -> str:
     parts = model.split(".")
     return parts[1] if parts[0] in _ROUTING_PREFIXES and len(parts) > 1 else parts[0]

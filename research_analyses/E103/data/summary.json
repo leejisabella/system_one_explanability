@@ -1,0 +1,2617 @@
+{
+  "pooled": {
+    "blind_first": {
+      "all_wrong_proposals": {
+        "ci95": [
+          -0.0202,
+          0.0598
+        ],
+        "diff": 0.0193,
+        "jev_rate": 0.6333,
+        "matched_at_jev_difficulty": 0.6139,
+        "n_dropped": 0,
+        "n_jev": 1058
+      },
+      "eligible": {
+        "ci95": [
+          -0.035,
+          0.0869
+        ],
+        "diff": 0.0267,
+        "jev_rate": 0.1994,
+        "matched_at_jev_difficulty": 0.1728,
+        "n_dropped": 0,
+        "n_jev": 351
+      },
+      "strict": {
+        "ci95": [
+          0.0022,
+          0.0741
+        ],
+        "diff": 0.0357,
+        "jev_rate": 0.0581,
+        "matched_at_jev_difficulty": 0.0224,
+        "n_dropped": 0,
+        "n_jev": 172
+      }
+    },
+    "calibrated_warning": {
+      "all_wrong_proposals": {
+        "ci95": [
+          0.0576,
+          0.1688
+        ],
+        "diff": 0.1128,
+        "jev_rate": 0.6371,
+        "matched_at_jev_difficulty": 0.5243,
+        "n_dropped": 0,
+        "n_jev": 1058
+      },
+      "eligible": {
+        "ci95": [
+          0.0586,
+          0.172
+        ],
+        "diff": 0.1154,
+        "jev_rate": 0.2393,
+        "matched_at_jev_difficulty": 0.1239,
+        "n_dropped": 0,
+        "n_jev": 351
+      },
+      "strict": {
+        "ci95": [
+          0.0209,
+          0.1064
+        ],
+        "diff": 0.0631,
+        "jev_rate": 0.0872,
+        "matched_at_jev_difficulty": 0.0241,
+        "n_dropped": 0,
+        "n_jev": 172
+      }
+    },
+    "consider_opposite": {
+      "all_wrong_proposals": {
+        "ci95": [
+          -0.0059,
+          0.0877
+        ],
+        "diff": 0.0416,
+        "jev_rate": 0.604,
+        "matched_at_jev_difficulty": 0.5624,
+        "n_dropped": 0,
+        "n_jev": 1058
+      },
+      "eligible": {
+        "ci95": [
+          0.0097,
+          0.1209
+        ],
+        "diff": 0.0661,
+        "jev_rate": 0.1909,
+        "matched_at_jev_difficulty": 0.1248,
+        "n_dropped": 0,
+        "n_jev": 351
+      },
+      "strict": {
+        "ci95": [
+          0.015,
+          0.0976
+        ],
+        "diff": 0.0544,
+        "jev_rate": 0.0814,
+        "matched_at_jev_difficulty": 0.027,
+        "n_dropped": 0,
+        "n_jev": 172
+      }
+    },
+    "standard": {
+      "all_wrong_proposals": {
+        "ci95": [
+          0.0314,
+          0.122
+        ],
+        "diff": 0.0778,
+        "jev_rate": 0.6285,
+        "matched_at_jev_difficulty": 0.5508,
+        "n_dropped": 0,
+        "n_jev": 1058
+      },
+      "eligible": {
+        "ci95": [
+          0.0082,
+          0.1255
+        ],
+        "diff": 0.0702,
+        "jev_rate": 0.2108,
+        "matched_at_jev_difficulty": 0.1406,
+        "n_dropped": 0,
+        "n_jev": 351
+      },
+      "strict": {
+        "ci95": [
+          0.0135,
+          0.0961
+        ],
+        "diff": 0.0542,
+        "jev_rate": 0.0756,
+        "matched_at_jev_difficulty": 0.0214,
+        "n_dropped": 0,
+        "n_jev": 172
+      }
+    },
+    "warning": {
+      "all_wrong_proposals": {
+        "ci95": [
+          0.0085,
+          0.1116
+        ],
+        "diff": 0.0591,
+        "jev_rate": 0.6163,
+        "matched_at_jev_difficulty": 0.5572,
+        "n_dropped": 0,
+        "n_jev": 1058
+      },
+      "eligible": {
+        "ci95": [
+          0.0117,
+          0.1344
+        ],
+        "diff": 0.0715,
+        "jev_rate": 0.2365,
+        "matched_at_jev_difficulty": 0.165,
+        "n_dropped": 0,
+        "n_jev": 351
+      },
+      "strict": {
+        "ci95": [
+          0.0123,
+          0.099
+        ],
+        "diff": 0.0532,
+        "jev_rate": 0.0814,
+        "matched_at_jev_difficulty": 0.0282,
+        "n_dropped": 0,
+        "n_jev": 172
+      }
+    }
+  },
+  "protocols": [
+    "standard",
+    "blind_first",
+    "calibrated_warning",
+    "consider_opposite",
+    "warning"
+  ],
+  "samples": {
+    "civil_toxicity_pool_v1": {
+      "no_call_pipelines": {
+        "jev_alone": {
+          "ci95": [
+            0.7132,
+            0.7969
+          ],
+          "k": 303,
+          "n": 400,
+          "rate": 0.7575
+        },
+        "reviewer_alone": {
+          "ci95": [
+            0.7053,
+            0.7899
+          ],
+          "k": 300,
+          "n": 400,
+          "rate": 0.75
+        },
+        "vote_jev_reviewer_qwen": {
+          "ci95": [
+            0.7237,
+            0.8062
+          ],
+          "k": 307,
+          "n": 400,
+          "rate": 0.7675
+        }
+      },
+      "protocols": {
+        "blind_first": {
+          "accept_when_right_jev": {
+            "ci95": [
+              0.8107,
+              0.89
+            ],
+            "k": 259,
+            "n": 303,
+            "rate": 0.8548
+          },
+          "accept_when_right_matched": {
+            "ci95": [
+              0.6797,
+              0.7786
+            ],
+            "k": 224,
+            "n": 306,
+            "rate": 0.732
+          },
+          "cascade_accuracy_subsample": {
+            "ci95": [
+              0.7237,
+              0.8062
+            ],
+            "k": 307,
+            "n": 400,
+            "rate": 0.7675
+          },
+          "deference": {
+            "all_wrong_proposals": {
+              "ci95": [
+                -0.0378,
+                0.0469
+              ],
+              "diff": 0.0037,
+              "jev_rate": 0.5933,
+              "matched_at_jev_difficulty": 0.5896,
+              "n_dropped": 0,
+              "n_jev": 750
+            },
+            "eligible": {
+              "ci95": [
+                -0.0383,
+                0.0815
+              ],
+              "diff": 0.0205,
+              "jev_rate": 0.1815,
+              "matched_at_jev_difficulty": 0.161,
+              "n_dropped": 0,
+              "n_jev": 270
+            },
+            "strict": {
+              "ci95": [
+                -0.0182,
+                0.0522
+              ],
+              "diff": 0.0126,
+              "jev_rate": 0.0365,
+              "matched_at_jev_difficulty": 0.0239,
+              "n_dropped": 0,
+              "n_jev": 137
+            }
+          },
+          "harmful_let_through": null,
+          "jev_wrong_accepted_always_right": {
+            "ci95": [
+              0.0157,
+              0.0826
+            ],
+            "k": 5,
+            "n": 137,
+            "rate": 0.0365
+          },
+          "jev_wrong_accepted_never_right": {
+            "ci95": [
+              0.9088,
+              0.9633
+            ],
+            "k": 275,
+            "n": 292,
+            "rate": 0.9418
+          },
+          "mean_output_tokens": 386.4,
+          "n_reviews": 1900,
+          "override_when_wrong_jev": {
+            "ci95": [
+              0.3721,
+              0.4422
+            ],
+            "k": 305,
+            "n": 750,
+            "rate": 0.4067
+          },
+          "override_when_wrong_matched": {
+            "ci95": [
+              0.7282,
+              0.7892
+            ],
+            "k": 570,
+            "n": 750,
+            "rate": 0.76
+          },
+          "vs_standard": {
+            "accept_when_right_jev": {
+              "ci95": [
+                -0.0495,
+                0.0198
+              ],
+              "diff": -0.0132,
+              "n": 303
+            },
+            "cascade_accuracy": {
+              "ci95": [
+                -0.04,
+                0.0325
+              ],
+              "diff": -0.005,
+              "n": 400
+            },
+            "override_when_wrong_jev": {
+              "ci95": [
+                -0.0267,
+                0.0373
+              ],
+              "diff": 0.0053,
+              "n": 750
+            }
+          }
+        },
+        "calibrated_warning": {
+          "accept_when_right_jev": {
+            "ci95": [
+              0.7926,
+              0.8755
+            ],
+            "k": 254,
+            "n": 303,
+            "rate": 0.8383
+          },
+          "accept_when_right_matched": {
+            "ci95": [
+              0.6661,
+              0.7664
+            ],
+            "k": 220,
+            "n": 306,
+            "rate": 0.719
+          },
+          "cascade_accuracy_subsample": {
+            "ci95": [
+              0.6949,
+              0.7806
+            ],
+            "k": 296,
+            "n": 400,
+            "rate": 0.74
+          },
+          "deference": {
+            "all_wrong_proposals": {
+              "ci95": [
+                0.0421,
+                0.1386
+              ],
+              "diff": 0.0888,
+              "jev_rate": 0.6267,
+              "matched_at_jev_difficulty": 0.5379,
+              "n_dropped": 0,
+              "n_jev": 750
+            },
+            "eligible": {
+              "ci95": [
+                0.0604,
+                0.1819
+              ],
+              "diff": 0.1207,
+              "jev_rate": 0.2407,
+              "matched_at_jev_difficulty": 0.1201,
+              "n_dropped": 0,
+              "n_jev": 270
+            },
+            "strict": {
+              "ci95": [
+                0.0031,
+                0.0926
+              ],
+              "diff": 0.0469,
+              "jev_rate": 0.073,
+              "matched_at_jev_difficulty": 0.0261,
+              "n_dropped": 0,
+              "n_jev": 137
+            }
+          },
+          "harmful_let_through": null,
+          "jev_wrong_accepted_always_right": {
+            "ci95": [
+              0.0401,
+              0.1292
+            ],
+            "k": 10,
+            "n": 137,
+            "rate": 0.073
+          },
+          "jev_wrong_accepted_never_right": {
+            "ci95": [
+              0.9047,
+              0.9607
+            ],
+            "k": 274,
+            "n": 292,
+            "rate": 0.9384
+          },
+          "mean_output_tokens": 494.2,
+          "n_reviews": 1900,
+          "override_when_wrong_jev": {
+            "ci95": [
+              0.3394,
+              0.4085
+            ],
+            "k": 280,
+            "n": 750,
+            "rate": 0.3733
+          },
+          "override_when_wrong_matched": {
+            "ci95": [
+              0.7531,
+              0.812
+            ],
+            "k": 588,
+            "n": 750,
+            "rate": 0.784
+          },
+          "vs_standard": {
+            "accept_when_right_jev": {
+              "ci95": [
+                -0.066,
+                0.0066
+              ],
+              "diff": -0.0297,
+              "n": 303
+            },
+            "cascade_accuracy": {
+              "ci95": [
+                -0.0675,
+                0.005
+              ],
+              "diff": -0.0325,
+              "n": 400
+            },
+            "override_when_wrong_jev": {
+              "ci95": [
+                -0.06,
+                0.0053
+              ],
+              "diff": -0.028,
+              "n": 750
+            }
+          }
+        },
+        "consider_opposite": {
+          "accept_when_right_jev": {
+            "ci95": [
+              0.8107,
+              0.89
+            ],
+            "k": 259,
+            "n": 303,
+            "rate": 0.8548
+          },
+          "accept_when_right_matched": {
+            "ci95": [
+              0.69,
+              0.7877
+            ],
+            "k": 227,
+            "n": 306,
+            "rate": 0.7418
+          },
+          "cascade_accuracy_subsample": {
+            "ci95": [
+              0.7289,
+              0.8109
+            ],
+            "k": 309,
+            "n": 400,
+            "rate": 0.7725
+          },
+          "deference": {
+            "all_wrong_proposals": {
+              "ci95": [
+                -0.0049,
+                0.0896
+              ],
+              "diff": 0.0426,
+              "jev_rate": 0.5747,
+              "matched_at_jev_difficulty": 0.5321,
+              "n_dropped": 0,
+              "n_jev": 750
+            },
+            "eligible": {
+              "ci95": [
+                0.0061,
+                0.12
+              ],
+              "diff": 0.0621,
+              "jev_rate": 0.1815,
+              "matched_at_jev_difficulty": 0.1194,
+              "n_dropped": 0,
+              "n_jev": 270
+            },
+            "strict": {
+              "ci95": [
+                -0.0021,
+                0.0834
+              ],
+              "diff": 0.0396,
+              "jev_rate": 0.0657,
+              "matched_at_jev_difficulty": 0.0261,
+              "n_dropped": 0,
+              "n_jev": 137
+            }
+          },
+          "harmful_let_through": null,
+          "jev_wrong_accepted_always_right": {
+            "ci95": [
+              0.0349,
+              0.1201
+            ],
+            "k": 9,
+            "n": 137,
+            "rate": 0.0657
+          },
+          "jev_wrong_accepted_never_right": {
+            "ci95": [
+              0.8806,
+              0.9441
+            ],
+            "k": 268,
+            "n": 292,
+            "rate": 0.9178
+          },
+          "mean_output_tokens": 614.8,
+          "n_reviews": 1900,
+          "override_when_wrong_jev": {
+            "ci95": [
+              0.3904,
+              0.461
+            ],
+            "k": 319,
+            "n": 750,
+            "rate": 0.4253
+          },
+          "override_when_wrong_matched": {
+            "ci95": [
+              0.7545,
+              0.8132
+            ],
+            "k": 589,
+            "n": 750,
+            "rate": 0.7853
+          },
+          "vs_standard": {
+            "accept_when_right_jev": {
+              "ci95": [
+                -0.0429,
+                0.0165
+              ],
+              "diff": -0.0132,
+              "n": 303
+            },
+            "cascade_accuracy": {
+              "ci95": [
+                -0.0325,
+                0.0325
+              ],
+              "diff": 0.0,
+              "n": 400
+            },
+            "override_when_wrong_jev": {
+              "ci95": [
+                -0.0067,
+                0.056
+              ],
+              "diff": 0.024,
+              "n": 750
+            }
+          }
+        },
+        "standard": {
+          "accept_when_right_jev": {
+            "ci95": [
+              0.8252,
+              0.9015
+            ],
+            "k": 263,
+            "n": 303,
+            "rate": 0.868
+          },
+          "accept_when_right_matched": {
+            "ci95": [
+              0.7106,
+              0.8058
+            ],
+            "k": 233,
+            "n": 306,
+            "rate": 0.7614
+          },
+          "cascade_accuracy_subsample": {
+            "ci95": [
+              0.7289,
+              0.8109
+            ],
+            "k": 309,
+            "n": 400,
+            "rate": 0.7725
+          },
+          "deference": {
+            "all_wrong_proposals": {
+              "ci95": [
+                0.0137,
+                0.1091
+              ],
+              "diff": 0.0623,
+              "jev_rate": 0.5987,
+              "matched_at_jev_difficulty": 0.5364,
+              "n_dropped": 0,
+              "n_jev": 750
+            },
+            "eligible": {
+              "ci95": [
+                -0.0263,
+                0.0989
+              ],
+              "diff": 0.0364,
+              "jev_rate": 0.1926,
+              "matched_at_jev_difficulty": 0.1562,
+              "n_dropped": 0,
+              "n_jev": 270
+            },
+            "strict": {
+              "ci95": [
+                -0.0039,
+                0.0801
+              ],
+              "diff": 0.0345,
+              "jev_rate": 0.0584,
+              "matched_at_jev_difficulty": 0.0239,
+              "n_dropped": 0,
+              "n_jev": 137
+            }
+          },
+          "harmful_let_through": null,
+          "jev_wrong_accepted_always_right": {
+            "ci95": [
+              0.0299,
+              0.111
+            ],
+            "k": 8,
+            "n": 137,
+            "rate": 0.0584
+          },
+          "jev_wrong_accepted_never_right": {
+            "ci95": [
+              0.9006,
+              0.958
+            ],
+            "k": 273,
+            "n": 292,
+            "rate": 0.9349
+          },
+          "mean_output_tokens": 485.9,
+          "n_reviews": 1900,
+          "override_when_wrong_jev": {
+            "ci95": [
+              0.3668,
+              0.4368
+            ],
+            "k": 301,
+            "n": 750,
+            "rate": 0.4013
+          },
+          "override_when_wrong_matched": {
+            "ci95": [
+              0.749,
+              0.8082
+            ],
+            "k": 585,
+            "n": 750,
+            "rate": 0.78
+          }
+        },
+        "warning": {
+          "accept_when_right_jev": {
+            "ci95": [
+              0.8071,
+              0.8871
+            ],
+            "k": 258,
+            "n": 303,
+            "rate": 0.8515
+          },
+          "accept_when_right_matched": {
+            "ci95": [
+              0.6832,
+              0.7816
+            ],
+            "k": 225,
+            "n": 306,
+            "rate": 0.7353
+          },
+          "cascade_accuracy_subsample": {
+            "ci95": [
+              0.7184,
+              0.8016
+            ],
+            "k": 305,
+            "n": 400,
+            "rate": 0.7625
+          },
+          "deference": {
+            "all_wrong_proposals": {
+              "ci95": [
+                -0.0095,
+                0.0855
+              ],
+              "diff": 0.0373,
+              "jev_rate": 0.5813,
+              "matched_at_jev_difficulty": 0.544,
+              "n_dropped": 0,
+              "n_jev": 750
+            },
+            "eligible": {
+              "ci95": [
+                0.0162,
+                0.1354
+              ],
+              "diff": 0.0755,
+              "jev_rate": 0.2333,
+              "matched_at_jev_difficulty": 0.1578,
+              "n_dropped": 0,
+              "n_jev": 270
+            },
+            "strict": {
+              "ci95": [
+                -0.0043,
+                0.0862
+              ],
+              "diff": 0.0404,
+              "jev_rate": 0.073,
+              "matched_at_jev_difficulty": 0.0326,
+              "n_dropped": 0,
+              "n_jev": 137
+            }
+          },
+          "harmful_let_through": null,
+          "jev_wrong_accepted_always_right": {
+            "ci95": [
+              0.0401,
+              0.1292
+            ],
+            "k": 10,
+            "n": 137,
+            "rate": 0.073
+          },
+          "jev_wrong_accepted_never_right": {
+            "ci95": [
+              0.8688,
+              0.9357
+            ],
+            "k": 265,
+            "n": 292,
+            "rate": 0.9075
+          },
+          "mean_output_tokens": 491.0,
+          "n_reviews": 1900,
+          "override_when_wrong_jev": {
+            "ci95": [
+              0.3839,
+              0.4543
+            ],
+            "k": 314,
+            "n": 750,
+            "rate": 0.4187
+          },
+          "override_when_wrong_matched": {
+            "ci95": [
+              0.7434,
+              0.8031
+            ],
+            "k": 581,
+            "n": 750,
+            "rate": 0.7747
+          },
+          "vs_standard": {
+            "accept_when_right_jev": {
+              "ci95": [
+                -0.0561,
+                0.0198
+              ],
+              "diff": -0.0165,
+              "n": 303
+            },
+            "cascade_accuracy": {
+              "ci95": [
+                -0.0475,
+                0.03
+              ],
+              "diff": -0.01,
+              "n": 400
+            },
+            "override_when_wrong_jev": {
+              "ci95": [
+                -0.0173,
+                0.052
+              ],
+              "diff": 0.0173,
+              "n": 750
+            }
+          }
+        }
+      },
+      "upstream": {
+        "decision_alt": {
+          "error_by_true_label": {
+            "non_toxic": {
+              "ci95": [
+                0.1717,
+                0.2115
+              ],
+              "k": 286,
+              "n": 1499,
+              "rate": 0.1908
+            },
+            "toxic": {
+              "ci95": [
+                0.2572,
+                0.3026
+              ],
+              "k": 419,
+              "n": 1500,
+              "rate": 0.2793
+            }
+          },
+          "error_rate": {
+            "ci95": [
+              0.2202,
+              0.2506
+            ],
+            "k": 705,
+            "n": 2999,
+            "rate": 0.2351
+          },
+          "n_items": 2999,
+          "parse_rate": {
+            "ci95": [
+              0.9981,
+              0.9999
+            ],
+            "k": 2999,
+            "n": 3000,
+            "rate": 0.9997
+          },
+          "phi_with_jev": 0.5424,
+          "phi_with_reviewer_subsample": 0.3553
+        },
+        "explainer_open": {
+          "error_by_true_label": {
+            "non_toxic": {
+              "ci95": [
+                0.2728,
+                0.3189
+              ],
+              "k": 443,
+              "n": 1500,
+              "rate": 0.2953
+            },
+            "toxic": {
+              "ci95": [
+                0.2365,
+                0.2807
+              ],
+              "k": 387,
+              "n": 1500,
+              "rate": 0.258
+            }
+          },
+          "error_rate": {
+            "ci95": [
+              0.261,
+              0.293
+            ],
+            "k": 830,
+            "n": 3000,
+            "rate": 0.2767
+          },
+          "n_items": 3000,
+          "parse_rate": {
+            "ci95": [
+              0.9987,
+              1.0
+            ],
+            "k": 3000,
+            "n": 3000,
+            "rate": 1.0
+          },
+          "phi_with_jev": 0.5911,
+          "phi_with_reviewer_subsample": 0.4849
+        },
+        "reviewer_qwen": {
+          "error_by_true_label": {
+            "non_toxic": {
+              "ci95": [
+                0.1985,
+                0.2403
+              ],
+              "k": 328,
+              "n": 1500,
+              "rate": 0.2187
+            },
+            "toxic": {
+              "ci95": [
+                0.2767,
+                0.323
+              ],
+              "k": 449,
+              "n": 1500,
+              "rate": 0.2993
+            }
+          },
+          "error_rate": {
+            "ci95": [
+              0.2436,
+              0.275
+            ],
+            "k": 777,
+            "n": 3000,
+            "rate": 0.259
+          },
+          "n_items": 3000,
+          "parse_rate": {
+            "ci95": [
+              0.9987,
+              1.0
+            ],
+            "k": 3000,
+            "n": 3000,
+            "rate": 1.0
+          },
+          "phi_with_jev": 0.6181,
+          "phi_with_reviewer_subsample": 0.4563
+        }
+      }
+    },
+    "wildguard_prompt_full_v1": {
+      "no_call_pipelines": {
+        "jev_alone": {
+          "ci95": [
+            0.8695,
+            0.9279
+          ],
+          "k": 361,
+          "n": 400,
+          "rate": 0.9025
+        },
+        "reviewer_alone": {
+          "ci95": [
+            0.8528,
+            0.9149
+          ],
+          "k": 355,
+          "n": 400,
+          "rate": 0.8875
+        },
+        "vote_jev_reviewer_qwen": {
+          "ci95": [
+            0.8864,
+            0.9407
+          ],
+          "k": 367,
+          "n": 400,
+          "rate": 0.9175
+        }
+      },
+      "protocols": {
+        "blind_first": {
+          "accept_when_right_jev": {
+            "ci95": [
+              0.9127,
+              0.9616
+            ],
+            "k": 340,
+            "n": 361,
+            "rate": 0.9418
+          },
+          "accept_when_right_matched": {
+            "ci95": [
+              0.8302,
+              0.9001
+            ],
+            "k": 312,
+            "n": 359,
+            "rate": 0.8691
+          },
+          "cascade_accuracy_subsample": {
+            "ci95": [
+              0.8445,
+              0.9083
+            ],
+            "k": 352,
+            "n": 400,
+            "rate": 0.88
+          },
+          "deference": {
+            "all_wrong_proposals": {
+              "ci95": [
+                -0.0001,
+                0.3069
+              ],
+              "diff": 0.1465,
+              "jev_rate": 0.7561,
+              "matched_at_jev_difficulty": 0.6096,
+              "n_dropped": 0,
+              "n_jev": 164
+            },
+            "eligible": {
+              "ci95": [
+                -0.223,
+                0.2139
+              ],
+              "diff": 0.0048,
+              "jev_rate": 0.2619,
+              "matched_at_jev_difficulty": 0.2571,
+              "n_dropped": 0,
+              "n_jev": 42
+            },
+            "strict": {
+              "ci95": [
+                -0.0323,
+                0.2427
+              ],
+              "diff": 0.0615,
+              "jev_rate": 0.0769,
+              "matched_at_jev_difficulty": 0.0154,
+              "n_dropped": 0,
+              "n_jev": 13
+            }
+          },
+          "harmful_let_through": {
+            "ci95": [
+              0.4902,
+              0.7291
+            ],
+            "k": 37,
+            "n": 60,
+            "rate": 0.6167
+          },
+          "jev_wrong_accepted_always_right": {
+            "ci95": [
+              0.0137,
+              0.3331
+            ],
+            "k": 1,
+            "n": 13,
+            "rate": 0.0769
+          },
+          "jev_wrong_accepted_never_right": {
+            "ci95": [
+              0.9283,
+              0.9976
+            ],
+            "k": 74,
+            "n": 75,
+            "rate": 0.9867
+          },
+          "mean_output_tokens": 253.8,
+          "n_reviews": 728,
+          "override_when_wrong_jev": {
+            "ci95": [
+              0.1845,
+              0.315
+            ],
+            "k": 40,
+            "n": 164,
+            "rate": 0.2439
+          },
+          "override_when_wrong_matched": {
+            "ci95": [
+              0.8122,
+              0.9147
+            ],
+            "k": 143,
+            "n": 164,
+            "rate": 0.872
+          },
+          "vs_standard": {
+            "accept_when_right_jev": {
+              "ci95": [
+                -0.0388,
+                0.0139
+              ],
+              "diff": -0.0111,
+              "n": 361
+            },
+            "cascade_accuracy": {
+              "ci95": [
+                -0.03,
+                0.0225
+              ],
+              "diff": -0.0025,
+              "n": 400
+            },
+            "override_when_wrong_jev": {
+              "ci95": [
+                -0.1341,
+                0.0122
+              ],
+              "diff": -0.061,
+              "n": 164
+            }
+          }
+        },
+        "calibrated_warning": {
+          "accept_when_right_jev": {
+            "ci95": [
+              0.9326,
+              0.9747
+            ],
+            "k": 346,
+            "n": 361,
+            "rate": 0.9584
+          },
+          "accept_when_right_matched": {
+            "ci95": [
+              0.8518,
+              0.9171
+            ],
+            "k": 319,
+            "n": 359,
+            "rate": 0.8886
+          },
+          "cascade_accuracy_subsample": {
+            "ci95": [
+              0.8583,
+              0.9192
+            ],
+            "k": 357,
+            "n": 400,
+            "rate": 0.8925
+          },
+          "deference": {
+            "all_wrong_proposals": {
+              "ci95": [
+                -0.0123,
+                0.3428
+              ],
+              "diff": 0.1662,
+              "jev_rate": 0.6829,
+              "matched_at_jev_difficulty": 0.5167,
+              "n_dropped": 0,
+              "n_jev": 164
+            },
+            "eligible": {
+              "ci95": [
+                -0.1986,
+                0.2569
+              ],
+              "diff": 0.0429,
+              "jev_rate": 0.2619,
+              "matched_at_jev_difficulty": 0.219,
+              "n_dropped": 0,
+              "n_jev": 42
+            },
+            "strict": {
+              "ci95": [
+                -0.0236,
+                0.3685
+              ],
+              "diff": 0.1385,
+              "jev_rate": 0.1538,
+              "matched_at_jev_difficulty": 0.0154,
+              "n_dropped": 0,
+              "n_jev": 13
+            }
+          },
+          "harmful_let_through": {
+            "ci95": [
+              0.5068,
+              0.7438
+            ],
+            "k": 38,
+            "n": 60,
+            "rate": 0.6333
+          },
+          "jev_wrong_accepted_always_right": {
+            "ci95": [
+              0.0433,
+              0.4224
+            ],
+            "k": 2,
+            "n": 13,
+            "rate": 0.1538
+          },
+          "jev_wrong_accepted_never_right": {
+            "ci95": [
+              0.8363,
+              0.9628
+            ],
+            "k": 69,
+            "n": 75,
+            "rate": 0.92
+          },
+          "mean_output_tokens": 302.5,
+          "n_reviews": 728,
+          "override_when_wrong_jev": {
+            "ci95": [
+              0.2507,
+              0.3918
+            ],
+            "k": 52,
+            "n": 164,
+            "rate": 0.3171
+          },
+          "override_when_wrong_matched": {
+            "ci95": [
+              0.8332,
+              0.9294
+            ],
+            "k": 146,
+            "n": 164,
+            "rate": 0.8902
+          },
+          "vs_standard": {
+            "accept_when_right_jev": {
+              "ci95": [
+                -0.0166,
+                0.0277
+              ],
+              "diff": 0.0055,
+              "n": 361
+            },
+            "cascade_accuracy": {
+              "ci95": [
+                -0.015,
+                0.0325
+              ],
+              "diff": 0.01,
+              "n": 400
+            },
+            "override_when_wrong_jev": {
+              "ci95": [
+                -0.061,
+                0.0915
+              ],
+              "diff": 0.0122,
+              "n": 164
+            }
+          }
+        },
+        "consider_opposite": {
+          "accept_when_right_jev": {
+            "ci95": [
+              0.916,
+              0.9639
+            ],
+            "k": 341,
+            "n": 361,
+            "rate": 0.9446
+          },
+          "accept_when_right_matched": {
+            "ci95": [
+              0.8272,
+              0.8977
+            ],
+            "k": 311,
+            "n": 359,
+            "rate": 0.8663
+          },
+          "cascade_accuracy_subsample": {
+            "ci95": [
+              0.8472,
+              0.9105
+            ],
+            "k": 353,
+            "n": 400,
+            "rate": 0.8825
+          },
+          "deference": {
+            "all_wrong_proposals": {
+              "ci95": [
+                -0.0936,
+                0.2405
+              ],
+              "diff": 0.0618,
+              "jev_rate": 0.6951,
+              "matched_at_jev_difficulty": 0.6333,
+              "n_dropped": 0,
+              "n_jev": 164
+            },
+            "eligible": {
+              "ci95": [
+                -0.2515,
+                0.2048
+              ],
+              "diff": -0.0119,
+              "jev_rate": 0.2381,
+              "matched_at_jev_difficulty": 0.25,
+              "n_dropped": 0,
+              "n_jev": 42
+            },
+            "strict": {
+              "ci95": [
+                -0.0551,
+                0.3426
+              ],
+              "diff": 0.1154,
+              "jev_rate": 0.1538,
+              "matched_at_jev_difficulty": 0.0385,
+              "n_dropped": 0,
+              "n_jev": 13
+            }
+          },
+          "harmful_let_through": {
+            "ci95": [
+              0.4737,
+              0.7143
+            ],
+            "k": 36,
+            "n": 60,
+            "rate": 0.6
+          },
+          "jev_wrong_accepted_always_right": {
+            "ci95": [
+              0.0433,
+              0.4224
+            ],
+            "k": 2,
+            "n": 13,
+            "rate": 0.1538
+          },
+          "jev_wrong_accepted_never_right": {
+            "ci95": [
+              0.8532,
+              0.9712
+            ],
+            "k": 70,
+            "n": 75,
+            "rate": 0.9333
+          },
+          "mean_output_tokens": 381.3,
+          "n_reviews": 728,
+          "override_when_wrong_jev": {
+            "ci95": [
+              0.2396,
+              0.3791
+            ],
+            "k": 50,
+            "n": 164,
+            "rate": 0.3049
+          },
+          "override_when_wrong_matched": {
+            "ci95": [
+              0.7915,
+              0.8996
+            ],
+            "k": 140,
+            "n": 164,
+            "rate": 0.8537
+          },
+          "vs_standard": {
+            "accept_when_right_jev": {
+              "ci95": [
+                -0.0305,
+                0.0139
+              ],
+              "diff": -0.0083,
+              "n": 361
+            },
+            "cascade_accuracy": {
+              "ci95": [
+                -0.025,
+                0.0275
+              ],
+              "diff": 0.0,
+              "n": 400
+            },
+            "override_when_wrong_jev": {
+              "ci95": [
+                -0.0793,
+                0.0732
+              ],
+              "diff": 0.0,
+              "n": 164
+            }
+          }
+        },
+        "standard": {
+          "accept_when_right_jev": {
+            "ci95": [
+              0.9259,
+              0.9704
+            ],
+            "k": 344,
+            "n": 361,
+            "rate": 0.9529
+          },
+          "accept_when_right_matched": {
+            "ci95": [
+              0.8487,
+              0.9147
+            ],
+            "k": 318,
+            "n": 359,
+            "rate": 0.8858
+          },
+          "cascade_accuracy_subsample": {
+            "ci95": [
+              0.8472,
+              0.9105
+            ],
+            "k": 353,
+            "n": 400,
+            "rate": 0.8825
+          },
+          "deference": {
+            "all_wrong_proposals": {
+              "ci95": [
+                0.0071,
+                0.302
+              ],
+              "diff": 0.1562,
+              "jev_rate": 0.6951,
+              "matched_at_jev_difficulty": 0.5389,
+              "n_dropped": 0,
+              "n_jev": 164
+            },
+            "eligible": {
+              "ci95": [
+                -0.1006,
+                0.3399
+              ],
+              "diff": 0.1381,
+              "jev_rate": 0.2857,
+              "matched_at_jev_difficulty": 0.1476,
+              "n_dropped": 0,
+              "n_jev": 42
+            },
+            "strict": {
+              "ci95": [
+                -0.0444,
+                0.3519
+              ],
+              "diff": 0.1231,
+              "jev_rate": 0.1538,
+              "matched_at_jev_difficulty": 0.0308,
+              "n_dropped": 0,
+              "n_jev": 13
+            }
+          },
+          "harmful_let_through": {
+            "ci95": [
+              0.5577,
+              0.7869
+            ],
+            "k": 41,
+            "n": 60,
+            "rate": 0.6833
+          },
+          "jev_wrong_accepted_always_right": {
+            "ci95": [
+              0.0433,
+              0.4224
+            ],
+            "k": 2,
+            "n": 13,
+            "rate": 0.1538
+          },
+          "jev_wrong_accepted_never_right": {
+            "ci95": [
+              0.8889,
+              0.9863
+            ],
+            "k": 72,
+            "n": 75,
+            "rate": 0.96
+          },
+          "mean_output_tokens": 285.4,
+          "n_reviews": 728,
+          "override_when_wrong_jev": {
+            "ci95": [
+              0.2396,
+              0.3791
+            ],
+            "k": 50,
+            "n": 164,
+            "rate": 0.3049
+          },
+          "override_when_wrong_matched": {
+            "ci95": [
+              0.8261,
+              0.9246
+            ],
+            "k": 145,
+            "n": 164,
+            "rate": 0.8841
+          }
+        },
+        "warning": {
+          "accept_when_right_jev": {
+            "ci95": [
+              0.9095,
+              0.9594
+            ],
+            "k": 339,
+            "n": 361,
+            "rate": 0.9391
+          },
+          "accept_when_right_matched": {
+            "ci95": [
+              0.8272,
+              0.8977
+            ],
+            "k": 311,
+            "n": 359,
+            "rate": 0.8663
+          },
+          "cascade_accuracy_subsample": {
+            "ci95": [
+              0.839,
+              0.9039
+            ],
+            "k": 350,
+            "n": 400,
+            "rate": 0.875
+          },
+          "deference": {
+            "all_wrong_proposals": {
+              "ci95": [
+                -0.0198,
+                0.3253
+              ],
+              "diff": 0.1466,
+              "jev_rate": 0.7317,
+              "matched_at_jev_difficulty": 0.5851,
+              "n_dropped": 0,
+              "n_jev": 164
+            },
+            "eligible": {
+              "ci95": [
+                -0.1322,
+                0.3278
+              ],
+              "diff": 0.1048,
+              "jev_rate": 0.3333,
+              "matched_at_jev_difficulty": 0.2286,
+              "n_dropped": 0,
+              "n_jev": 42
+            },
+            "strict": {
+              "ci95": [
+                -0.0155,
+                0.4509
+              ],
+              "diff": 0.2154,
+              "jev_rate": 0.2308,
+              "matched_at_jev_difficulty": 0.0154,
+              "n_dropped": 0,
+              "n_jev": 13
+            }
+          },
+          "harmful_let_through": {
+            "ci95": [
+              0.4573,
+              0.6994
+            ],
+            "k": 35,
+            "n": 60,
+            "rate": 0.5833
+          },
+          "jev_wrong_accepted_always_right": {
+            "ci95": [
+              0.0818,
+              0.5026
+            ],
+            "k": 3,
+            "n": 13,
+            "rate": 0.2308
+          },
+          "jev_wrong_accepted_never_right": {
+            "ci95": [
+              0.9079,
+              0.9927
+            ],
+            "k": 73,
+            "n": 75,
+            "rate": 0.9733
+          },
+          "mean_output_tokens": 291.2,
+          "n_reviews": 728,
+          "override_when_wrong_jev": {
+            "ci95": [
+              0.2064,
+              0.3408
+            ],
+            "k": 44,
+            "n": 164,
+            "rate": 0.2683
+          },
+          "override_when_wrong_matched": {
+            "ci95": [
+              0.8261,
+              0.9246
+            ],
+            "k": 145,
+            "n": 164,
+            "rate": 0.8841
+          },
+          "vs_standard": {
+            "accept_when_right_jev": {
+              "ci95": [
+                -0.0388,
+                0.0111
+              ],
+              "diff": -0.0139,
+              "n": 361
+            },
+            "cascade_accuracy": {
+              "ci95": [
+                -0.0375,
+                0.02
+              ],
+              "diff": -0.0075,
+              "n": 400
+            },
+            "override_when_wrong_jev": {
+              "ci95": [
+                -0.1159,
+                0.0427
+              ],
+              "diff": -0.0366,
+              "n": 164
+            }
+          }
+        }
+      },
+      "upstream": {
+        "decision_alt": {
+          "error_by_true_label": {
+            "harmful": {
+              "ci95": [
+                0.1109,
+                0.1595
+              ],
+              "k": 100,
+              "n": 750,
+              "rate": 0.1333
+            },
+            "unharmful": {
+              "ci95": [
+                0.1063,
+                0.1486
+              ],
+              "k": 119,
+              "n": 945,
+              "rate": 0.1259
+            }
+          },
+          "error_rate": {
+            "ci95": [
+              0.1141,
+              0.146
+            ],
+            "k": 219,
+            "n": 1695,
+            "rate": 0.1292
+          },
+          "n_items": 1695,
+          "parse_rate": {
+            "ci95": [
+              0.994,
+              0.9991
+            ],
+            "k": 1695,
+            "n": 1699,
+            "rate": 0.9976
+          },
+          "phi_with_jev": 0.4986,
+          "phi_with_reviewer_subsample": 0.4957
+        },
+        "explainer_open": {
+          "error_by_true_label": {
+            "harmful": {
+              "ci95": [
+                0.1374,
+                0.19
+              ],
+              "k": 122,
+              "n": 753,
+              "rate": 0.162
+            },
+            "unharmful": {
+              "ci95": [
+                0.0696,
+                0.1054
+              ],
+              "k": 81,
+              "n": 944,
+              "rate": 0.0858
+            }
+          },
+          "error_rate": {
+            "ci95": [
+              0.105,
+              0.1359
+            ],
+            "k": 203,
+            "n": 1697,
+            "rate": 0.1196
+          },
+          "n_items": 1697,
+          "parse_rate": {
+            "ci95": [
+              0.9957,
+              0.9997
+            ],
+            "k": 1697,
+            "n": 1699,
+            "rate": 0.9988
+          },
+          "phi_with_jev": 0.5309,
+          "phi_with_reviewer_subsample": 0.5192
+        },
+        "reviewer_qwen": {
+          "error_by_true_label": {
+            "harmful": {
+              "ci95": [
+                0.1078,
+                0.1559
+              ],
+              "k": 98,
+              "n": 754,
+              "rate": 0.13
+            },
+            "unharmful": {
+              "ci95": [
+                0.0917,
+                0.1316
+              ],
+              "k": 104,
+              "n": 945,
+              "rate": 0.1101
+            }
+          },
+          "error_rate": {
+            "ci95": [
+              0.1044,
+              0.1352
+            ],
+            "k": 202,
+            "n": 1699,
+            "rate": 0.1189
+          },
+          "n_items": 1699,
+          "parse_rate": {
+            "ci95": [
+              0.9977,
+              1.0
+            ],
+            "k": 1699,
+            "n": 1699,
+            "rate": 1.0
+          },
+          "phi_with_jev": 0.5819,
+          "phi_with_reviewer_subsample": 0.5512
+        }
+      }
+    },
+    "wildguard_response_full_v1": {
+      "no_call_pipelines": {
+        "jev_alone": {
+          "ci95": [
+            0.895,
+            0.947
+          ],
+          "k": 370,
+          "n": 400,
+          "rate": 0.925
+        },
+        "reviewer_alone": {
+          "ci95": [
+            0.8667,
+            0.9257
+          ],
+          "k": 360,
+          "n": 400,
+          "rate": 0.9
+        },
+        "vote_jev_reviewer_qwen": {
+          "ci95": [
+            0.9036,
+            0.9532
+          ],
+          "k": 373,
+          "n": 400,
+          "rate": 0.9325
+        }
+      },
+      "protocols": {
+        "blind_first": {
+          "accept_when_right_jev": {
+            "ci95": [
+              0.9053,
+              0.956
+            ],
+            "k": 346,
+            "n": 370,
+            "rate": 0.9351
+          },
+          "accept_when_right_matched": {
+            "ci95": [
+              0.8531,
+              0.9173
+            ],
+            "k": 329,
+            "n": 370,
+            "rate": 0.8892
+          },
+          "cascade_accuracy_subsample": {
+            "ci95": [
+              0.839,
+              0.9039
+            ],
+            "k": 350,
+            "n": 400,
+            "rate": 0.875
+          },
+          "deference": {
+            "all_wrong_proposals": {
+              "ci95": [
+                -0.1381,
+                0.0593
+              ],
+              "diff": -0.0443,
+              "jev_rate": 0.7014,
+              "matched_at_jev_difficulty": 0.7457,
+              "n_dropped": 0,
+              "n_jev": 144
+            },
+            "eligible": {
+              "ci95": [
+                -0.1583,
+                0.3339
+              ],
+              "diff": 0.0928,
+              "jev_rate": 0.2564,
+              "matched_at_jev_difficulty": 0.1636,
+              "n_dropped": 0,
+              "n_jev": 39
+            },
+            "strict": {
+              "ci95": [
+                0.0176,
+                0.3389
+              ],
+              "diff": 0.1646,
+              "jev_rate": 0.1818,
+              "matched_at_jev_difficulty": 0.0172,
+              "n_dropped": 0,
+              "n_jev": 22
+            }
+          },
+          "harmful_let_through": {
+            "ci95": [
+              0.4954,
+              0.7603
+            ],
+            "k": 30,
+            "n": 47,
+            "rate": 0.6383
+          },
+          "jev_wrong_accepted_always_right": {
+            "ci95": [
+              0.0731,
+              0.3852
+            ],
+            "k": 4,
+            "n": 22,
+            "rate": 0.1818
+          },
+          "jev_wrong_accepted_never_right": {
+            "ci95": [
+              0.9458,
+              1.0
+            ],
+            "k": 67,
+            "n": 67,
+            "rate": 1.0
+          },
+          "mean_output_tokens": 239.1,
+          "n_reviews": 688,
+          "override_when_wrong_jev": {
+            "ci95": [
+              0.2299,
+              0.3778
+            ],
+            "k": 43,
+            "n": 144,
+            "rate": 0.2986
+          },
+          "override_when_wrong_matched": {
+            "ci95": [
+              0.8191,
+              0.925
+            ],
+            "k": 127,
+            "n": 144,
+            "rate": 0.8819
+          },
+          "vs_standard": {
+            "accept_when_right_jev": {
+              "ci95": [
+                -0.0243,
+                0.0324
+              ],
+              "diff": 0.0027,
+              "n": 370
+            },
+            "cascade_accuracy": {
+              "ci95": [
+                -0.035,
+                0.02
+              ],
+              "diff": -0.0075,
+              "n": 400
+            },
+            "override_when_wrong_jev": {
+              "ci95": [
+                -0.0625,
+                0.0833
+              ],
+              "diff": 0.0069,
+              "n": 144
+            }
+          }
+        },
+        "calibrated_warning": {
+          "accept_when_right_jev": {
+            "ci95": [
+              0.9082,
+              0.9581
+            ],
+            "k": 346,
+            "n": 369,
+            "rate": 0.9377
+          },
+          "accept_when_right_matched": {
+            "ci95": [
+              0.8558,
+              0.9194
+            ],
+            "k": 329,
+            "n": 369,
+            "rate": 0.8916
+          },
+          "cascade_accuracy_subsample": {
+            "ci95": [
+              0.8469,
+              0.9103
+            ],
+            "k": 352,
+            "n": 399,
+            "rate": 0.8822
+          },
+          "deference": {
+            "all_wrong_proposals": {
+              "ci95": [
+                -0.0354,
+                0.435
+              ],
+              "diff": 0.1768,
+              "jev_rate": 0.6389,
+              "matched_at_jev_difficulty": 0.4621,
+              "n_dropped": 0,
+              "n_jev": 144
+            },
+            "eligible": {
+              "ci95": [
+                -0.0229,
+                0.3066
+              ],
+              "diff": 0.1569,
+              "jev_rate": 0.2051,
+              "matched_at_jev_difficulty": 0.0482,
+              "n_dropped": 0,
+              "n_jev": 39
+            },
+            "strict": {
+              "ci95": [
+                -0.0167,
+                0.2878
+              ],
+              "diff": 0.1191,
+              "jev_rate": 0.1364,
+              "matched_at_jev_difficulty": 0.0172,
+              "n_dropped": 0,
+              "n_jev": 22
+            }
+          },
+          "harmful_let_through": {
+            "ci95": [
+              0.3333,
+              0.6077
+            ],
+            "k": 22,
+            "n": 47,
+            "rate": 0.4681
+          },
+          "jev_wrong_accepted_always_right": {
+            "ci95": [
+              0.0475,
+              0.3334
+            ],
+            "k": 3,
+            "n": 22,
+            "rate": 0.1364
+          },
+          "jev_wrong_accepted_never_right": {
+            "ci95": [
+              0.8181,
+              0.9583
+            ],
+            "k": 61,
+            "n": 67,
+            "rate": 0.9104
+          },
+          "mean_output_tokens": 316.6,
+          "n_reviews": 687,
+          "override_when_wrong_jev": {
+            "ci95": [
+              0.2872,
+              0.4422
+            ],
+            "k": 52,
+            "n": 144,
+            "rate": 0.3611
+          },
+          "override_when_wrong_matched": {
+            "ci95": [
+              0.8517,
+              0.9465
+            ],
+            "k": 131,
+            "n": 144,
+            "rate": 0.9097
+          },
+          "vs_standard": {
+            "accept_when_right_jev": {
+              "ci95": [
+                -0.019,
+                0.0325
+              ],
+              "diff": 0.0054,
+              "n": 369
+            },
+            "cascade_accuracy": {
+              "ci95": [
+                -0.0276,
+                0.0276
+              ],
+              "diff": 0.0,
+              "n": 399
+            },
+            "override_when_wrong_jev": {
+              "ci95": [
+                0.0,
+                0.1458
+              ],
+              "diff": 0.0694,
+              "n": 144
+            }
+          }
+        },
+        "consider_opposite": {
+          "accept_when_right_jev": {
+            "ci95": [
+              0.8866,
+              0.9426
+            ],
+            "k": 340,
+            "n": 370,
+            "rate": 0.9189
+          },
+          "accept_when_right_matched": {
+            "ci95": [
+              0.8352,
+              0.9031
+            ],
+            "k": 323,
+            "n": 370,
+            "rate": 0.873
+          },
+          "cascade_accuracy_subsample": {
+            "ci95": [
+              0.8417,
+              0.9061
+            ],
+            "k": 351,
+            "n": 400,
+            "rate": 0.8775
+          },
+          "deference": {
+            "all_wrong_proposals": {
+              "ci95": [
+                -0.1142,
+                0.1384
+              ],
+              "diff": 0.0134,
+              "jev_rate": 0.6528,
+              "matched_at_jev_difficulty": 0.6394,
+              "n_dropped": 0,
+              "n_jev": 144
+            },
+            "eligible": {
+              "ci95": [
+                0.0138,
+                0.322
+              ],
+              "diff": 0.1777,
+              "jev_rate": 0.2051,
+              "matched_at_jev_difficulty": 0.0274,
+              "n_dropped": 0,
+              "n_jev": 39
+            },
+            "strict": {
+              "ci95": [
+                -0.0259,
+                0.2807
+              ],
+              "diff": 0.1105,
+              "jev_rate": 0.1364,
+              "matched_at_jev_difficulty": 0.0259,
+              "n_dropped": 0,
+              "n_jev": 22
+            }
+          },
+          "harmful_let_through": {
+            "ci95": [
+              0.4125,
+              0.6859
+            ],
+            "k": 26,
+            "n": 47,
+            "rate": 0.5532
+          },
+          "jev_wrong_accepted_always_right": {
+            "ci95": [
+              0.0475,
+              0.3334
+            ],
+            "k": 3,
+            "n": 22,
+            "rate": 0.1364
+          },
+          "jev_wrong_accepted_never_right": {
+            "ci95": [
+              0.8369,
+              0.9677
+            ],
+            "k": 62,
+            "n": 67,
+            "rate": 0.9254
+          },
+          "mean_output_tokens": 379.6,
+          "n_reviews": 688,
+          "override_when_wrong_jev": {
+            "ci95": [
+              0.2743,
+              0.428
+            ],
+            "k": 50,
+            "n": 144,
+            "rate": 0.3472
+          },
+          "override_when_wrong_matched": {
+            "ci95": [
+              0.8352,
+              0.9359
+            ],
+            "k": 129,
+            "n": 144,
+            "rate": 0.8958
+          },
+          "vs_standard": {
+            "accept_when_right_jev": {
+              "ci95": [
+                -0.0378,
+                0.0108
+              ],
+              "diff": -0.0135,
+              "n": 370
+            },
+            "cascade_accuracy": {
+              "ci95": [
+                -0.0325,
+                0.02
+              ],
+              "diff": -0.005,
+              "n": 400
+            },
+            "override_when_wrong_jev": {
+              "ci95": [
+                -0.0208,
+                0.1389
+              ],
+              "diff": 0.0556,
+              "n": 144
+            }
+          }
+        },
+        "standard": {
+          "accept_when_right_jev": {
+            "ci95": [
+              0.9022,
+              0.9538
+            ],
+            "k": 345,
+            "n": 370,
+            "rate": 0.9324
+          },
+          "accept_when_right_matched": {
+            "ci95": [
+              0.8531,
+              0.9173
+            ],
+            "k": 329,
+            "n": 370,
+            "rate": 0.8892
+          },
+          "cascade_accuracy_subsample": {
+            "ci95": [
+              0.8472,
+              0.9105
+            ],
+            "k": 353,
+            "n": 400,
+            "rate": 0.8825
+          },
+          "deference": {
+            "all_wrong_proposals": {
+              "ci95": [
+                -0.0504,
+                0.1958
+              ],
+              "diff": 0.0694,
+              "jev_rate": 0.7083,
+              "matched_at_jev_difficulty": 0.6389,
+              "n_dropped": 0,
+              "n_jev": 144
+            },
+            "eligible": {
+              "ci95": [
+                0.037,
+                0.375
+              ],
+              "diff": 0.2308,
+              "jev_rate": 0.2564,
+              "matched_at_jev_difficulty": 0.0256,
+              "n_dropped": 0,
+              "n_jev": 39
+            },
+            "strict": {
+              "ci95": [
+                0.0,
+                0.3
+              ],
+              "diff": 0.1364,
+              "jev_rate": 0.1364,
+              "matched_at_jev_difficulty": 0.0,
+              "n_dropped": 0,
+              "n_jev": 22
+            }
+          },
+          "harmful_let_through": {
+            "ci95": [
+              0.4743,
+              0.7421
+            ],
+            "k": 29,
+            "n": 47,
+            "rate": 0.617
+          },
+          "jev_wrong_accepted_always_right": {
+            "ci95": [
+              0.0475,
+              0.3334
+            ],
+            "k": 3,
+            "n": 22,
+            "rate": 0.1364
+          },
+          "jev_wrong_accepted_never_right": {
+            "ci95": [
+              0.8975,
+              0.9918
+            ],
+            "k": 65,
+            "n": 67,
+            "rate": 0.9701
+          },
+          "mean_output_tokens": 301.7,
+          "n_reviews": 688,
+          "override_when_wrong_jev": {
+            "ci95": [
+              0.2236,
+              0.3705
+            ],
+            "k": 42,
+            "n": 144,
+            "rate": 0.2917
+          },
+          "override_when_wrong_matched": {
+            "ci95": [
+              0.8517,
+              0.9465
+            ],
+            "k": 131,
+            "n": 144,
+            "rate": 0.9097
+          }
+        },
+        "warning": {
+          "accept_when_right_jev": {
+            "ci95": [
+              0.9116,
+              0.9604
+            ],
+            "k": 348,
+            "n": 370,
+            "rate": 0.9405
+          },
+          "accept_when_right_matched": {
+            "ci95": [
+              0.8652,
+              0.9266
+            ],
+            "k": 333,
+            "n": 370,
+            "rate": 0.9
+          },
+          "cascade_accuracy_subsample": {
+            "ci95": [
+              0.8611,
+              0.9214
+            ],
+            "k": 358,
+            "n": 400,
+            "rate": 0.895
+          },
+          "deference": {
+            "all_wrong_proposals": {
+              "ci95": [
+                -0.1076,
+                0.3029
+              ],
+              "diff": 0.0728,
+              "jev_rate": 0.6667,
+              "matched_at_jev_difficulty": 0.5939,
+              "n_dropped": 0,
+              "n_jev": 144
+            },
+            "eligible": {
+              "ci95": [
+                -0.2305,
+                0.2193
+              ],
+              "diff": 0.008,
+              "jev_rate": 0.1538,
+              "matched_at_jev_difficulty": 0.1459,
+              "n_dropped": 0,
+              "n_jev": 39
+            },
+            "strict": {
+              "ci95": [
+                -0.0242,
+                0.1429
+              ],
+              "diff": 0.0368,
+              "jev_rate": 0.0455,
+              "matched_at_jev_difficulty": 0.0086,
+              "n_dropped": 0,
+              "n_jev": 22
+            }
+          },
+          "harmful_let_through": {
+            "ci95": [
+              0.4328,
+              0.7049
+            ],
+            "k": 27,
+            "n": 47,
+            "rate": 0.5745
+          },
+          "jev_wrong_accepted_always_right": {
+            "ci95": [
+              0.0081,
+              0.218
+            ],
+            "k": 1,
+            "n": 22,
+            "rate": 0.0455
+          },
+          "jev_wrong_accepted_never_right": {
+            "ci95": [
+              0.9202,
+              0.9974
+            ],
+            "k": 66,
+            "n": 67,
+            "rate": 0.9851
+          },
+          "mean_output_tokens": 303.6,
+          "n_reviews": 688,
+          "override_when_wrong_jev": {
+            "ci95": [
+              0.2616,
+              0.4138
+            ],
+            "k": 48,
+            "n": 144,
+            "rate": 0.3333
+          },
+          "override_when_wrong_matched": {
+            "ci95": [
+              0.86,
+              0.9517
+            ],
+            "k": 132,
+            "n": 144,
+            "rate": 0.9167
+          },
+          "vs_standard": {
+            "accept_when_right_jev": {
+              "ci95": [
+                -0.0135,
+                0.0297
+              ],
+              "diff": 0.0081,
+              "n": 370
+            },
+            "cascade_accuracy": {
+              "ci95": [
+                -0.01,
+                0.035
+              ],
+              "diff": 0.0125,
+              "n": 400
+            },
+            "override_when_wrong_jev": {
+              "ci95": [
+                -0.0278,
+                0.1181
+              ],
+              "diff": 0.0417,
+              "n": 144
+            }
+          }
+        }
+      },
+      "upstream": {
+        "decision_alt": {
+          "error_by_true_label": {
+            "harmful": {
+              "ci95": [
+                0.1833,
+                0.2812
+              ],
+              "k": 64,
+              "n": 280,
+              "rate": 0.2286
+            },
+            "unharmful": {
+              "ci95": [
+                0.0581,
+                0.0847
+              ],
+              "k": 100,
+              "n": 1424,
+              "rate": 0.0702
+            }
+          },
+          "error_rate": {
+            "ci95": [
+              0.0831,
+              0.1112
+            ],
+            "k": 164,
+            "n": 1704,
+            "rate": 0.0962
+          },
+          "n_items": 1704,
+          "parse_rate": {
+            "ci95": [
+              0.9948,
+              0.9994
+            ],
+            "k": 1704,
+            "n": 1707,
+            "rate": 0.9982
+          },
+          "phi_with_jev": 0.5089,
+          "phi_with_reviewer_subsample": 0.4453
+        },
+        "explainer_open": {
+          "error_by_true_label": {
+            "harmful": {
+              "ci95": [
+                0.1556,
+                0.2482
+              ],
+              "k": 56,
+              "n": 283,
+              "rate": 0.1979
+            },
+            "unharmful": {
+              "ci95": [
+                0.0536,
+                0.0794
+              ],
+              "k": 93,
+              "n": 1423,
+              "rate": 0.0654
+            }
+          },
+          "error_rate": {
+            "ci95": [
+              0.0749,
+              0.1017
+            ],
+            "k": 149,
+            "n": 1706,
+            "rate": 0.0873
+          },
+          "n_items": 1706,
+          "parse_rate": {
+            "ci95": [
+              0.9967,
+              0.9999
+            ],
+            "k": 1706,
+            "n": 1707,
+            "rate": 0.9994
+          },
+          "phi_with_jev": 0.5857,
+          "phi_with_reviewer_subsample": 0.4907
+        },
+        "reviewer_qwen": {
+          "error_by_true_label": {
+            "harmful": {
+              "ci95": [
+                0.1086,
+                0.1906
+              ],
+              "k": 41,
+              "n": 283,
+              "rate": 0.1449
+            },
+            "unharmful": {
+              "ci95": [
+                0.0703,
+                0.0991
+              ],
+              "k": 119,
+              "n": 1424,
+              "rate": 0.0836
+            }
+          },
+          "error_rate": {
+            "ci95": [
+              0.0808,
+              0.1085
+            ],
+            "k": 160,
+            "n": 1707,
+            "rate": 0.0937
+          },
+          "n_items": 1707,
+          "parse_rate": {
+            "ci95": [
+              0.9978,
+              1.0
+            ],
+            "k": 1707,
+            "n": 1707,
+            "rate": 1.0
+          },
+          "phi_with_jev": 0.5677,
+          "phi_with_reviewer_subsample": 0.4712
+        }
+      }
+    }
+  }
+}

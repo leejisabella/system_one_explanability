@@ -1,0 +1,10 @@
+sample,model,error_rate,errors,n,parse_rate,phi_with_jev,phi_with_reviewer_subsample,error_rate_true_non_toxic,error_rate_true_toxic,cost_usd,error_rate_true_harmful,error_rate_true_unharmful
+civil_toxicity_pool_v1,decision_alt,0.2351,705,2999,0.9997,0.5424,0.3553,0.1908,0.2793,0.0568,,
+civil_toxicity_pool_v1,explainer_open,0.2767,830,3000,1.0,0.5911,0.4849,0.2953,0.258,0.2466,,
+civil_toxicity_pool_v1,reviewer_qwen,0.259,777,3000,1.0,0.6181,0.4563,0.2187,0.2993,0.068,,
+wildguard_prompt_full_v1,decision_alt,0.1292,219,1695,0.9976,0.4986,0.4957,,,0.0439,0.1333,0.1259
+wildguard_prompt_full_v1,explainer_open,0.1196,203,1697,0.9988,0.5309,0.5192,,,0.1943,0.162,0.0858
+wildguard_prompt_full_v1,reviewer_qwen,0.1189,202,1699,1.0,0.5819,0.5512,,,0.0547,0.13,0.1101
+wildguard_response_full_v1,decision_alt,0.0962,164,1704,0.9982,0.5089,0.4453,,,0.0782,0.2286,0.0702
+wildguard_response_full_v1,explainer_open,0.0873,149,1706,0.9994,0.5857,0.4907,,,0.3239,0.1979,0.0654
+wildguard_response_full_v1,reviewer_qwen,0.0937,160,1707,1.0,0.5677,0.4712,,,0.0973,0.1449,0.0836

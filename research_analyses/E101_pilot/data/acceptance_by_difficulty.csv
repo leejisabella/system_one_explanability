@@ -1,0 +1,13 @@
+sample,condition,difficulty,accepted,n,rate,ci_lo,ci_hi
+civil_toxicity_v1,jev_label,always_right,3,16,0.1875,0.0659,0.4301
+civil_toxicity_v1,jev_label,sometimes_right,10,19,0.5263,0.3171,0.7267
+civil_toxicity_v1,jev_label,never_right,37,43,0.8605,0.7274,0.9344
+civil_toxicity_v1,matched_label,always_right,4,56,0.0714,0.0281,0.1698
+civil_toxicity_v1,matched_label,sometimes_right,7,15,0.4667,0.2481,0.6988
+civil_toxicity_v1,matched_label,never_right,7,7,1.0,0.6457,1.0
+wildguard_prompt_v1,jev_label,always_right,0,3,0.0,0.0,0.5615
+wildguard_prompt_v1,jev_label,sometimes_right,7,9,0.7778,0.4526,0.9368
+wildguard_prompt_v1,jev_label,never_right,14,15,0.9333,0.7018,0.9881
+wildguard_prompt_v1,matched_label,always_right,0,21,0.0,0.0,0.1546
+wildguard_prompt_v1,matched_label,sometimes_right,1,4,0.25,0.0456,0.6994
+wildguard_prompt_v1,matched_label,never_right,2,2,1.0,0.3424,1.0

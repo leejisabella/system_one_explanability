@@ -1,0 +1,10 @@
+sample,pair,both_wrong,both_wrong_if_independent,phi,ci_lo,ci_hi,phi_high_agreement,phi_low_agreement
+civil_toxicity_pool_v1,jev|reviewer,59,24.0,0.473,0.3655,0.5715,0.4803,0.4753
+civil_toxicity_pool_v1,jev|reviewer_qwen,77,25.2,0.6886,0.6013,0.7653,0.6486,0.7263
+civil_toxicity_pool_v1,reviewer|reviewer_qwen,57,25.7,0.4128,0.3074,0.5128,0.4409,0.377
+wildguard_prompt_full_v1,jev|reviewer,29,3.9,0.7051,0.5742,0.8149,0.6823,0.6883
+wildguard_prompt_full_v1,jev|reviewer_qwen,28,4.9,0.5893,0.4521,0.708,0.4609,0.6243
+wildguard_prompt_full_v1,reviewer|reviewer_qwen,26,5.0,0.5292,0.3887,0.6508,0.4855,0.5051
+wildguard_response_full_v1,jev|reviewer,22,3.1,0.5836,0.4332,0.7211,0.4492,0.6559
+wildguard_response_full_v1,jev|reviewer_qwen,21,2.7,0.6069,0.4505,0.7433,0.3737,0.7372
+wildguard_response_full_v1,reviewer|reviewer_qwen,18,3.8,0.4052,0.2427,0.5478,0.2211,0.4808

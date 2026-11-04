@@ -1,0 +1,19 @@
+sample,pipeline,threshold,reviewed,accuracy,cost_per_item_usd,latency_per_item_s
+civil_toxicity_v1,Jev alone,,0,0.74,2.231e-05,0.072
+civil_toxicity_v1,Reviewer alone,,300,0.7467,5.857e-05,1.337
+civil_toxicity_v1,"Jev, then review if confidence < t",0.6,31,0.7333,3.318e-05,0.329
+civil_toxicity_v1,"Jev, then review if confidence < t",0.7,68,0.7367,4.61e-05,0.643
+civil_toxicity_v1,"Jev, then review if confidence < t",0.8,104,0.7333,5.703e-05,0.879
+civil_toxicity_v1,"Jev, then review if confidence < t",0.9,155,0.7233,7.396e-05,1.266
+civil_toxicity_v1,"Jev, then review if confidence < t",0.95,187,0.72,8.183e-05,1.437
+civil_toxicity_v1,"Jev, then review if confidence < t",0.99,243,0.72,9.411e-05,1.684
+civil_toxicity_v1,"Jev, then review if confidence < t",1.01,300,0.72,0.00010354,1.865
+wildguard_prompt_v1,Jev alone,,0,0.91,2.781e-05,0.073
+wildguard_prompt_v1,Reviewer alone,,300,0.89,4.407e-05,0.913
+wildguard_prompt_v1,"Jev, then review if confidence < t",0.6,9,0.91,3.029e-05,0.132
+wildguard_prompt_v1,"Jev, then review if confidence < t",0.7,25,0.9,3.527e-05,0.264
+wildguard_prompt_v1,"Jev, then review if confidence < t",0.8,45,0.8867,3.979e-05,0.366
+wildguard_prompt_v1,"Jev, then review if confidence < t",0.9,64,0.8833,4.496e-05,0.479
+wildguard_prompt_v1,"Jev, then review if confidence < t",0.95,84,0.88,4.939e-05,0.577
+wildguard_prompt_v1,"Jev, then review if confidence < t",0.99,148,0.8767,6.139e-05,0.824
+wildguard_prompt_v1,"Jev, then review if confidence < t",1.01,300,0.8733,8.378e-05,1.228

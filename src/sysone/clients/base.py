@@ -165,14 +165,17 @@ class GuardedClient:
         price = self.spec.price
         worst_case = worst_case_cost(request, price, self.provider.reasoning_allowance_tokens)
         attempt = 0
+        started = time.perf_counter()
         while True:
             reservation = self.guard.reserve(
                 worst_case, provider=self.spec.provider, model=self.spec.model, tags=request.tags
             )
+            sent = time.perf_counter()
             try:
                 result = self.provider.send(self.spec.model, request, price)
             except ProviderError as e:
-                details = {"status": "error", "error": str(e), "attempt": attempt}
+                details = {"status": "error", "error": str(e), "attempt": attempt,
+                           "latency_s": round(time.perf_counter() - sent, 4)}
                 if e.billed == "unknown":
                     self.guard.settle(
                         reservation, cost_usd=worst_case, cost_source="worst_case_unknown_outcome", **details
@@ -196,6 +199,8 @@ class GuardedClient:
                 )
                 raise
 
+            latency_s = round(time.perf_counter() - sent, 4)
+            wall_s = round(time.perf_counter() - started, 4)
             requested_tier = request.service_tier if isinstance(request, ChatRequest) else None
             if result.reported_cost_usd is not None:
                 cost, source = result.reported_cost_usd, "provider_reported"
@@ -220,6 +225,8 @@ class GuardedClient:
                 finish_reason=result.finish_reason,
                 service_tier_requested=requested_tier,
                 service_tier_served=result.service_tier,
+                latency_s=latency_s,
+                wall_s=wall_s,
             )
             # Checked after the spending log is written, so a mismatched call is still
             # accounted for, and before caching, so its answer is never reused.
@@ -235,6 +242,8 @@ class GuardedClient:
                 finish_reason=result.finish_reason,
                 raw=result.raw,
                 service_tier=result.service_tier,
+                latency_s=latency_s,
+                wall_s=wall_s,
             )
             if self.cache is not None:
                 self.cache.put(key, response)

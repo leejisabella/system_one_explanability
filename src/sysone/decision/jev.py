@@ -52,6 +52,9 @@ class DecisionTask:
     # One description per option, in the canonical option order.
     criteria: dict[str, str]
     policy_key: str
+    # The state part holding the content decided on. Cascade tasks name it for what it
+    # is ("user_prompt", "comment"); every refund-style domain keeps "case_file".
+    case_key: str = "case_file"
 
     @property
     def labels(self) -> tuple[str, ...]:
@@ -172,7 +175,7 @@ class JevDecisionModel:
         task = self.task
         order = option_order(sample_index, rotate=self.rotate_options, labels=task.labels)
         return SystemOneRequest(
-            state={task.policy_key: policy, "case_file": case_text},
+            state={task.policy_key: policy, task.case_key: case_text},
             questions={task.question: {
                 "type": "choice",
                 "instructions": task.instructions,
