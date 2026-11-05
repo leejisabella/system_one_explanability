@@ -156,7 +156,7 @@ It also gives paired changes against the base and against the control arm, on th
 
 - `sysone.posttrain.dpo` with `configs/posttrain/dpo_review.yaml` trains a fresh LoRA adapter from the **merged SFT treatment checkpoint**. Its reference model is that checkpoint with the adapter switched off.
 - Pairs are on-policy: both the chosen and the rejected trace are the reviewer's own.
-- Settings: learning rate 5e-6, beta 0.1.
+- Settings: learning rate 5e-5, beta 0.1, 1 pair x 16 per update. The plan said 5e-6; it was raised before E.107 ran, because one epoch is only 64 updates and E.106's SFT barely moved at 2e-4.
 - Evaluate as E.106 with `--reviewers dpo_review`. It is compared against the base and against `sft_plain`.
 
 **RL is not built.** The natural next step is GRPO with a reward of 1 for the gold final label, Jev's proposal in the prompt, and a penalty for an inconsistent verdict. Build it only if SFT and DPO leave a gap on criterion 1.
