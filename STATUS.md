@@ -1,6 +1,6 @@
 # Project Status — start here
 
-Last updated: 2026-11-04 (E.101–E.103 cascade experiments done on branch `e101-cascade-deference`; E.104–E.105, Part 2's training data, done on `e104-part2-posttraining`; training waits for a GPU). Before that, 2026-10-28 (Pilot 0 passes on refund_v1; preflight passed; Pilot 1 ready, with Llama replacing the blocked Claude explainer). Read this first when picking the project back up.
+Last updated: 2026-11-04 (E.101–E.103 cascade experiments done on branch `e101-cascade-deference`; E.104–E.106 done on `e104-part2-posttraining`: E.106's SFT didn't work; next step for Part 2 is open). Before that, 2026-10-28 (Pilot 0 passes on refund_v1; preflight passed; Pilot 1 ready, with Llama replacing the blocked Claude explainer). Read this first when picking the project back up.
 
 ## In one paragraph
 
@@ -49,7 +49,7 @@ In plain terms:
 - Part 2 should train the reviewer to be *right* on the items Jev finds hard, not just to disagree with Jev, and should report deference next to override and accept rates, since deference can improve while nothing useful changes.
 - Part 2 (E.104 on, post-training gpt-oss-20b) waits for a GPU.
 
-## Part 2: post-training the reviewer (E.104–E.108, built 2026-11-04; E.104–E.105 ran)
+## Part 2: post-training the reviewer (E.104–E.108, built 2026-11-04; E.104–E.106 ran)
 
 On branch `e104-part2-posttraining`, which merges after `e101-cascade-deference`. The design, the pre-registered success criteria and the step-by-step runbook are in [research_docs/14](research_docs/14_part2_posttraining.md).
 
@@ -83,8 +83,20 @@ What exists:
   - in a 30-item reading, half had a doubtful gold label and none was a clear model miss.
 - **Decision (2026-11-04): train as-is.** E.106 should watch accept-when-right first, because the reviewer could learn to agree with Jev. Criterion 2's Civil target may be hard to reach for the same label reason.
 
+**E.106 ran 2026-11-04** (`e106-v1-2026-11-04`; about 4.2 GPU hours on a GCP Spot H100, roughly $10–17 of education credits; write-up in [research_analyses/E106/](research_analyses/E106/README.md)). gpt-oss-20b was LoRA-fine-tuned on E.105's traces in two arms, with Jev's proposal and without. Each arm was evaluated against the untrained base on the same vLLM stack.
+- **It didn't work: both arms fail all five pre-registered criteria.**
+  - Jev's wrong labels overridden: −2.0 and −1.4 points, not significant.
+  - Jev's right labels accepted: +2.3 and +2.7, significant.
+  - Cascade accuracy: +2.3 and +2.8, but only from agreeing with Jev more. It still doesn't beat Jev alone.
+- **Where the change sits:** on items the reviewer gets right alone, it now switches to Jev's wrong label 32% / 31% of the time, against 25% for the base. On random wrong labels nothing changes. Deciding alone, the models are unchanged.
+- **Treatment ≈ control,** so showing the proposal in training made no difference. Rejection sampling leaves out exactly the items the reviewer can't solve, so SFT mostly sharpened what it already does.
+- **Deviations from the recipe:**
+  - LoRA on the linear layers only (expert-weight LoRA ran out of memory on one H100);
+  - the control arm trained at 2 × 8 instead of 4 × 4, which gives the same updates.
+- **GPU machine:** `sysone-part2-h100` (stopped; only its disk is billed, about $1.70 a day). The runbook has the setup fixes, and `scripts/run_e106.sh` runs E.106 resumably.
+
 Not done yet:
-- **The GPU scripts have never run on a GPU.** The first session starts with the smoke test in the runbook (research_docs/14), then E.106.
+- **Decide Part 2's next step:** E.107 DPO (pairs that contrast a correct and a wrong trace on the same hard item), a rebalanced SFT, a different signal for the blind spots, or stopping here. The options are in the E.106 write-up.
 
 ## What exists
 

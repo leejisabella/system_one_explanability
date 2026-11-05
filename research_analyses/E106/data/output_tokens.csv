@@ -1,0 +1,16 @@
+reviewer,condition,median_output_tokens
+base_local,alone,236
+base_local,jev_label,410
+base_local,matched_label,309
+base_local,correct_label,234
+base_local,upstream,353
+sft_review,alone,229
+sft_review,jev_label,391
+sft_review,matched_label,309
+sft_review,correct_label,231
+sft_review,upstream,338
+sft_plain,alone,227
+sft_plain,jev_label,389
+sft_plain,matched_label,297
+sft_plain,correct_label,226
+sft_plain,upstream,349

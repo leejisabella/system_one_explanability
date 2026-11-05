@@ -1,10 +1,10 @@
 # 14. Part 2: post-training the reviewer to be robust to Jev's errors (E.104–E.108)
 
-**Status (2026-11-04): E.104 and E.105 ran; the datasets are exported and checked.**
+**Status (2026-11-04): E.104–E.106 ran. E.106's SFT didn't work: both arms fail all five criteria** ([research_analyses/E106](../research_analyses/E106/README.md)). The next step is open.
 - Results: [research_analyses/E104_E105](../research_analyses/E104_E105/README.md).
 - Decision: train on the datasets as exported (see [What E.105 produced](#what-e105-produced-2026-11-04)).
 - Every runner, the evaluation and the analysis pass end-to-end dry runs on the real pools and on the real E.102 and E.103 runs.
-- The GPU scripts (training, merging, serving) have **not** run on a GPU yet. The first GPU session starts with the smoke test in the [runbook](#runbook).
+- The GPU scripts ran on one H100 (GCP Spot) for E.106. The fixes from that session are in the runbook and in `scripts/run_e106.sh`.
 
 Part 1 is in [13_cascade_deference.md](13_cascade_deference.md). Its results are in [research_analyses/E102](../research_analyses/E102/README.md) and [E103](../research_analyses/E103/README.md).
 

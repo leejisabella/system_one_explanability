@@ -1,0 +1,4 @@
+reviewer,items,agrees_with_jev,accuracy,accuracy_on_jev_wrong,n_jev_wrong,accuracy_on_jev_right,n_jev_right,jev_wrong_gained_vs_base,jev_wrong_lost_vs_base
+base_local,3093,0.8073,0.7006,0.344,1058,0.886,2035,,
+sft_review,3093,0.8025,0.7132,0.3696,1058,0.8919,2035,114,87
+sft_plain,3093,0.8105,0.7064,0.3478,1058,0.8929,2035,109,105
