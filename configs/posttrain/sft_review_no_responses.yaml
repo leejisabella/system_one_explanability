@@ -7,7 +7,7 @@ arm: sft_review
 base_model: openai/gpt-oss-20b
 init_from: null
 reasoning_effort: medium        # as the evaluation's requests
-lora: {r: 8, alpha: 16, dropout: 0.0, target_modules: all-linear}   # plus the expert weights of layers 7, 15, 23
+lora: {r: 8, alpha: 16, dropout: 0.0, target_modules: all-linear}   # linear layers only: expert LoRA runs out of memory (train_config.py)
 learning_rate: 2.0e-4
 epochs: 1
 per_device_batch_size: 4

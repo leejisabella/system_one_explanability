@@ -45,6 +45,8 @@ def train(config: TrainConfig) -> Path:
         output_dir=str(config.output_dir), beta=config.dpo_beta, learning_rate=config.learning_rate,
         num_train_epochs=config.epochs, max_steps=config.max_steps or -1,
         per_device_train_batch_size=config.per_device_batch_size,
+        # Evaluation runs every expert on every token (gpt-oss's inference path), so batch 8 runs out of memory.
+        per_device_eval_batch_size=1,
         gradient_accumulation_steps=config.gradient_accumulation_steps, gradient_checkpointing=True,
         max_length=config.max_length, warmup_ratio=config.warmup_ratio, bf16=True, logging_steps=10,
         save_strategy="epoch", eval_strategy="epoch" if val_ds is not None else "no", seed=config.seed, report_to="none",
