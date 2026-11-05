@@ -132,6 +132,22 @@ LoRA on gpt-oss-20b, one epoch, on one GCP Spot H100. The untrained base and bot
 4. **Some "blind spots" are label problems.** On Civil Comments, many of Jev's "mistakes" that every model disagrees with have doubtful gold labels, with few annotators or a 5-to-5 split. This caps what any reviewer can show on that dataset.
 5. **As built, the cascade doesn't pay off.** In every experiment, Jev → gpt-oss-20b is no more accurate than Jev alone beyond noise (on Civil Comments some versions edge past it by 1–2 points), at several times the cost and latency. A no-training majority vote of Jev, gpt-oss and Qwen does a little better on WildGuard (92% / 93%, against Jev's 90% / 92.5%) and ties on Civil Comments (77%) (E.103). All these gaps are within noise.
 
+## Working assumption: the never-solved items are a benchmark ceiling
+
+Decided 2026-11-05, before choosing Part 2's next strategy. On the test set, the base reviewer's results split Jev's 1,058 mistakes into three groups:
+
+| Group | Share of Jev's mistakes | What it is |
+|---|---|---|
+| A. Right alone on the first try | 34% (364) | The reviewer knows the answer, but gives in to Jev 25% of the time (deference) |
+| B. Wrong on the first try, right at least once in 5 | 21% (221) | The reviewer is inconsistent |
+| C. Never right alone (0 of 5) | 45% (473) | Shared blind spots |
+
+**We treat group C as a ceiling of the benchmark, not a target.** We take these items to be largely contested or wrong gold labels, so a reviewer shouldn't be trained to "catch" them. Training that pushes toward those labels would teach label noise. From here on, Part 2's methods aim at groups A and B, and its results are read with group C reported separately.
+
+- **The evidence is on Civil Comments only.** In E.105, the models gave the same answer on every try for the dropped training items. In a reading of 30 of them, about half had a doubtful gold label and none was a clear model mistake.
+- **Not yet checked:** WildGuard's group C, and the test set's group C on either dataset (the reading was on the training pool). A sample of WildGuard group C items should be read before relying on this there.
+- **What it changes:** the objection that SFT, DPO and RL can't reach group C no longer rules them out, since group C isn't the goal. Fixing group A alone would raise override-when-wrong from 38% to about 46% at most.
+
 ## Directions for a new strategy
 
 These are options to weigh, not results. Each targets the blind spots, which the methods so far couldn't reach.

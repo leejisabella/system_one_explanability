@@ -103,7 +103,11 @@ What exists:
 
 **All E.1xx results are summarized in [research_analyses/E1xx_summary](research_analyses/E1xx_summary/README.md).**
 
-**Where Part 2 stands.** SFT, DPO and RL on the reviewer's own outputs all need it to reach the gold label at least sometimes, and the shared blind spots are the items where it never does. A new strategy needs a training signal that doesn't depend on that. Part 2's GPU work so far: about 5.4 hours, roughly $13–22 of education credits.
+**Where Part 2 stands.** SFT, DPO and RL on the reviewer's own outputs all need it to reach the gold label at least sometimes, and the shared blind spots are the items where it never does. A new strategy needs a training signal that doesn't depend on that.
+
+**Working assumption (2026-11-05): those never-solved items are a benchmark ceiling.** They are 45% of Jev's test mistakes (group C). We take them to be largely contested or wrong gold labels, so Part 2 aims at the other 55% and reports group C separately. The evidence is from Civil Comments only (E.105's read); WildGuard's group C is still to be checked. Details are in [the summary](research_analyses/E1xx_summary/README.md#working-assumption-the-never-solved-items-are-a-benchmark-ceiling).
+
+Part 2's GPU work so far: about 5.4 hours, roughly $13–22 of education credits.
 
 Not done yet:
 - **Choose Part 2's next strategy** (back to the drawing board).

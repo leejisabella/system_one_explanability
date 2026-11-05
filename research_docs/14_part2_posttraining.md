@@ -194,6 +194,8 @@ Criterion 5 is the one that makes the result about Jev rather than about accurac
 
 If many blind spots are label noise (low-agreement items), no training fixes them. That should read as a ceiling, not as a failure.
 
+**Adopted after E.107 (2026-11-05):** the items the base never gets right alone (0 of 5; 45% of Jev's test mistakes) are treated as a benchmark ceiling. Later Part 2 methods target the other items and report these separately. This rests on Civil Comments evidence only; WildGuard is still to be checked. See [the E.1xx summary](../research_analyses/E1xx_summary/README.md#working-assumption-the-never-solved-items-are-a-benchmark-ceiling).
+
 ## Runbook
 
 Check in before every live step: E.104, E.105 and the first GPU session.
