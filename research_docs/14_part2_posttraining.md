@@ -122,7 +122,7 @@ Two datasets are exported:
 ### E.106: SFT, serving and evaluation
 
 **Training** (`sysone.posttrain.sft`, `configs/posttrain/sft_{review,plain}.yaml`):
-- LoRA on gpt-oss-20b, following OpenAI's fine-tuning recipe: r 8, alpha 16, every linear layer plus the expert weights of layers 7, 15 and 23.
+- LoRA on gpt-oss-20b, following OpenAI's fine-tuning recipe (r 8, alpha 16, every linear layer), except one part. The recipe also adapts the expert weights of layers 7, 15 and 23, which ran out of memory on one H100 with our library versions (smoke test, 2026-11-04; details in `train_config.py`).
 - Learning rate 2e-4, 1 epoch, effective batch 16, max length 4,096.
 - The loss falls on the reviewer's turn only.
 - Prompts are rendered with gpt-oss's own chat template at reasoning effort medium, as at evaluation.
@@ -214,8 +214,9 @@ git add benchmarks/posttrain && git commit                         # the dataset
 **On the GPU machine** (clone the repo; copy `data/cascade/` and `data/posttrain/`, which are gitignored, or rebuild `data/cascade` with `sysone.cascade.items build`; copy `results/runs/e102-v1-2026-11-04` and `e103-v1-2026-11-04`):
 
 ```bash
-uv sync --group train
-uv run python -m sysone.posttrain.sft --config configs/posttrain/sft_review.yaml --check
+export UV_PYTHON=3.12              # uv may pick a Python that torch has no wheels for yet (3.15 on 2026-11-04)
+uv sync --group train              # afterwards always `uv run --group train`: plain `uv run` re-syncs and removes torch
+uv run --group train python -m sysone.posttrain.sft --config configs/posttrain/sft_review.yaml --check
 # 1. Smoke test: set max_steps: 5 in a copy of sft_review.yaml, train, merge, serve, and send one request
 uv run --group train python -m sysone.posttrain.sft --save-base checkpoints/gpt-oss-20b-base
 uv run --group train python -m sysone.posttrain.sft --config configs/posttrain/sft_review.yaml
@@ -230,6 +231,8 @@ uv run python -m sysone.experiments.e106 --run-id e106-v1-<date> --reviewers bas
 # stop the server; serve checkpoints/gpt-oss-20b-sft-review-merged as gpt-oss-20b-sft-review; --reviewers sft_review
 # then sft_plain the same way. The report (results/runs/e106-v1-<date>/report.md) updates after each.
 ```
+
+**Or all of E.106 in one go:** `scripts/run_e106.sh e106-v1-<date>` (under `nohup`) runs the steps above in order: save base → evaluate base → SFT and merge both arms → evaluate both. It skips finished steps, so after a Spot preemption, restart the VM and run it again.
 
 **Record GPU hours by hand** in the run's manifest or the write-up. The harness counts $0 per token for `local` models: `configs/budget.yaml` gives the `local` provider a $0 project cap, which lets $0 calls through and refuses anything priced. E.106 also caps Bedrock and TypeSafe at a cent, so an evaluation can't spend money by mistake.
 

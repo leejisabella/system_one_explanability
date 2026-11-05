@@ -17,8 +17,11 @@ import yaml
 
 from sysone.registry import REPO_ROOT
 
-# LoRA on gpt-oss-20b as in OpenAI's fine-tuning cookbook (2025): every linear layer, plus the
-# expert weights of three of its 24 layers, which are parameters rather than linear modules.
+# OpenAI's fine-tuning cookbook (2025) also adapts the expert weights of three of gpt-oss's 24 layers,
+# which are parameters rather than linear modules. With peft 0.17 and transformers 4.57 that runs out
+# of memory on one 80 GB H100: every expert lookup rebuilds the layer's full adapted expert tensor
+# (~1 GB) and keeps it for the backward pass (smoke test, 2026-11-04). So LoRA covers every linear
+# layer only; pass these as lora.target_parameters to try the cookbook's version on a larger GPU.
 GPT_OSS_EXPERT_PARAMETERS = [f"{layer}.mlp.experts.{w}" for layer in (7, 15, 23) for w in ("gate_up_proj", "down_proj")]
 METHOD_ARMS = {"sft": ("sft_review", "sft_plain"), "dpo": ("dpo_review",)}
 # A rough characters-per-token ratio for English text with gpt-oss's tokenizer, only for the check.
@@ -31,7 +34,7 @@ class LoraSettings:
     alpha: int = 16
     dropout: float = 0.0
     target_modules: str | list[str] = "all-linear"
-    target_parameters: list[str] = field(default_factory=lambda: list(GPT_OSS_EXPERT_PARAMETERS))
+    target_parameters: list[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
