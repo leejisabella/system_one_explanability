@@ -10,8 +10,11 @@ reasoning_effort: medium        # as the evaluation's requests
 lora: {r: 8, alpha: 16, dropout: 0.0, target_modules: all-linear}   # linear layers only: expert LoRA runs out of memory (train_config.py)
 learning_rate: 2.0e-4
 epochs: 1
-per_device_batch_size: 4
-gradient_accumulation_steps: 4
+# 2 x 8, not the treatment's 4 x 4: at 4 x 4 a batch of long sequences ran out of memory in the
+# loss at step 80 (2026-11-04). Each update is the same 16 examples in the same order, with the loss
+# normalized over the same tokens, so only floating-point rounding differs from the treatment arm.
+per_device_batch_size: 2
+gradient_accumulation_steps: 8
 max_length: 4096
 warmup_ratio: 0.03
 seed: 106
