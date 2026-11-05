@@ -198,7 +198,7 @@ def main() -> None:
         ax.set_xlim(-0.4, 2.6)
         ax.set_title(title, fontsize=9.5)
     axes[0].set_ylabel("% (pooled, 95% interval)")
-    fig.suptitle("DPO undid SFT's extra deference, but didn't get past the base", x=0.01, ha="left",
+    fig.suptitle("DPO landed back near the base on overrides and switching, and no better", x=0.01, ha="left",
                  fontweight="bold", fontsize=11)
     fig.tight_layout()
     save(fig, "fig1_base_sft_dpo.png")

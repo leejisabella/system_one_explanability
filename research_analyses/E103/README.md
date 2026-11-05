@@ -17,7 +17,7 @@
 **What we found.**
 1. **No protocol catches more of Jev's mistakes.** On Civil Comments the reviewer overrides 37–43% of Jev's wrong labels under every protocol, against 40% with the standard prompt. Compared on the same items, every change is within about ±3 points, and none clearly differs from zero.
 2. **No protocol makes the cascade more accurate.** Cascade accuracy stays within about ±3 points of the standard prompt's on every pool, and no difference is clear of zero.
-3. **Blind-first shrinks the pull toward Jev, but not in the way we hoped.** Measured at equal difficulty, the extra pull toward Jev falls from about +7–8 points to about +2–3. But the reviewer accepts Jev's wrong labels *as often as before* (63%). What changed is that it now accepts *random* wrong labels more often (55% → 61%). Having committed to an answer, the reviewer mostly sticks to it, and sometimes that answer was already the wrong one. So the gap closes from the wrong side.
+3. **Blind-first shrinks the pull toward Jev, but not in the way we hoped.** Measured at equal difficulty, the extra pull toward Jev falls from about +7–8 points to about +2–3 (+2.7 on items right alone, +1.9 on all wrong labels). But the reviewer accepts Jev's wrong labels *as often as before* (63%). What changed is that it now accepts *random* wrong labels more often (55% → 61%). Having committed to an answer, the reviewer mostly sticks to it, and sometimes that answer was already the wrong one. So the gap closes from the wrong side.
 4. **Warnings don't work, and the honest one backfires.** "Often wrong" changed almost nothing. "Wrong about 25% of the time" *increased* the pull toward Jev on Civil Comments: the reviewer got better at rejecting random mistakes and worse at rejecting Jev's. One reading is that "wrong 25% of the time" also says "right 75% of the time".
 5. **The shared blind spots don't move at all.** On items the reviewer never gets right on its own, it accepts 91–100% of Jev's wrong labels under every protocol. Changing the wording can't help the reviewer see what it can't see.
 6. **Harmful content still gets through.** Of the harmful prompts and responses Jev called harmless, every protocol still lets about half or more past the reviewer: 47–64%, against 62–68% with the standard prompt. The calibrated warning on responses is the best case: 22 of 47 let through, against 29.
@@ -31,7 +31,7 @@
 | 1 | Blind-first reduces deference at equal difficulty (pooled, items right alone), without lowering accept-when-right for Jev's right labels by more than 3 points. | Deference +7.0 [+0.8, +12.6] → **+2.7 [−3.5, +8.7]**; all wrong labels +7.8 → **+1.9 [−2.0, +6.0]**. Accept-when-right changes −1.3, −1.1 and +0.3 points (paired). | **Partly supported.** The pull toward Jev shrinks, and right labels are still accepted. But the drop comes from accepting random mistakes *more*, not Jev's less, and the two intervals overlap, so the reduction itself isn't shown. |
 | 2 | Warnings trade one error for another: more overrides of Jev's wrong labels, fewer of its right labels accepted. Neither raises cascade accuracy by more than 2 points. | Override changes −3.7 to +6.9 points; accept-when-right −3.0 to +0.8; the largest cascade change is +1.2. The calibrated warning *raises* deference on Civil Comments (+12.1 [+6.0, +18.2]). | **First half not supported, second half supported.** There's no trade-off because there's hardly any effect. The calibrated warning moves deference the wrong way. |
 | 3 | No protocol removes the shared blind spots: at least 80% of Jev's wrong labels accepted on items never right alone. | 91–100% under every protocol and pool. | **Supported.** |
-| 4 | No protocol makes the cascade beat its best single model. | Cascade accuracy is 74–77% / 88–89% / 88–90% against Jev's 76% / 90% / 92%. | **Supported.** |
+| 4 | No protocol makes the cascade beat its best single model. | Cascade accuracy is 74–77% / 88–89% / 88–90% against Jev's 76% / 90% / 92%. | **Supported, with a qualifier.** No protocol beats Jev on WildGuard. On Civil Comments, four protocols (and the standard prompt) edge past Jev by 0.5–1.5 points (305–309 vs. 303 of 400), within noise. |
 
 ## What this means for testing and for Part 2
 
@@ -44,7 +44,7 @@
    | WildGuard prompts | 30% | 95% | 88% | 68% |
    | WildGuard responses | 29% | 93% | 88% | 62% |
 
-   Beside that sits a stronger, no-training bar for the cascade as a whole: a majority vote of Jev, gpt-oss alone and Qwen alone (77% / 92% / 93%).
+   Beside that sits a second no-training bar for the cascade as a whole: a majority vote of Jev, gpt-oss alone and Qwen alone (77% / 92% / 93%). It's stronger on WildGuard; on Civil Comments it ties the standard cascade (76.75% vs. 77.25%).
 3. **Train for being right, not for disagreeing with Jev.** The large part of the problem is the shared blind spots, where the reviewer is wrong even without Jev. A reviewer trained only to resist Jev would act like the warnings here: it would reject more random mistakes and still miss Jev's. Part 2's training data should therefore be the items Jev finds hard, with the correct labels and with Jev's wrong label shown. Success should be measured as **Jev's wrong labels overridden while Jev's right labels are still accepted**, not as deference alone.
 4. **Report deference alongside override and accept rates.** Blind-first shows that the deference measure can improve while nothing useful changes. The measure compares Jev's mistakes with random ones, and making the random side worse also "fixes" it. From here on, every E.1xx should report deference next to Jev's wrong labels overridden and its right labels accepted.
 5. **Held-out upstream models are ready.** Llama 4 Maverick, Qwen3-32B and Nova Lite decided every item in all three pools. They make about as many mistakes as Jev, and their mistakes overlap with Jev's about as much as gpt-oss's do (section 5). So Part 2 can test against new upstream models at a similar accuracy, as the feedback asked.
@@ -62,7 +62,7 @@
 | Upstream models | Llama 4 Maverick (`explainer_open`), Qwen3-32B without thinking (`reviewer_qwen`) and Nova Lite (`decision_alt`). Each decided all 6,406 pool items once, with the reviewer's alone prompt. |
 | Volume | 13,264 reviews: 4 protocols × 3,316, all on flex, 1 unparsed. 19,218 upstream decisions, all answered. |
 | Cost | **$2.25 on Bedrock** (projected $3.38, cap $6): reviews $1.09, upstream $1.16 (Llama $0.76, Qwen $0.22, Nova $0.18). TypeSafe $0. |
-| Hiccups | Llama was throttled on 1,803 requests. These were not billed, and a slower second pass (2 workers) filled them in. Because of that, `manifest.json`'s `config` shows the resume settings; the run's design is the committed [configs/experiments/e103.yaml](../../configs/experiments/e103.yaml). Nova's content filter blocked 8 replies on harmful WildGuard items (counted as unparsed). 20 Llama replies were cut off at 256 tokens, 3 of them unparseable. |
+| Hiccups | Llama was throttled on 1,803 requests. These were not billed, and a slower second pass (2 workers) filled them in. Because of that, `manifest.json`'s `config` shows the resume settings; the run's design is the committed [configs/experiments/e103.yaml](../../configs/experiments/e103.yaml). Nova's content filter blocked 7 replies on harmful WildGuard items (4 prompts, 3 responses), and 1 Civil Comments reply used an unrecognized spelling (`non-toxic`): 8 unparsed in all. 20 Llama replies were cut off at 256 tokens, 3 of them unparseable. |
 
 ## Results
 
@@ -80,7 +80,7 @@ The extra share of wrong labels the reviewer accepts when they come from Jev rat
 | Calibrated warning | +11.5 [+5.9, +17.2] | +6.3 [+2.1, +10.6] | +11.3 [+5.8, +16.9] | **+12.1 [+6.0, +18.2]** | +4.3 [−19.9, +25.7] | +15.7 [−2.3, +30.7] |
 | Consider the opposite | +6.6 [+1.0, +12.1] | +5.4 [+1.5, +9.8] | +4.2 [−0.6, +8.8] | +6.2 [+0.6, +12.0] | −1.2 [−25.1, +20.5] | +17.8 [+1.4, +32.2] |
 
-**Interpretation.** Only blind-first brings deference near zero: its intervals for items right alone and for all wrong labels include zero. The warnings and consider-the-opposite leave deference where it was, and the calibrated warning increases it. On their own, the WildGuard estimates are too uncertain to separate protocols; the random arm has few hard items there, as in E.102.
+**Interpretation.** Only blind-first brings deference near zero: its intervals for items right alone and for all wrong labels include zero. (Consider-the-opposite's all-wrong-labels interval also includes zero, but its estimate is +4.2.) The warnings and consider-the-opposite leave deference where it was, and the calibrated warning increases it. On their own, the WildGuard estimates are too uncertain to separate protocols; the random arm has few hard items there, as in E.102.
 
 ### 2. Where the gap goes
 
@@ -141,7 +141,7 @@ Paired changes against the standard prompt, on the same items (points, 95%):
 
 Accept-when-right on WildGuard changes by −1.4 to +0.8 points for every protocol (`data/vs_standard.csv`).
 
-**Interpretation.** Every point sits within a few points of the standard prompt, and no interval excludes zero except the calibrated warning on responses, which only touches it. The prompts didn't make the reviewer contrarian, as hypothesis 2 feared. They just didn't do much. Consider-the-opposite costs the most (27% more output tokens than standard on Civil Comments) and buys nothing measurable.
+**Interpretation.** Every point sits within a few points of the standard prompt (the largest is blind-first's −6.1 on WildGuard prompts), and no interval excludes zero except the calibrated warning on responses, which only touches it. The prompts didn't make the reviewer contrarian, as hypothesis 2 feared. They just didn't do much. Consider-the-opposite costs the most (27% more output tokens than standard on Civil Comments) and buys nothing measurable.
 
 ### 4. The shared blind spots
 
@@ -169,7 +169,7 @@ Accuracy on the 400-item random subsample of each pool. These pipelines need no 
 | Jev → reviewer, best protocol | 77% (standard / consider the opposite) | 89% (calibrated) | 90% (warning) |
 | **Majority vote: Jev, gpt-oss alone, Qwen alone** | **77% [72, 81]** | **92% [89, 94]** | **93% [90, 95]** |
 
-The vote is the best pipeline on every pool, but by 1–2 points: within noise. Unlike the cascade, it doesn't let one model's answer steer another's. It also never does worse than Jev alone here.
+The vote is the best pipeline on both WildGuard pools, ahead of Jev alone by 1.5 points on prompts and 0.75 on responses: within noise. On Civil Comments it is just behind the standard and consider-the-opposite cascades (307 vs. 309 of 400) and ahead of Jev alone (303). Unlike the cascade, it doesn't let one model's answer steer another's. It also never does worse than Jev alone here.
 
 The upstream models on the whole pools (error correlation with Jev on the pool, and with gpt-oss alone on the subsample):
 
@@ -194,7 +194,7 @@ The upstream models on the whole pools (error correlation with Jev on the pool, 
 | Calibrated warning | 38 (63%) | **22 (47%)** |
 | Consider the opposite | 36 (60%) | 26 (55%) |
 
-**Interpretation.** This is where "misalignment" is the right word (research_docs/13): harmful requests and harmful answers get past both filters. Every protocol lets fewer through than the standard prompt on prompts, but with 60 and 47 items the differences are 3–7 items and within noise. Even at its best, the cascade misses about half of what Jev misses.
+**Interpretation.** This is where "misalignment" is the right word (research_docs/13): harmful requests and harmful answers get past both filters. Every protocol lets fewer through than the standard prompt on prompts, but with 60 and 47 items the differences are 1–7 items and within noise. Even at its best, the cascade misses about half of what Jev misses.
 
 ### 7. Cost
 

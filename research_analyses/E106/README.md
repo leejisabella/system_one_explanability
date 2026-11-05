@@ -25,8 +25,8 @@
    On random wrong labels the rate doesn't move: 7%, 6% and 8%. So training made the reviewer more willing to go along with Jev specifically on the hard, plausible cases.
 4. **Alone, the reviewer barely changed.** Deciding alone, all three models agree with Jev about equally often (81%, 80%, 81%) and are about equally accurate (70%, 71%, 71%). The change shows up only when a proposal is on the table.
 5. **The shared blind spots got slightly worse.** On items the base never gets right alone, the base accepts 92% of Jev's wrong labels. The treatment arm accepts 94% and the control 96%.
-6. **Showing Jev's proposal in training made no difference.** The two arms differ by less than a point on everything: overrides of Jev's mistakes −0.6 [−3.0, +2.0], acceptance of its right labels −0.4. So the shift isn't something the reviewer learned from seeing Jev's proposals. It comes from fine-tuning on this data at all.
-7. **The training loss barely moved,** from about 1.0 to 0.97–0.99. The validation loss after a full epoch (0.897) equals its value after 5 steps in the smoke test (0.899). The model was trained mostly on reasoning it already writes, so little changed.
+6. **Showing Jev's proposal in training made no difference.** The two arms differ by less than a point on the headline rates (overrides of Jev's mistakes −0.6 [−3.0, +2.0], acceptance of its right labels −0.4), and by 1–2 points, within noise, on the rest (blind spots 94% vs. 96%, deference +6.0 vs. +7.5). So the shift isn't something the reviewer learned from seeing Jev's proposals. It comes from fine-tuning on this data at all.
+7. **The training loss barely moved.** The logged loss went from 1.04 to 0.99 (treatment) and from 1.01 to 1.02 (control), with epoch averages of 0.98 and 0.975. The treatment's validation loss after a full epoch (0.897) is about what it was after 5 steps in the smoke test (0.899). The model was trained mostly on reasoning it already writes, so little changed.
 
 **An analogy.** We gave the senior doctor a refresher course built from their own best write-ups of cases they had already solved. Afterwards they were a little more inclined to sign off on the junior's diagnosis, whether right or wrong. On the hard cases where they would have caught the junior's mistake on their own, they now let it through slightly more often. The cases they could never solve weren't in the course, because no one could write a correct answer for them.
 
@@ -63,7 +63,7 @@ Fixed in [research_docs/14](../../research_docs/14_part2_posttraining.md#pre-reg
 
 ### The base on our GPU vs. the same model on Bedrock
 
-The untrained base, served by vLLM in bf16, was re-measured so that every comparison is on the same stack. It lands within 1–3 points of E.102's Bedrock reviewer, inside every interval:
+The untrained base, served by vLLM in bf16, was re-measured so that every comparison is on the same stack. It lands within 0–3 points of E.102's Bedrock reviewer. Every Bedrock value but one falls inside the GPU run's 95% interval; the exception is Bedrock's 95.3% on WildGuard prompts, just above the GPU interval's upper bound of 95.0%:
 
 | Pool | Jev's wrong overridden: GPU / Bedrock | Jev's right accepted | Cascade accuracy |
 |---|---|---|---|
@@ -145,7 +145,7 @@ The two validation losses come from different validation files, one per format, 
 
 | | |
 |---|---|
-| Run | `e106-v1-2026-11-04`. Base evaluated at commit `f43a747`, the trained arms at `bb57a8b`, both clean. The only change in between is the control arm's batch shape (below). GPU times 03:09–06:31 UTC on 2026-11-05 (19:09–22:31 Pacific, 2026-11-04) |
+| Run | `e106-v1-2026-11-04`. Base evaluated at commit `f43a747`, the trained arms at `bb57a8b`, both clean. The treatment arm was trained at `f43a747` and the control arm at `bb57a8b`. The only change in between is the control arm's batch shape (below). GPU times 03:09–06:31 UTC on 2026-11-05 (19:09–22:31 Pacific, 2026-11-04) |
 | Hardware | GCP `a3-highgpu-1g` (1× H100 80GB), Spot, `us-central1-a`, project `cs-329x-510703` (education credits; VM deleted 2026-11-05, adapters kept locally in `checkpoints/`). Deep Learning VM image `common-cu129-ubuntu-2204-nvidia-580`; torch 2.9.1, transformers 4.57.6, TRL 0.23.1, PEFT 0.17.1, vLLM 0.33.0 |
 | Base | `openai/gpt-oss-20b`, dequantized from MXFP4 to bf16 and saved (`checkpoints/gpt-oss-20b-base`); served in bf16 like the trained models |
 | Training | LoRA r 8, alpha 16, dropout 0, on every linear layer. Learning rate 2e-4, cosine schedule to 10%, 3% warmup, 1 epoch, 16 examples per update, max length 4,096, loss on the reviewer's turn only, seed 106. Prompts are rendered with gpt-oss's chat template at reasoning effort medium |

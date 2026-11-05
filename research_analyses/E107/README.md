@@ -1,7 +1,7 @@
 # E.107: DPO on the reviewer's own right vs. wrong reasoning
 
 **Status:** done 2026-11-05. It was evaluated inside E.106's run (`e106-v1-2026-11-04`, reviewer `dpo_review`) and used about 1.2 GPU hours on the Spot H100, roughly $3–5 of credits. **Answer: it didn't work either.**
-- DPO undid most of the extra deference that E.106's SFT had added, bringing the reviewer back to the untrained base's level.
+- On the main rates, DPO landed back near the untrained base: it overrides Jev's mistakes as often as the base, and switches to Jev's wrong label only a little more. Whether it reduced deference depends on the measure: the switching rate fell back toward the base, but deference at equal difficulty is the highest of any model (+7.8 points).
 - It got no further: it catches no more of Jev's mistakes than the base, and the shared blind spots don't move.
 - It fails all five pre-registered criteria.
 
@@ -17,17 +17,20 @@
    - the base: 37.6%;
    - its SFT starting point: 35.6%.
 
-   Compared with its starting point, that's +1.9 points [−0.9, +4.6]. It recovered what SFT lost, but no more.
-2. **The extra deference from SFT mostly went away.** On items the reviewer gets right alone, it switches to Jev's wrong label 27% of the time: the base 25%, the SFT treatment 32%. On random wrong labels it stays at 6%.
+   Compared with its starting point, that's +1.9 points [−0.9, +4.6]. It's back at the base's level, but no higher. (SFT's own drop, −2.0, was itself within noise.)
+2. **On deference, the two measures disagree.**
+   - **Switching** fell back toward the base. On items the reviewer gets right alone, it switches to Jev's wrong label 27% of the time: the base 25%, the SFT treatment 32%. On random wrong labels it stays at 6%.
+   - **Deference at equal difficulty** went the other way: +7.8 points [+1.6, +13.7], against the base's +4.8 and SFT's +6.0. DPO accepts Jev's wrong labels at about the base's rate, but accepts *random* wrong labels less often at the same difficulty (14% against 17%), and that widens the gap this measure looks at.
+   - **So DPO doesn't clearly reduce deference.** None of these changes is clear of noise.
 3. **It accepts Jev's right labels more** (+3.5 points [+1.8, +5.1] over the base). That brings the cascade level with Jev alone (−0.2 points [−2.2, +1.7]), but not above it. The reviewer still adds nothing that Jev doesn't already get right.
 4. **The shared blind spots don't move.** On items the base never gets right alone, it accepts 93% of Jev's wrong labels: the base 92%, SFT 94%.
 5. **Some movement on WildGuard, none on Civil Comments.** Overrides of Jev's mistakes rose 2.4 points on WildGuard prompts and 3.5 on responses (both inside their intervals), and fell 1.3 on Civil Comments. More harmful prompts that Jev called harmless got through: 73% (44/60), against the base's 63% (38/60).
 6. **DPO barely learned its own objective.**
    - Its training loss stayed at about 0.69, which is ln 2: the value of a model with no preference.
    - On the 64 held-out pairs, it rated the right answer above the wrong one 61% of the time; 50% is chance.
-   - The two answers in a pair are long (about 650 log-likelihood units each) and nearly the same, differing in a few reasoning steps and the verdict. One pass over 1,019 pairs with a small adapter doesn't separate them.
+   - The two answers in a pair are long (summed log-likelihoods of about −650 to −770 each) and nearly the same, differing in a few reasoning steps and the verdict. One pass over 1,019 pairs with a small adapter doesn't separate them.
 
-**An analogy.** After the refresher course (E.106) made the senior doctor a bit more inclined to sign off on the junior's diagnoses, we showed them pairs of their own past write-ups on the same case: one that got it right, one that didn't. That took away most of the new habit of signing off. But on the cases they never get right, there was no good write-up to show them, so those stayed the same.
+**An analogy.** After the refresher course (E.106) made the senior doctor a bit more inclined to sign off on the junior's diagnoses, we showed them pairs of their own past write-ups on the same case: one that got it right, one that didn't. Their sign-off rate went back to about where it had been, but no lower. On the cases they never get right, there was no good write-up to show them, so those stayed the same.
 
 ## The pre-registered criteria
 
@@ -43,7 +46,7 @@ The rules are the same as E.106's ([research_docs/14](../../research_docs/14_par
 
 ## What this means for Part 2
 
-1. **Neither SFT nor DPO teaches the reviewer to catch Jev's mistakes.** At best, DPO cancels the side effect SFT introduced.
+1. **Neither SFT nor DPO teaches the reviewer to catch Jev's mistakes.** At best, DPO brings the reviewer back near where it started.
 2. **Both share one limit, built into how the data is made.**
    - SFT needs a correct trace from the model, and DPO needs a correct trace paired with a wrong one.
    - On the shared blind spots, the items the reviewer never gets right, neither kind of data exists, so both methods leave those items untouched.
@@ -70,7 +73,7 @@ The rules are the same as E.106's ([research_docs/14](../../research_docs/14_par
 | Its SFT starting point | +1.9 [−0.9, +4.6] | +1.2 [−0.4, +2.7] | – |
 | The SFT control | +1.3 [−1.2, +3.9] | +0.8 [−0.8, +2.2] | – |
 
-Switching (items the reviewer gets right alone, unpaired bootstrap against the base): DPO +2.5 points [−3.8, +8.6], against SFT treatment's +7.2 [+0.9, +13.6]. On random wrong labels: 6.2%, against the base's 6.7%. Deference at equal difficulty: +7.8 [+1.6, +13.7], against the base's +4.8. That measure and the switching rate move differently here, and both intervals are wide.
+Switching (items the reviewer gets right alone, unpaired bootstrap against the base): DPO +2.5 points [−3.8, +8.6], against SFT treatment's +7.2 [+0.9, +13.6]. On random wrong labels: 6.2%, against the base's 6.7%. Deference at equal difficulty: +7.8 [+1.6, +13.7], against the base's +4.8. That measure and the switching rate move differently here (see finding 2), and both intervals are wide.
 
 ### By pool
 
@@ -101,7 +104,7 @@ Alone, DPO is like the others: it agrees with Jev on 80.8% of items, is 71.3% ac
 | Data | `part2_all_v1/dpo_review`: 1,019 training pairs (591 Jev wrong, 428 Jev right) and 64 validation pairs, all on-policy pairs of gpt-oss-20b's own traces from E.105 |
 | Settings | LoRA r 8, alpha 16, linear layers only (as E.106). β 0.1, learning rate 5e-5 with 10% warmup, 1 epoch, 1 pair × 16 accumulation steps, max length 4,096, seed 107 |
 | Hardware | The same GCP Spot H100 VM as E.106 |
-| Evaluation | As E.106: 7,758 reviews, 0 parse failures. Compared with E.106's base and SFT arms in the same run |
+| Evaluation | As E.106: 7,758 reviews, 1 parse failure. Compared with E.106's base and SFT arms in the same run |
 
 **Changed from the plan before the run:**
 - **Learning rate 5e-5, not 5e-6.** One epoch is only 64 updates, and E.106's SFT barely moved at 2e-4. The change was decided with the user before E.107 ran (2026-11-05); the criteria are unchanged.
@@ -111,7 +114,7 @@ Alone, DPO is like the others: it agrees with Jev on 80.8% of items, is 71.3% ac
 
 - **One configuration, one seed,** and DPO's own loss barely moved. This shows that DPO at this scale doesn't work. It doesn't show that DPO can't.
 - **DPO started from the SFT treatment model, as planned.** Starting from the base might have landed differently. But SFT barely changed the model alone, and the pairs come from the base's own traces.
-- **The per-pool differences are small** (2–4 points, on 144–750 items), and all their intervals include zero.
+- **The per-pool changes in overrides are small** (1–4 points, on 144–750 items), and all their intervals include zero. The rises in accept-when-right are clear in every pool.
 - **The cost is estimated** from uptime: 1 h 13 min, including about 17 minutes the VM sat idle after the run finished.
 
 ## Reproduce

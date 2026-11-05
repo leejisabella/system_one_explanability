@@ -10,7 +10,7 @@
 1. **The reviewer goes along with Jev's mistakes far more often than random ones.** On Civil Comments it accepts 60% of Jev's wrong labels and 22% of the random wrong labels. On WildGuard it lets through about two thirds of the harmful content Jev missed, but only about a tenth of the harmful content a random error missed.
 2. **The main reason: Jev and the reviewer have the same blind spots.** Jev's mistakes land on the items the reviewer *also* gets wrong when it decides on its own, with no Jev in sight. On Civil Comments, 39% of Jev's mistakes are on items the reviewer gets wrong every single time alone; only 11% of the random mistakes are. You can't "talk someone into" a mistake they were going to make anyway, and most of the effect is exactly that.
 3. **There is also some real swaying.** When we compare items the reviewer finds *equally hard*, it still accepts Jev's wrong labels somewhat more often than random wrong labels: about **7 points more** across all three datasets (95% interval +0.8 to +12.6). That is deference in the strict sense: seeing Jev's answer pulls the reviewer toward it, beyond what the item's difficulty explains.
-4. **The cascade doesn't make better decisions than its best single model.** Jev followed by the reviewer is about as accurate as Jev alone on Civil Comments (77% vs. 76%), and worse on WildGuard (88% vs. 90–92%). It costs 2.6–4.6 times as much as Jev alone and is 15–25 times slower.
+4. **The cascade doesn't make better decisions than its best single model.** Jev followed by the reviewer is about as accurate as Jev alone on Civil Comments (77% vs. 76%), and worse on WildGuard (88% vs. 90–92%). It costs 2.6–4.6 times as much as Jev alone and is 15–24 times slower.
 
 **An analogy.** A junior doctor makes a diagnosis and a senior doctor reviews it. If the senior doctor agrees with the junior's mistakes, there are two very different reasons it could happen. Either the senior would have made the same mistake on those patients anyway (the cases are genuinely hard, or both were trained the same way), or the senior was swayed by the junior's opinion. E.102 finds mostly the first, plus some of the second.
 
@@ -20,7 +20,7 @@
 |---|---|---|---|
 | 1 | **Primary.** On Civil Comments, the reviewer accepts Jev's wrong labels more often than random ones, on items it gets right alone (the flip rate). | 19% (52/270) vs. 7% (42/576): **+12 points [+7, +17]** | **Supported as written, but the test was weaker than intended.** Even among items the reviewer gets right alone, Jev's mistakes are on harder ones: only half are items it gets right 5 of 5 times, against 80% for random mistakes. Compared at exactly the same difficulty, Civil Comments alone shows +3.6 points [−2.6, +9.9]: not significant. |
 | 2 | Same for the strict flip rate (right 5 of 5 alone) and within each difficulty level. | Civil Comments strict: 6% vs. 2%, +3.5 points [−0.4, +8.0]. Pooled over the three datasets: **+5.4 [+1.4, +9.6]**. | **Partly supported:** borderline on one dataset, clear when the three are pooled. |
-| 3 | Error overlap. If all three model pairs have similar error correlation, the overlap is about the items; if one pair stands out, those two share something. | All pairs are strongly correlated (0.41–0.71). Pairs that include Jev are higher than gpt-oss–Qwen on all three datasets (significant on all three). On Civil Comments, Jev–Qwen (0.69) stands out above both other pairs. | **Both, not either.** Much of the overlap is about the items: every model fails on the same hard ones. On top of that, Jev shares *more* errors with each of the others than they share with each other. |
+| 3 | Error overlap. If all three model pairs have similar error correlation, the overlap is about the items; if one pair stands out, those two share something. | All pairs are strongly correlated (0.41–0.71). Pairs that include Jev are higher than gpt-oss–Qwen on all three datasets. At least one Jev pair is significantly higher on each, and both are on responses. On Civil Comments, Jev–Qwen (0.69) stands out above both other pairs. | **Both, not either.** Much of the overlap is about the items: every model fails on the same hard ones. On top of that, Jev shares *more* errors with each of the others than they share with each other. |
 | 4 | Safety. Harmful items Jev passes get through review more often than harmful items random errors pass. | Prompts: 41 of 60 (68%) vs. 5 of 60 (8%). Responses: 29 of 47 (62%) vs. 5 of 47 (11%). | **Supported**, strongly. This is the raw comparison, so like hypothesis 1 it includes the shared-blind-spot effect. |
 
 **The pooled difficulty-matched estimate (+7 points) wasn't pre-registered.** I added it after seeing that the raw flip rate mixes difficulty into the comparison. The method is standard (direct standardization), and the estimator has its own test ([tests/test_e102.py](../../tests/test_e102.py)). From now on it should be the pre-registered primary measure.
@@ -55,7 +55,7 @@
 
 | Pool | Items | Jev wrong | Missed (should have flagged) | Over-flagged | Where Jev errs most |
 |---|---|---|---|---|---|
-| Civil Comments | 3,000 | 750 (25%) | 441 of 1,500 toxic | 309 of 1,500 non-toxic | Low annotator agreement 35% vs. high 19%; identity mentioned 28% vs. not 22% |
+| Civil Comments | 3,000 | 750 (25%) | 439 of 1,500 toxic | 311 of 1,500 non-toxic | Low annotator agreement 35% vs. high 19%; identity mentioned 28% vs. not 22% |
 | WildGuard prompts | 1,699 | 164 (10%) | 60 of 754 harmful | 104 of 945 harmless | Adversarial 15% vs. vanilla 5%; low agreement 19% vs. high 5% |
 | WildGuard responses | 1,707 | 144 (8%) | 47 of 283 harmful (17%) | 97 of 1,424 harmless | Compliant responses 12% vs. refusals 1%; adversarial 12% vs. vanilla 5% |
 
@@ -139,11 +139,11 @@ Differences that exclude 0 (paired bootstrap, `data/error_correlation_difference
 - WildGuard prompts: Jev–gpt-oss is above gpt-oss–Qwen (+0.18).
 - WildGuard responses: both Jev pairs are above gpt-oss–Qwen (+0.18 and +0.20).
 
-The pattern holds on items the annotators agreed on (`phi_high_agreement` in `data/error_correlation.csv`).
+The pattern holds on items the annotators agreed on (`phi_high_agreement` in `data/error_correlation.csv`), except one pair: on high-agreement WildGuard prompts, Jev–Qwen (0.46) falls just below gpt-oss–Qwen (0.49).
 
 **Interpretation, plainly.**
 - **All three models stumble on many of the same items.** That's the shared-difficulty part, and it's large.
-- **Jev is the hub.** It shares more mistakes with each of the other two than they share with each other. One reading: Jev makes the "typical" mistakes, the ones most models make, while gpt-oss and Qwen each add mistakes of their own.
+- **Jev is the hub.** By point estimate, it shares more mistakes with each of the other two than they share with each other. In each dataset at least one of those differences is significant. One reading: Jev makes the "typical" mistakes, the ones most models make, while gpt-oss and Qwen each add mistakes of their own.
 - **On Civil Comments, Jev and Qwen are especially alike.** That fits two explanations that E.102 can't tell apart:
   - Jev is related to Qwen. TypeSafe's "Jev boost" training sets were embedded with a Qwen model.
   - Jev and Qwen-without-thinking are both quick, non-reasoning deciders, while gpt-oss reasons first.
@@ -174,7 +174,7 @@ Accuracy on the random subsample (400 items per pool), with cost and latency per
 | Jev, then reviewer on everything | **77%** | $0.000102, 1.72 s | 88% | $0.000082, 1.10 s | 88% | $0.000111, 1.16 s |
 | Qwen alone (reference) | 74% | $0.000023, 0.26 s | 88% | $0.000032, 0.24 s | 90% | $0.000057, 0.28 s |
 
-All accuracies within a pool are within each other's 95% intervals (`data/pipelines.csv`). The cascade never clearly beats its best single model, costs 2.6–4.6 times as much as Jev alone and is 15–25 times slower.
+On Civil Comments and WildGuard prompts, all accuracies are within each other's 95% intervals (`data/pipelines.csv`). On WildGuard responses, the cascade (88%, 353/400) is clearly below Jev alone (92.5%, 370/400). The cascade never clearly beats its best single model, costs 2.6–4.6 times as much as Jev alone and is 15–24 times slower.
 
 ## Caveats
 
@@ -183,7 +183,7 @@ All accuracies within a pool are within each other's 95% intervals (`data/pipeli
 - **One reviewer, one reference.** Qwen doesn't reason on Bedrock, so "Jev–Qwen overlap" can't be split into family vs. not reasoning.
 - **WildGuard's difficulty-matched estimates are uncertain.** The random arm has very few hard items there: 3–11 per level below 3 of 5. That's why the WildGuard intervals in section 4 are wide.
 - **Binary tasks.** Each item has one wrong label, so Jev's and a random error on the same item are identical. Every difference is about *which* items are wrong.
-- **Label noise.** 1,126 of the 3,000 Civil Comments items have low annotator agreement. The overlap pattern holds on high-agreement items too.
+- **Label noise.** 1,126 of the 3,000 Civil Comments items have low annotator agreement. The overlap pattern holds on high-agreement items too, with one exception on WildGuard prompts (see section 5).
 - **Labels only.** The reviewer never sees a rationale from Jev (Jev gives none).
 
 ## Reproduce

@@ -15,7 +15,7 @@ E.101 asks Part 1 of the refined direction ([research_docs/13](../../research_do
 - **Real deference, measured against the reviewer alone, is smaller and not yet settled.** On items the reviewer gets right alone, it still accepts 20% of Jev's wrong labels (5 of 25) against 11% of the matched random ones (7 of 66). That's +9 points, with a 95% interval from −7 to +26. Holding the reviewer's difficulty fixed, the direction holds but each cell is small. For example, on items the reviewer gets right 3 of 3 times, it accepts 19% of Jev's wrong labels vs. 7% of random ones ([Figure 2](#2-holding-difficulty-fixed)).
 - **In the safety domain, this means harmful prompts get through.** On WildGuard, Jev passed 12 harmful prompts and the reviewer let 7 of them through. When the random arm passed 12 harmful prompts, the reviewer caught all 12.
 - **The cascade doesn't pay off here.**
-  - Reviewing a proposal takes 25–45% *more* reasoning tokens than deciding alone, so the first version of the cost claim fails ([Figure 4](#4-reviewing-costs-more-than-deciding)).
+  - Reviewing a proposal takes 22–46% *more* reasoning tokens than deciding alone, so the first version of the cost claim fails ([Figure 4](#4-reviewing-costs-more-than-deciding)).
   - On these prices Jev is not much cheaper than the reviewer: 22–28 vs. 44–59 millionths of a dollar per item.
   - Jev *is* about 15 times faster (0.07 s vs. about 1.1 s).
   - Reviewing only Jev's low-confidence cases never beats the better of the two models on its own, at any threshold ([Figure 5](#5-pipelines-accuracy-cost-and-latency)).
@@ -27,7 +27,7 @@ E.101 asks Part 1 of the refined direction ([research_docs/13](../../research_do
 | | |
 |---|---|
 | Run | `e101-v1-2026-11-04`, commit `8716b2d` (clean), completed 2026-11-04 06:20–06:37 UTC |
-| Samples | `wildguard_prompt_v1` (WildGuardTest, prompt harmfulness, 75 per cell of adversarial × label; sha256 `60609531be48…`) and `civil_toxicity_v1` (Civil Comments with identity annotations, toxicity ≥ 0.5, 75 per cell of identity × label; Jigsaw test-set comments only, none in the train split that Jev may have been trained on; sha256 `830ae78022cc…`). Built by `sysone.cascade.items`; see [research_docs/13](../../research_docs/13_cascade_deference.md#datasets-all-e1xx-experiments). |
+| Samples | `wildguard_prompt_v1` (WildGuardTest, prompt harmfulness, 75 per cell of adversarial × label; sha256 `783e3b54eba4…`) and `civil_toxicity_v1` (Civil Comments with identity annotations, toxicity ≥ 0.5, 75 per cell of identity × label; Jigsaw test-set comments only, none in the train split that Jev may have been trained on; sha256 `d99d5dfb5898…`). Built by `sysone.cascade.items`; see [research_docs/13](../../research_docs/13_cascade_deference.md#datasets-all-e1xx-experiments). |
 | Jev | `jev-1.14.0` (via `jev-latest`), 3 samples per item with rotated option order. Its decision is the label with the highest mean probability, and its confidence is that probability. |
 | Reviewer | gpt-oss-20b (OpenAI, open-weight), Bedrock us-east-2, flex tier, reasoning effort `medium`, 4,096 reasoning tokens allowed |
 | Conditions | `alone` (3 samples); `jev_label`, `jev_conf`; `matched_label`, `matched_conf`; `flip_p10`, `flip_p20`, `flip_p35` (1 review each per item). The reviewer is told the proposal comes from "an automated moderation model", and nothing about its accuracy. |
@@ -136,7 +136,7 @@ Flip rate, the main measure (wrong proposals accepted on items the reviewer gets
 | Civil Comments | 313 | 415 | 447 | 456 | 456 | 413 / 423 / 450 |
 | WildGuard | 190 | 232 | 250 | 243 | 243 | 244 / 238 / 247 |
 
-**Interpretation.** The first version of the cost claim says reviewing a proposed answer takes much less reasoning than deciding from scratch. It is **refuted for this reviewer**: a proposal adds 25–45% more reasoning. The reviewer seems to reason about the item *and* about the proposal. Reasoning is slightly shorter when the proposal is Jev's than when it is random (415 vs. 456 on Civil Comments). That fits Jev's proposals being the ones the reviewer already agrees with.
+**Interpretation.** The first version of the cost claim says reviewing a proposed answer takes much less reasoning than deciding from scratch. It is **refuted for this reviewer**: a proposal adds 22–46% more reasoning. The reviewer seems to reason about the item *and* about the proposal. Reasoning is slightly shorter when the proposal is Jev's than when it is random (415 vs. 456 on Civil Comments). That fits Jev's proposals being the ones the reviewer already agrees with.
 
 ### 5. Pipelines: accuracy, cost and latency
 
@@ -195,12 +195,12 @@ When random errors propose letting a harmful prompt through, the reviewer catche
 - **Binary tasks.** A random error and Jev's error on the same item are the same label. Jev-vs-random differences here are entirely about *which* items are wrong, never *which* wrong label.
 - **Jev is the mean of 3 rotated samples.** A production filter calls once. Jev's samples agreed on 98% of items, so the difference is small.
 - **Balanced samples.** 50% harmful or toxic, far above production base rates. Error rates and pipeline accuracies would shift at real base rates, though the overlap result shouldn't.
-- **Civil Comments labels are noisy.** 95 of the 150 toxic items have low annotator agreement (toxicity 0.3–0.7). Every result above was also checked on high-agreement items.
+- **Civil Comments labels are noisy.** 97 of the 150 toxic items have low annotator agreement (toxicity 0.3–0.7). Every result above was also checked on high-agreement items.
 - **Only labels, never rationales.** Jev gives no rationale. Whether fluent rationales increase deference is a later E.1xx.
 
 ## What this means for E.102
 
-1. **Civil Comments carries Part 1.** Measuring residual deference, say 20% vs. 10%, takes about 200 eligible items per arm. At E.101's yield (25 per 300 items) that's about 2,400 Civil Comments items if sampled blind. A cheaper design: screen a large pool with Jev alone (about $0.02 per 300 items, at one sample each), then review all of Jev's errors where the reviewer has a chance, plus a random sample for the matched arm and the baseline.
+1. **Civil Comments carries Part 1.** Measuring residual deference, say 20% vs. 10%, takes about 200 eligible items per arm. At E.101's yield (25 per 300 items) that's about 2,400 Civil Comments items if sampled blind. A cheaper design: screen a large pool with Jev alone (about $0.02 per 300 items at three samples each, under a cent at one), then review all of Jev's errors where the reviewer has a chance, plus a random sample for the matched arm and the baseline.
 2. **Separate difficulty from shared bias with a second reviewer** from a different family at similar accuracy. An open-weight Qwen3-32B or Llama would do. If its errors overlap with Jev's less than gpt-oss's do, the overlap is shared bias, which is the most novel result available here.
 3. **WildGuard needs a sample where Jev makes errors.** Either oversample adversarial and low-agreement prompts (where Jev's error rate is 12–16%), or switch to the response-harmfulness view earmarked in research_docs/13. Section 6 is the reason to keep it.
 4. **Report the trade-off chart (Figure 3) for every condition**, and the overlap table (section 1) for every reviewer. Those two numbers are what Part 2 has to move.
