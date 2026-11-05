@@ -1,6 +1,6 @@
 # Project Status — start here
 
-Last updated: 2026-11-04 (E.101–E.103 cascade experiments done on branch `e101-cascade-deference`; Part 2 waits for a GPU). Before that, 2026-10-28 (Pilot 0 passes on refund_v1; preflight passed; Pilot 1 ready, with Llama replacing the blocked Claude explainer). Read this first when picking the project back up.
+Last updated: 2026-11-04 (E.101–E.103 cascade experiments done on branch `e101-cascade-deference`; E.104–E.105, Part 2's training data, done on `e104-part2-posttraining`; training waits for a GPU). Before that, 2026-10-28 (Pilot 0 passes on refund_v1; preflight passed; Pilot 1 ready, with Llama replacing the blocked Claude explainer). Read this first when picking the project back up.
 
 ## In one paragraph
 
@@ -49,7 +49,7 @@ In plain terms:
 - Part 2 should train the reviewer to be *right* on the items Jev finds hard, not just to disagree with Jev, and should report deference next to override and accept rates, since deference can improve while nothing useful changes.
 - Part 2 (E.104 on, post-training gpt-oss-20b) waits for a GPU.
 
-## Part 2: post-training the reviewer (E.104–E.108, built 2026-11-04, not run)
+## Part 2: post-training the reviewer (E.104–E.108, built 2026-11-04; E.104–E.105 ran)
 
 On branch `e104-part2-posttraining`, which merges after `e101-cascade-deference`. The design, the pre-registered success criteria and the step-by-step runbook are in [research_docs/14](research_docs/14_part2_posttraining.md).
 
@@ -70,9 +70,21 @@ What exists:
 - **A preflight** (`scripts/preflight_part2.py`).
 - **Tests:** offline, in `tests/test_part2.py`. Dry runs of E.104 → E.105 → `--check` and of the evaluation pass on the real pools and the real E.102 and E.103 runs.
 
+**E.104 and E.105 ran 2026-11-04** (`e104-v1-2026-11-04`, $1.47 TypeSafe; `e105-v1-2026-11-04`, $2.76 Bedrock; write-up in [research_analyses/E104_E105/](research_analyses/E104_E105/README.md)).
+- **Jev's mistake rates on the training pools match the test pools:** 24.5% / 7.5% / 5.9%, against 25.0% / 9.7% / 8.4%. There's no sign of contamination beyond a possible small overlap on WildGuard.
+- **Datasets:**
+  - `part2_all_v1`: 6,592 SFT examples per arm, plus 1,019 DPO pairs;
+  - `part2_no_responses_v1`: 5,604 SFT examples per arm, plus 900 DPO pairs.
+  - All five training configs pass `--check`. The teacher wrote only 2–3% of the traces.
+- **Half of Jev's mistakes dropped out**, because no model reached the gold label in 12 tries (35% of them), or only one arm did. So they are 15% of the SFT examples, not the planned 25%.
+- **On Civil Comments the dropped items look like label disagreements, not blind spots:**
+  - the models were unanimous on every one of them;
+  - 71% are labeled non-toxic but the models call them toxic;
+  - in a 30-item reading, half had a doubtful gold label and none was a clear model miss.
+- **Decision (2026-11-04): train as-is.** E.106 should watch accept-when-right first, because the reviewer could learn to agree with Jev. Criterion 2's Civil target may be hard to reach for the same label reason.
+
 Not done yet:
-- **No live run.** E.104 would cost about $1.4 TypeSafe and E.105 about $3–4 Bedrock (estimates).
-- **The GPU scripts have never run on a GPU.** The first session starts with the smoke test in the runbook.
+- **The GPU scripts have never run on a GPU.** The first session starts with the smoke test in the runbook (research_docs/14), then E.106.
 
 ## What exists
 

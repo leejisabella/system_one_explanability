@@ -1,0 +1,10 @@
+pool,group,items,solved_in_some_format,never_solved,never_solved_share
+civil_toxicity_train_v1,alone,1357,1327,30,0.0221
+civil_toxicity_train_v1,jev_right,2714,2673,41,0.0151
+civil_toxicity_train_v1,jev_wrong,1357,881,476,0.3508
+wildguard_prompt_train_v1,alone,373,368,5,0.0134
+wildguard_prompt_train_v1,jev_right,746,737,9,0.0121
+wildguard_prompt_train_v1,jev_wrong,373,264,109,0.2922
+wildguard_response_train_v1,alone,295,293,2,0.0068
+wildguard_response_train_v1,jev_right,590,587,3,0.0051
+wildguard_response_train_v1,jev_wrong,295,188,107,0.3627
