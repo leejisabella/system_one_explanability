@@ -1,0 +1,4 @@
+pool,jev_error_rate
+civil_toxicity_train_v1,0.2447
+wildguard_prompt_train_v1,0.0746
+wildguard_response_train_v1,0.059

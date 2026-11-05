@@ -1,7 +1,8 @@
 # 14. Part 2: post-training the reviewer to be robust to Jev's errors (E.104–E.108)
 
-**Status (2026-11-04): built and tested offline; nothing has run live.**
-- The training pools are frozen.
+**Status (2026-11-04): E.104 and E.105 ran; the datasets are exported and checked.**
+- Results: [research_analyses/E104_E105](../research_analyses/E104_E105/README.md).
+- Decision: train on the datasets as exported (see [What E.105 produced](#what-e105-produced-2026-11-04)).
 - Every runner, the evaluation and the analysis pass end-to-end dry runs on the real pools and on the real E.102 and E.103 runs.
 - The GPU scripts (training, merging, serving) have **not** run on a GPU yet. The first GPU session starts with the smoke test in the [runbook](#runbook).
 
@@ -105,6 +106,18 @@ Two datasets are exported:
 **The records** (`sysone.posttrain.formats`) are TRL conversational records. The prompt is built by the same `Reviewer` code as the evaluation prompts, so a test prompt is byte-identical to the training prompts of its kind (a test checks this). The completion is one assistant turn:
 - `thinking`: the trace, which gpt-oss's chat template renders into its analysis channel;
 - `content`: the canonical JSON answer.
+
+#### What E.105 produced (2026-11-04)
+
+- **Datasets:** `part2_all_v1` has 6,592 SFT examples per arm and 1,019 DPO pairs; `part2_no_responses_v1` has 5,604 and 900.
+- **Jev's mistakes are underrepresented:** they are 15% of the SFT examples, not the planned 25%.
+  - 35% of them never reached the gold label in any try, by the reviewer or the teacher.
+  - More were reached in only one arm, and were dropped to keep the arms paired.
+- **The check:** on Civil Comments, the dropped items are confident, unanimous disagreements with the gold label, mostly over labels with few annotators. They are not blind spots the reviewer sometimes solves.
+- **Decided 2026-11-04: train as-is, without rebalancing.** Two alternatives were rejected:
+  - rebalancing would cut the data by 40%;
+  - giving the teacher the gold label would train reasoning written to justify a fixed answer.
+- **Consequences for E.106:** read criterion 1 (accept-when-right) first. A Civil-only shortfall on criterion 2 may reflect these label disagreements in the test pool, and the write-up should say so. The criteria themselves are unchanged.
 
 ### E.106: SFT, serving and evaluation
 

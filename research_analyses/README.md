@@ -14,6 +14,7 @@ Results write-ups, one folder per experiment. The plans live in [research_docs/]
 | E.101: Jev → reviewer go/no-go pilot (Part 1) | [E101_pilot/](E101_pilot/README.md) | Done 2026-11-04: GO on Civil Comments, NO-GO on WildGuard; Jev's and the reviewer's errors overlap far beyond chance, residual deference not yet significant |
 | E.102: deference beyond shared difficulty (Part 1, powered) | [E102/](E102/README.md) | Done 2026-11-04: the reviewer accepts far more of Jev's mistakes than random ones, mostly because they share blind spots; at equal difficulty about +7 points of real deference remain; two thirds of the harmful content Jev misses also gets past the reviewer |
 | E.103: cheap alternatives to post-training (the Part 2 baseline) | [E103/](E103/README.md) | Done 2026-11-04: no prompt change (blind-first, two warnings, consider-the-opposite) catches more of Jev's mistakes or makes the cascade more accurate; blind-first shrinks measured deference only by accepting random mistakes more; shared blind spots untouched (91–100% accepted), so Part 2 needs training |
+| E.104–E.105: Part 2's training data (Jev screen, traces, datasets) | [E104_E105/](E104_E105/README.md) | Done 2026-11-04: datasets built and checked; half of Jev's mistakes dropped out because no model reached the gold label, and those look like label disagreements, not blind spots; train as-is. Training waits for a GPU |
 
 ## What goes in each folder
 
