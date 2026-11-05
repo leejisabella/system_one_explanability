@@ -1,0 +1,102 @@
+{
+  "dropped": {
+    "civil_toxicity_train_v1/alone/no_trace_review_arm": 30,
+    "civil_toxicity_train_v1/jev_right/no_trace_plain_arm": 32,
+    "civil_toxicity_train_v1/jev_right/no_trace_review_arm": 62,
+    "civil_toxicity_train_v1/jev_wrong/no_trace_plain_arm": 113,
+    "civil_toxicity_train_v1/jev_wrong/no_trace_review_arm": 560,
+    "wildguard_prompt_train_v1/alone/no_trace_review_arm": 5,
+    "wildguard_prompt_train_v1/jev_right/no_trace_plain_arm": 3,
+    "wildguard_prompt_train_v1/jev_right/no_trace_review_arm": 14,
+    "wildguard_prompt_train_v1/jev_wrong/no_trace_plain_arm": 29,
+    "wildguard_prompt_train_v1/jev_wrong/no_trace_review_arm": 140,
+    "wildguard_response_train_v1/alone/no_trace_review_arm": 2,
+    "wildguard_response_train_v1/jev_right/no_trace_review_arm": 3,
+    "wildguard_response_train_v1/jev_wrong/no_trace_plain_arm": 20,
+    "wildguard_response_train_v1/jev_wrong/no_trace_review_arm": 125
+  },
+  "files": {
+    "dpo_review.train.jsonl": {
+      "groups": {
+        "jev_right": 428,
+        "jev_wrong": 591
+      },
+      "n": 1019,
+      "sha256": "7755844fb44e0d65e18d540dc6c1c4ef80547769375477646ef478393c672a4b"
+    },
+    "dpo_review.val.jsonl": {
+      "groups": {
+        "jev_right": 25,
+        "jev_wrong": 39
+      },
+      "n": 64,
+      "sha256": "34b2ea91e1aaaffe41bbeb9eb860e189dc9541880c66f0128a01c3c1bde1957e"
+    },
+    "sft_plain.train.jsonl": {
+      "groups": {
+        "alone": 1875,
+        "jev_right": 3734,
+        "jev_wrong": 983
+      },
+      "n": 6592,
+      "sha256": "41cc28757a73e4a7887d222e05041ad3b311f8d1b15e6f8c068975cf6351a3b7"
+    },
+    "sft_plain.val.jsonl": {
+      "groups": {
+        "alone": 113,
+        "jev_right": 202,
+        "jev_wrong": 55
+      },
+      "n": 370,
+      "sha256": "fb06de9e9cb235ca145c4d17dfd2b20c8ffcc6b32a2c5b5f0341e062aeb92a8a"
+    },
+    "sft_review.train.jsonl": {
+      "groups": {
+        "alone": 1875,
+        "jev_right": 3734,
+        "jev_wrong": 983
+      },
+      "n": 6592,
+      "sha256": "5ec633001a1ae9f8a6597eca71aa474152661bf6ed95c82d8038879f3d1fcab6"
+    },
+    "sft_review.val.jsonl": {
+      "groups": {
+        "alone": 113,
+        "jev_right": 202,
+        "jev_wrong": 55
+      },
+      "n": 370,
+      "sha256": "073a70fec73d74d7aeffc42632fa82d69fa35e1938df3ceff961097274c36fb5"
+    }
+  },
+  "format": "TRL conversational prompt-completion (SFT) and preference (DPO); see sysone.posttrain.formats",
+  "name": "part2_all_v1",
+  "pools": [
+    "civil_toxicity_train_v1",
+    "wildguard_prompt_train_v1",
+    "wildguard_response_train_v1"
+  ],
+  "source": {
+    "e104_run": "e104-v1-2026-11-04",
+    "e105_run": "e105-v1-2026-11-04"
+  },
+  "trace_sources": {
+    "civil_toxicity_train_v1/alone/reviewer": 1293,
+    "civil_toxicity_train_v1/alone/teacher": 34,
+    "civil_toxicity_train_v1/jev_right/reviewer": 2573,
+    "civil_toxicity_train_v1/jev_right/teacher": 47,
+    "civil_toxicity_train_v1/jev_wrong/reviewer": 636,
+    "civil_toxicity_train_v1/jev_wrong/teacher": 48,
+    "wildguard_prompt_train_v1/alone/reviewer": 362,
+    "wildguard_prompt_train_v1/alone/teacher": 6,
+    "wildguard_prompt_train_v1/jev_right/reviewer": 727,
+    "wildguard_prompt_train_v1/jev_right/teacher": 2,
+    "wildguard_prompt_train_v1/jev_wrong/reviewer": 183,
+    "wildguard_prompt_train_v1/jev_wrong/teacher": 21,
+    "wildguard_response_train_v1/alone/reviewer": 293,
+    "wildguard_response_train_v1/jev_right/reviewer": 585,
+    "wildguard_response_train_v1/jev_right/teacher": 2,
+    "wildguard_response_train_v1/jev_wrong/reviewer": 139,
+    "wildguard_response_train_v1/jev_wrong/teacher": 11
+  }
+}
