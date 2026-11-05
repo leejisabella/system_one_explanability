@@ -105,7 +105,9 @@ What exists:
 
 Not done yet:
 - **Choose Part 2's next strategy** (back to the drawing board).
-- **The GPU VM** `sysone-part2-h100` is stopped. Its disk still bills about $1.70 a day until it's deleted.
+- **No GPU resources remain.** The VM `sysone-part2-h100` and its disk were deleted on 2026-11-05, so Compute Engine costs nothing now.
+  - The three LoRA adapters (SFT treatment, SFT control, DPO, 15 MB each) are kept locally in `checkpoints/`, which is gitignored. With `sysone.posttrain.sft --merge` and the public base model, the trained models can be rebuilt without retraining.
+  - A new GPU session starts from the runbook in research_docs/14.
 
 ## What exists
 

@@ -146,7 +146,7 @@ The two validation losses come from different validation files, one per format, 
 | | |
 |---|---|
 | Run | `e106-v1-2026-11-04`. Base evaluated at commit `f43a747`, the trained arms at `bb57a8b`, both clean. The only change in between is the control arm's batch shape (below). GPU times 03:09–06:31 UTC on 2026-11-05 (19:09–22:31 Pacific, 2026-11-04) |
-| Hardware | GCP `a3-highgpu-1g` (1× H100 80GB), Spot, `us-central1-a`, project `cs-329x-510703` (education credits). Deep Learning VM image `common-cu129-ubuntu-2204-nvidia-580`; torch 2.9.1, transformers 4.57.6, TRL 0.23.1, PEFT 0.17.1, vLLM 0.33.0 |
+| Hardware | GCP `a3-highgpu-1g` (1× H100 80GB), Spot, `us-central1-a`, project `cs-329x-510703` (education credits; VM deleted 2026-11-05, adapters kept locally in `checkpoints/`). Deep Learning VM image `common-cu129-ubuntu-2204-nvidia-580`; torch 2.9.1, transformers 4.57.6, TRL 0.23.1, PEFT 0.17.1, vLLM 0.33.0 |
 | Base | `openai/gpt-oss-20b`, dequantized from MXFP4 to bf16 and saved (`checkpoints/gpt-oss-20b-base`); served in bf16 like the trained models |
 | Training | LoRA r 8, alpha 16, dropout 0, on every linear layer. Learning rate 2e-4, cosine schedule to 10%, 3% warmup, 1 epoch, 16 examples per update, max length 4,096, loss on the reviewer's turn only, seed 106. Prompts are rendered with gpt-oss's chat template at reasoning effort medium |
 | Data | `part2_all_v1` from E.105: 6,592 training and 370 validation examples per arm, the same items in both ([E104_E105](../E104_E105/README.md)) |
