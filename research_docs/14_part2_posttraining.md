@@ -232,6 +232,8 @@ uv run python -m sysone.experiments.e106 --run-id e106-v1-<date> --reviewers bas
 # then sft_plain the same way. The report (results/runs/e106-v1-<date>/report.md) updates after each.
 ```
 
+**Or all of E.106 in one go:** `scripts/run_e106.sh e106-v1-<date>` (under `nohup`) runs the steps above in order: save base → evaluate base → SFT and merge both arms → evaluate both. It skips finished steps, so after a Spot preemption, restart the VM and run it again.
+
 **Record GPU hours by hand** in the run's manifest or the write-up. The harness counts $0 per token for `local` models: `configs/budget.yaml` gives the `local` provider a $0 project cap, which lets $0 calls through and refuses anything priced. E.106 also caps Bedrock and TypeSafe at a cent, so an evaluation can't spend money by mistake.
 
 ## Code map
