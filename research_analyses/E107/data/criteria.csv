@@ -1,0 +1,6 @@
+criterion,pass,rule
+1_trade_off,False,pooled: override-when-wrong rises (95% interval above 0) and accept-when-right falls by at most 2%
+2_beats_cheap_protocols,False,"in every pool, override-when-wrong rises by more than the best E.103 protocol's change"
+3_cascade_beats_best_single,False,pooled: cascade accuracy beats the better of Jev alone and the reviewer alone (95% interval above 0)
+4_transfers_to_held_out_upstreams,False,"pooled, for every held-out upstream model: criterion 1's rule"
+5_beats_control_arm,False,pooled: overrides more of Jev's wrong labels than the arm trained on the same items without proposals (95% interval above 0)

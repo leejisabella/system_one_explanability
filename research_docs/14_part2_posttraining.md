@@ -1,6 +1,6 @@
 # 14. Part 2: post-training the reviewer to be robust to Jev's errors (E.104–E.108)
 
-**Status (2026-11-04): E.104–E.106 ran. E.106's SFT didn't work: both arms fail all five criteria** ([research_analyses/E106](../research_analyses/E106/README.md)). The next step is open.
+**Status (2026-11-05): E.104–E.107 ran. Neither SFT (E.106) nor DPO (E.107) worked; both fail all five criteria** ([E106](../research_analyses/E106/README.md), [E107](../research_analyses/E107/README.md)). Part 2's training strategy needs rethinking: these methods can't reach items the reviewer never solves.
 - Results: [research_analyses/E104_E105](../research_analyses/E104_E105/README.md).
 - Decision: train on the datasets as exported (see [What E.105 produced](#what-e105-produced-2026-11-04)).
 - Every runner, the evaluation and the analysis pass end-to-end dry runs on the real pools and on the real E.102 and E.103 runs.

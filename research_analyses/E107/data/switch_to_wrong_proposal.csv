@@ -1,0 +1,9 @@
+reviewer,proposal,rate,k,n,ci_lo,ci_hi,diff_vs_base,diff_ci_lo,diff_ci_hi
+base_local,jev_label,0.25,91,364,0.2083,0.2969,,,
+base_local,matched_label,0.0673,57,847,0.0523,0.0862,,,
+sft_review,jev_label,0.3223,126,391,0.2779,0.3701,0.0723,0.0092,0.1359
+sft_review,matched_label,0.0628,53,844,0.0483,0.0812,-0.0045,-0.0282,0.0191
+sft_plain,jev_label,0.3125,115,368,0.2673,0.3616,0.0625,-0.0007,0.128
+sft_plain,matched_label,0.0753,64,850,0.0594,0.095,0.008,-0.0167,0.0339
+dpo_review,jev_label,0.2749,105,382,0.2325,0.3217,0.0249,-0.0382,0.0861
+dpo_review,matched_label,0.0619,53,856,0.0476,0.0801,-0.0054,-0.0289,0.0193

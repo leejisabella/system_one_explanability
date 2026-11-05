@@ -1,6 +1,6 @@
 # Project Status — start here
 
-Last updated: 2026-11-04 (E.101–E.103 cascade experiments done on branch `e101-cascade-deference`; E.104–E.106 done on `e104-part2-posttraining`: E.106's SFT didn't work; next step for Part 2 is open). Before that, 2026-10-28 (Pilot 0 passes on refund_v1; preflight passed; Pilot 1 ready, with Llama replacing the blocked Claude explainer). Read this first when picking the project back up.
+Last updated: 2026-11-04 (E.101–E.103 cascade experiments done on branch `e101-cascade-deference`; E.104–E.107 done on `e104-part2-posttraining`: neither SFT nor DPO worked; Part 2's strategy goes back to the drawing board). Before that, 2026-10-28 (Pilot 0 passes on refund_v1; preflight passed; Pilot 1 ready, with Llama replacing the blocked Claude explainer). Read this first when picking the project back up.
 
 ## In one paragraph
 
@@ -49,7 +49,7 @@ In plain terms:
 - Part 2 should train the reviewer to be *right* on the items Jev finds hard, not just to disagree with Jev, and should report deference next to override and accept rates, since deference can improve while nothing useful changes.
 - Part 2 (E.104 on, post-training gpt-oss-20b) waits for a GPU.
 
-## Part 2: post-training the reviewer (E.104–E.108, built 2026-11-04; E.104–E.106 ran)
+## Part 2: post-training the reviewer (E.104–E.108, built 2026-11-04; E.104–E.107 ran)
 
 On branch `e104-part2-posttraining`, which merges after `e101-cascade-deference`. The design, the pre-registered success criteria and the step-by-step runbook are in [research_docs/14](research_docs/14_part2_posttraining.md).
 
@@ -95,8 +95,17 @@ What exists:
   - the control arm trained at 2 × 8 instead of 4 × 4, which gives the same updates.
 - **GPU machine:** `sysone-part2-h100` (stopped; only its disk is billed, about $1.70 a day). The runbook has the setup fixes, and `scripts/run_e106.sh` runs E.106 resumably.
 
+**E.107 ran 2026-11-05** (DPO from the SFT treatment model, evaluated in the same run; about 1.2 GPU hours; write-up in [research_analyses/E107/](research_analyses/E107/README.md)). It also fails all five criteria.
+- **It undid SFT's side effect:** switching to Jev's wrong label went from 32% back to 27% (base 25%), and overrides of Jev's mistakes from 35.6% back to 37.5% (base 37.6%).
+- **It got no further:** no more of Jev's mistakes caught than the base, and the blind spots unchanged (93% accepted). The cascade ties Jev alone.
+- **DPO's own loss stayed at chance (0.69).** It rated the right answer higher on 61% of the validation pairs.
+- **The learning rate was raised** to 5e-5 (from the planned 5e-6) before the run.
+
+**Where Part 2 stands.** SFT, DPO and RL on the reviewer's own outputs all need it to reach the gold label at least sometimes, and the shared blind spots are the items where it never does. A new strategy needs a training signal that doesn't depend on that. Part 2's GPU work so far: about 5.4 hours, roughly $13–22 of education credits.
+
 Not done yet:
-- **Decide Part 2's next step:** E.107 DPO (pairs that contrast a correct and a wrong trace on the same hard item), a rebalanced SFT, a different signal for the blind spots, or stopping here. The options are in the E.106 write-up.
+- **Choose Part 2's next strategy** (back to the drawing board).
+- **The GPU VM** `sysone-part2-h100` is stopped. Its disk still bills about $1.70 a day until it's deleted.
 
 ## What exists
 
