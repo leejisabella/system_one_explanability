@@ -177,6 +177,24 @@ TRL's GRPO trainer writes answers with vLLM while it trains.
 - **The plan:** 2 × H100 (`a3-highgpu-2g`), one training and one serving answers through TRL's `vllm-serve`. **This needs Spot H100 quota of 2 in us-central1, so check the quota before building.**
 - **Fallback on one GPU:** TRL's colocated vLLM with sleep mode and a low memory share. It's untested for this model, so it's tried in the smoke run only if the 2-GPU quota isn't available.
 
+### Implementation choices (built 2026-11-05, before any run)
+
+`sysone.posttrain.grpo`, `configs/posttrain/grpo_review.yaml` and `scripts/run_e109.sh` add these details, which the design above didn't fix:
+- **Balancing after the filter.** The filter drops far more Jev-right prompts (mostly all right) than Jev-wrong ones. So per pool, by hash, Jev-wrong and Jev-right prompts are cut to the same count, and `matched_wrong` to a third of it (`prepass.balance`).
+- **The held-out 200 Jev-right prompts** come from the val split, topped up from train by hash if val has too few. Those are then removed from training.
+- **"Flat" reward** means the mean reward over a check's 25 updates is within 0.02 of the previous check's. The no-signal rule can fire at update 75 at the earliest.
+- **Contrarian baseline:** the stop rule compares against the starting model's held-out accept-when-right from the pre-pass. The same rate is also measured once on the training path (TRL's server) before update 1, with a warning if the two differ by more than 3 points.
+- **The 15-hour cap** counts pre-pass and training wall hours × GPUs, not merging or evaluation.
+- **TRL settings:**
+  - a constant learning rate;
+  - `loss_type: dapo` (TRL 0.23's default);
+  - prompts pre-rendered at reasoning effort medium, because TRL passes no template arguments;
+  - `max_prompt_length` off, since TRL's default of 512 would cut the policy text;
+  - 2 completions per forward pass, with 64-step accumulation, so each update is 16 prompts × 8 answers.
+- **The reward** parses the final channel with the evaluation's own `parse_review`, so a reply cut off in its reasoning scores 0.
+- **Not pre-registered: which checkpoint to evaluate after an early stop.** By default it's the adapter at the stop, and a checkpoint is saved at every check. If a contrarian stop happens, decide before evaluating and record the choice.
+- **vLLM must be importable in the training environment** (TRL's trainer imports its NCCL communicator), as well as served by `trl vllm-serve`. It isn't in `pyproject.toml` yet, because adding it would re-resolve the lock against torch. Settle the version in the smoke test.
+
 ### Evaluation
 
 As E.108: alias `grpo_review`, the same run, the same round-2 criteria.

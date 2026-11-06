@@ -1,0 +1,53 @@
+# E.109: GRPO of the reviewer in review mode (research_docs/15). Loaded by sysone.posttrain.grpo.GrpoConfig.
+# Check first (no GPU): uv run python -m sysone.posttrain.grpo --config configs/posttrain/grpo_review.yaml --check
+name: gpt-oss-20b-grpo-review    # checkpoints/<name>, and the vLLM --served-model-name (alias grpo_review)
+method: grpo
+dataset: part2_round2_v1         # data/posttrain/<dataset>/grpo_prompts.{train,val}.jsonl, exported by E.108
+arm: grpo_prompts
+base_model: openai/gpt-oss-20b
+# The starting point, fixed before E.108 was evaluated: the E.108 arm with the larger R1 override change,
+# if it passes R1 (consist_review -> checkpoints/gpt-oss-20b-consist-review-merged, balanced_review ->
+# checkpoints/gpt-oss-20b-balanced-review-merged); if neither passes R1, the base (checkpoints/gpt-oss-20b-base).
+# Set it from E.108's report and commit it before the GPU session; every GPU step refuses the placeholder.
+init_from: checkpoints/TODO-e108-arm-or-base
+reasoning_effort: medium          # as the evaluation's requests
+lora: {r: 8, alpha: 16, dropout: 0.0, target_modules: all-linear}   # linear layers only: expert LoRA runs out of memory (train_config.py)
+# The 20-update smoke run may change only this, and any change is recorded here before the main run.
+learning_rate: 1.0e-5
+lr_scheduler_type: constant       # not set by the design; constant, so an early stop doesn't depend on a decay schedule
+num_generations: 8
+temperature: 1.0
+max_completion_length: 2048       # reasoning and answer together (E.106's median reply was about 400)
+max_prompt_length: null           # never truncate a prompt (TRL's default 512 would cut the policy)
+beta: 0.04                        # KL penalty against the starting model (the adapter switched off)
+loss_type: dapo                   # TRL 0.23's default: token-level, no length bias; advantages are group-normalized (GRPO)
+prompts_per_update: 16
+per_device_batch_size: 2          # completions per forward pass; 64-step accumulation makes 16 x 8 per update
+max_steps: 300                    # set 20 in a copy for the smoke run
+seed: 109
+save_steps: 25                    # a checkpoint at every stop-rule check, so a preempted run resumes
+vllm_mode: server                 # `trl vllm-serve` on GPU 1, training on GPU 0 (2 x H100); colocate: one GPU
+vllm_server_host: 127.0.0.1
+vllm_server_port: 8001
+vllm_gpu_memory_utilization: 0.3  # colocate only
+vllm_enable_sleep_mode: true      # colocate only
+prepass:
+  samples: 8
+  keep_min_correct: 1             # keep prompts with 1-7 of 8 correct: all-wrong and all-right ones carry no signal
+  keep_max_correct: 7
+  served_name: gpt-oss-20b-grpo-start
+  workers: 64
+  answer_tokens: 256              # of the 2,048: the rest is the reasoning budget, as in training
+  balance: true                   # per pool after the filter: Jev-wrong and Jev-right cut to the same count,
+  jev_right_per_wrong: 1.0        # matched_wrong to E.108's share (a third)
+  matched_wrong_per_wrong: 0.3333
+stop:
+  check_every: 25
+  consecutive: 2                  # a rule must hold at 2 checks in a row
+  contrarian_drop: 0.03           # held-out accept-when-right more than 3 points below the starting model's pre-pass rate
+  heldout_prompts: 200            # Jev-right val prompts, by hash
+  heldout_samples: 4              # answers per held-out prompt at each check (800 at temperature 1.0)
+  flat_tolerance: 0.02            # flat: the 25-update mean reward within 2 points of the previous check's
+  all_same_share: 0.90            # ... and over 90% of groups all right or all wrong
+  gpu_hour_cap: 15.0              # pre-pass and training, wall hours x gpus
+  gpus: 2                         # 1 if vllm_mode is colocate
