@@ -23,7 +23,8 @@ from sysone.registry import REPO_ROOT
 # (~1 GB) and keeps it for the backward pass (smoke test, 2026-11-04). So LoRA covers every linear
 # layer only; pass these as lora.target_parameters to try the cookbook's version on a larger GPU.
 GPT_OSS_EXPERT_PARAMETERS = [f"{layer}.mlp.experts.{w}" for layer in (7, 15, 23) for w in ("gate_up_proj", "down_proj")]
-METHOD_ARMS = {"sft": ("sft_review", "sft_plain"), "dpo": ("dpo_review",)}
+# E.108 (research_docs/15) adds two SFT arms, consistency training and balanced-proposal SFT.
+METHOD_ARMS = {"sft": ("sft_review", "sft_plain", "consist_review", "balanced_review"), "dpo": ("dpo_review",)}
 # A rough characters-per-token ratio for English text with gpt-oss's tokenizer, only for the check.
 CHARS_PER_TOKEN = 4.0
 

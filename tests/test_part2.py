@@ -3,6 +3,7 @@ from collections import Counter
 
 import httpx
 import pytest
+import yaml
 
 from sysone.budget import CostGuard, Ledger, Price
 from sysone.cascade.items import Item, wildguard_items, wildguard_response_items
@@ -218,9 +219,13 @@ def test_e105_traces_and_exports_paired_arms(tmp_path):
 def test_committed_training_configs_load():
     from sysone.registry import CONFIG_DIR
 
+    from sysone.posttrain.train_config import METHOD_ARMS
+
     for path in sorted((CONFIG_DIR / "posttrain").glob("*.yaml")):
+        if yaml.safe_load(path.read_text())["method"] not in METHOD_ARMS:
+            continue  # GRPO has its own config class (sysone.posttrain.grpo)
         config = TrainConfig.load(path)
-        assert config.method in ("sft", "dpo") and config.arm.startswith(config.method)
+        assert config.arm in METHOD_ARMS[config.method]
     for name, cls in (("e104", E104Config), ("e105", E105Config), ("e106", E106Config)):
         cls.load(CONFIG_DIR / "experiments" / f"{name}.yaml")
 

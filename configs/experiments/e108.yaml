@@ -1,0 +1,23 @@
+# E.108 data: consistency training and balanced-proposal SFT on the same items (research_docs/15).
+# Bedrock only: review samples by gpt-oss-20b where E.105 has no correct one, at most
+# 155 x 8 (Jev's mistakes it gave in on every time) + ~350 x 4 (matched_wrong) + ~40 x 4 calls,
+# well under $1 at E.105's rates. Everything else reuses E.104's mix and E.105's traces.
+
+source_run: e104-v1-2026-11-04       # the mix
+trace_run: e105-v1-2026-11-04        # the traces
+samples: [civil_toxicity_train_v1, wildguard_prompt_train_v1, wildguard_response_train_v1]
+dataset: part2_round2_v1             # data/posttrain/<dataset>; manifest in benchmarks/posttrain/<dataset>
+reviewer: reviewer                   # Bedrock gpt-oss-20b: every target is its own trace, never the teacher's
+matched_wrong_per_wrong: 0.3333      # flipped labels, a third as many as Jev's mistakes (research_docs/15)
+deference_samples: 8                 # new review tries for a Jev mistake it solved alone but gave in on every time
+review_samples: 4                    # new review tries for any other row without a correct review trace
+reviewer_temperature: null
+reviewer_reasoning_max_tokens: 4096
+reviewer_max_output_tokens: 256
+seed: 108
+workers: 8
+max_items: null
+use_cache: false
+max_consecutive_errors: 10
+steps: [select, sample, export]
+run_provider_caps_usd: {bedrock: 2.00, typesafe: 0.01}   # no Jev calls; TypeSafe needs a positive cap

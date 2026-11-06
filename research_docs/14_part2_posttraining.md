@@ -1,10 +1,10 @@
-# 14. Part 2: post-training the reviewer to be robust to Jev's errors (E.104–E.108)
+# 14. Part 2: post-training the reviewer to be robust to Jev's errors (E.104–E.110)
 
-**Status (2026-11-04): E.104 and E.105 ran; the datasets are exported and checked.**
+**Status (2026-11-05): E.104–E.107 ran. Neither SFT (E.106) nor DPO (E.107) worked; both fail all five criteria** ([E106](../research_analyses/E106/README.md), [E107](../research_analyses/E107/README.md)). Part 2's training strategy needs rethinking: these methods can't reach items the reviewer never solves.
 - Results: [research_analyses/E104_E105](../research_analyses/E104_E105/README.md).
 - Decision: train on the datasets as exported (see [What E.105 produced](#what-e105-produced-2026-11-04)).
 - Every runner, the evaluation and the analysis pass end-to-end dry runs on the real pools and on the real E.102 and E.103 runs.
-- The GPU scripts (training, merging, serving) have **not** run on a GPU yet. The first GPU session starts with the smoke test in the [runbook](#runbook).
+- The GPU scripts ran on one H100 (GCP Spot) for E.106. The fixes from that session are in the runbook and in `scripts/run_e106.sh`.
 
 Part 1 is in [13_cascade_deference.md](13_cascade_deference.md). Its results are in [research_analyses/E102](../research_analyses/E102/README.md) and [E103](../research_analyses/E103/README.md).
 
@@ -38,7 +38,7 @@ The training data is in review format:
 | **E.105** | Reasoning traces for every example (reviewer, then teacher); paired datasets exported | Bedrock | `sysone.experiments.e105` | ≈ $3–4 Bedrock |
 | **E.106** | Save the bf16 base, SFT both arms, merge, serve, evaluate base and both arms | GPU (1 × 80 GB) | `sysone.posttrain.sft`, `scripts/serve_part2.sh`, `sysone.experiments.e106` | GPU hours only |
 | **E.107** | DPO on the reviewer's own correct vs. wrong traces, from the SFT treatment checkpoint; evaluate | GPU | `sysone.posttrain.dpo`, `e106` | GPU hours |
-| **E.108** | Generalization: held-out upstream models (in every evaluation) and a held-out domain (train without WildGuard responses) | GPU | `e106` with the `*_no_responses` configs | GPU hours |
+| ~~E.108~~ (superseded by round 2) | Generalization: held-out upstream models (in every evaluation) and a held-out domain (train without WildGuard responses) | GPU | `e106` with the `*_no_responses` configs | GPU hours |
 
 Each step reads the previous step's saved run, so each one can be rerun or resumed on its own.
 
@@ -101,7 +101,7 @@ A trace counts only if:
 
 Two datasets are exported:
 - `part2_all_v1`: every training pool;
-- `part2_no_responses_v1`: without WildGuard responses, for E.108's held-out domain.
+- `part2_no_responses_v1`: without WildGuard responses, for the held-out-domain study first planned as E.108 (not yet run).
 
 **The records** (`sysone.posttrain.formats`) are TRL conversational records. The prompt is built by the same `Reviewer` code as the evaluation prompts, so a test prompt is byte-identical to the training prompts of its kind (a test checks this). The completion is one assistant turn:
 - `thinking`: the trace, which gpt-oss's chat template renders into its analysis channel;
@@ -156,12 +156,28 @@ It also gives paired changes against the base and against the control arm, on th
 
 - `sysone.posttrain.dpo` with `configs/posttrain/dpo_review.yaml` trains a fresh LoRA adapter from the **merged SFT treatment checkpoint**. Its reference model is that checkpoint with the adapter switched off.
 - Pairs are on-policy: both the chosen and the rejected trace are the reviewer's own.
-- Settings: learning rate 5e-6, beta 0.1.
+- Settings: learning rate 5e-5, beta 0.1, 1 pair x 16 per update. The plan said 5e-6; it was raised before E.107 ran, because one epoch is only 64 updates and E.106's SFT barely moved at 2e-4.
 - Evaluate as E.106 with `--reviewers dpo_review`. It is compared against the base and against `sft_plain`.
 
 **RL is not built.** The natural next step is GRPO with a reward of 1 for the gold final label, Jev's proposal in the prompt, and a penalty for an inconsistent verdict. Build it only if SFT and DPO leave a gap on criterion 1.
 
-### E.108: generalization
+### Round 2 (after E.107): strategies chosen 2026-11-05
+
+SFT and DPO on the reviewer's own correct traces failed (E.106, E.107). Round 2 targets the items the reviewer can get right: group A (right alone, but gives in to Jev) and group B (sometimes right). Group C, the never-solved items, is a benchmark ceiling (see the criteria section). **The full designs, round 2's own criteria, and what we decided not to do are in [15_part2_round2.md](15_part2_round2.md).** The numbering below replaces the generalization study planned as E.108, whose held-out-upstream check (criterion 4) stays in every evaluation.
+
+| | Strategy | What it trains |
+|---|---|---|
+| E.108, arm 1 | **Consistency training** | Prompt shows Jev's label; the target is the reviewer's own reasoning from deciding alone, so seeing the label shouldn't change the answer (Chua et al., 2024) |
+| E.108, arm 2 | **Balanced-proposal SFT** | Proposals right half the time and wrong half the time; the target is a review trace that reaches the gold label, so the proposal alone carries no information (Wei et al., 2023) |
+| E.109 | **GRPO in review mode** | Reward 1 for the gold label with Jev's proposal in the prompt; likely starting from E.108's better arm |
+| E.110 | **Activation steering** (interpretability, on top of the others) | No training: a "deference direction" from activations with vs. without Jev's wrong label, measured in the base and the trained models |
+
+**Not pursued, and why (the user's decisions):**
+- **Deference DPO with redesigned pairs:** more DPO on the same data isn't expected to work.
+- **Self-consistency review (vote over the reviewer's own samples):** the reviewer's own samples are the thing that's wrong; voting over them isn't a fix.
+- **Uncertainty-gated review / escalation:** it adds a third model to the cascade. A new model is acceptable only as a source of gold training data, never as a new stage in the cascade.
+
+### E.108 (original plan, superseded): generalization
 
 1. **Held-out upstream models:** criterion 4, in every evaluation.
 2. **Held-out domain:**
@@ -193,6 +209,8 @@ Criterion 5 is the one that makes the result about Jev rather than about accurac
 - override on high- vs. low-agreement Civil Comments items.
 
 If many blind spots are label noise (low-agreement items), no training fixes them. That should read as a ceiling, not as a failure.
+
+**Adopted after E.107 (2026-11-05):** the items the base never gets right alone (0 of 5; 45% of Jev's test mistakes) are treated as a benchmark ceiling. Later Part 2 methods target the other items and report these separately. This rests on Civil Comments evidence only; WildGuard is still to be checked. See [the E.1xx summary](../research_analyses/E1xx_summary/README.md#working-assumption-the-never-solved-items-are-a-benchmark-ceiling).
 
 ## Runbook
 

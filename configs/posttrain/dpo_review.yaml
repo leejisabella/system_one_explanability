@@ -8,10 +8,13 @@ base_model: openai/gpt-oss-20b
 init_from: checkpoints/gpt-oss-20b-sft-review-merged
 reasoning_effort: medium
 lora: {r: 8, alpha: 16, dropout: 0.0, target_modules: all-linear}
-learning_rate: 5.0e-6           # DPO wants a far smaller rate than SFT
+# 5e-5, not the planned 5e-6: one epoch is only 64 updates, and E.106's SFT barely moved at 2e-4, so
+# 5e-6 would most likely not change the model. Raised before E.107 ran (2026-11-05); criteria unchanged.
+learning_rate: 5.0e-5
 epochs: 1
-per_device_batch_size: 2
-gradient_accumulation_steps: 8
+# 1 pair (2 sequences) x 16: the SFT control ran out of memory at 4 sequences; the same 16-pair updates.
+per_device_batch_size: 1
+gradient_accumulation_steps: 16
 max_length: 4096
 warmup_ratio: 0.1
 dpo_beta: 0.1

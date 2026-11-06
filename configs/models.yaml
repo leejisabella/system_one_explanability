@@ -125,14 +125,32 @@ dpo_review:
   model: gpt-oss-20b-dpo-review
   reasoning_effort: medium
 
+consist_review:
+  # E.108 arm 1 (research_docs/15): consistency training, from the base.
+  provider: local
+  model: gpt-oss-20b-consist-review
+  reasoning_effort: medium
+
+balanced_review:
+  # E.108 arm 2: balanced-proposal SFT, on the same items as consist_review.
+  provider: local
+  model: gpt-oss-20b-balanced-review
+  reasoning_effort: medium
+
+grpo_review:
+  # E.109: GRPO in review mode, from E.108's better arm (or the base).
+  provider: local
+  model: gpt-oss-20b-grpo-review
+  reasoning_effort: medium
+
 sft_review_no_responses:
-  # E.108: the treatment arm trained without WildGuard responses (the held-out domain).
+  # The held-out-domain study first planned as E.108 (not yet run): the treatment arm without WildGuard responses.
   provider: local
   model: gpt-oss-20b-sft-review-no-responses
   reasoning_effort: medium
 
 sft_plain_no_responses:
-  # E.108: its control arm.
+  # Its control arm.
   provider: local
   model: gpt-oss-20b-sft-plain-no-responses
   reasoning_effort: medium

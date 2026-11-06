@@ -43,7 +43,7 @@ Every condition also reports both sides of the trade-off: **override when wrong*
 - **Storage.** The text lives in gitignored `data/cascade/` because WildGuardMix is gated. The committed manifest in `benchmarks/cascade/<name>/` holds item IDs, labels, strata and the sha256 hash.
 - **WildGuardTest size.** It has 1,725 items, not the roughly 5K given in the dataset proposal. 26 have no prompt label.
 - **Jev contamination.** TypeSafe's "Jev boost" post-training sets (`clm-project/jev-boost-*`, 395 sets, seen 2026-11-03) include `google/civil_comments@f2970eb`'s **train** split, but not WildGuard. So Civil Comments items come only from Jigsaw's test sets (comment ID ≥ 7,000,000), and an item is dropped if its text appears anywhere in that train split (508 dropped).
-- **Label ambiguity.** 95 of the 150 toxic Civil Comments items have low annotator agreement. Ambiguity is part of this dataset, so every result is also reported by agreement.
+- **Label ambiguity.** 97 of the 150 toxic Civil Comments items have low annotator agreement. Ambiguity is part of this dataset, so every result is also reported by agreement.
 - **Earmarked.** WildGuardTest **response harmfulness** is the second view of the same dataset, for a later E.1xx.
 
 ## Models
@@ -64,7 +64,7 @@ A non-reasoning reviewer would run fine, but it would answer a weaker question. 
 
 4. **The chain of thought is evidence, but imperfect.** Reasoning models often use a hint without mentioning it (Chen et al., 2025: often in under 20% of cases where they use it). In open-weight reasoning models, the thinking tokens mention a hint far more often than the final answer does (87.5% vs. 28.6%, pooled over 12 models). Sycophancy hints are among the least often mentioned, at 53.9% (Young, 2026). gpt-oss-20b is open-weight and Bedrock returns its full reasoning, so we can read why it accepted a proposal, not just that it did. **Logged from E.103 on:** every result row saves the reasoning Bedrock returns (`reasoning`, read from the response by `sysone.clients.bedrock.reasoning_text`; the request is unchanged). E.101 and E.102 kept only the answer text, so their reasoning is lost.
 
-5. **The cost question is about reasoning.** A cascade is supposed to save effort: reviewing a proposal should take less thinking than deciding from scratch. That can only be measured on a model that spends reasoning tokens. E.101 measured the opposite: reviewing took 25–45% *more* output tokens than deciding alone ([E.101 write-up](../research_analyses/E101_pilot/README.md#4-reviewing-costs-more-than-deciding)).
+5. **The cost question is about reasoning.** A cascade is supposed to save effort: reviewing a proposal should take less thinking than deciding from scratch. That can only be measured on a model that spends reasoning tokens. E.101 measured the opposite: reviewing took 22–46% *more* output tokens than deciding alone ([E.101 write-up](../research_analyses/E101_pilot/README.md#4-reviewing-costs-more-than-deciding)).
 
 6. **Part 2 trains reasoning.** Post-training can reward reasoning that checks the item on its own over reasoning that adopts the proposal. This needs open weights and a reasoning model; gpt-oss-20b is both (Apache 2.0; OpenAI, 2025). Chen et al. (2025) also warn that outcome-based RL improves faithfulness only up to a plateau, so Part 2 should check the reasoning traces, not only the final labels.
 

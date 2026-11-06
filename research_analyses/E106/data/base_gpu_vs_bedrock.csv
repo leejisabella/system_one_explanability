@@ -1,0 +1,10 @@
+sample,metric,gpu,bedrock
+civil_toxicity_pool_v1,override_when_wrong_jev,0.4027,0.4013
+civil_toxicity_pool_v1,accept_when_right_jev,0.8449,0.868
+civil_toxicity_pool_v1,cascade_accuracy_subsample,0.745,0.7725
+wildguard_prompt_full_v1,override_when_wrong_jev,0.3049,0.3049
+wildguard_prompt_full_v1,accept_when_right_jev,0.928,0.9529
+wildguard_prompt_full_v1,cascade_accuracy_subsample,0.8625,0.8825
+wildguard_response_full_v1,override_when_wrong_jev,0.3194,0.2917
+wildguard_response_full_v1,accept_when_right_jev,0.9162,0.9324
+wildguard_response_full_v1,cascade_accuracy_subsample,0.8725,0.8825

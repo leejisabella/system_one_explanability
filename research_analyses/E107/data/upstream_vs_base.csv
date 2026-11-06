@@ -1,0 +1,7 @@
+upstream,measure,diff,ci_lo,ci_hi,n
+decision_alt,override_when_wrong,0.0311,-0.0089,0.0711,450
+decision_alt,accept_when_right,0.0367,0.0209,0.0536,1007
+explainer_open,override_when_wrong,-0.0045,-0.0468,0.0401,449
+explainer_open,accept_when_right,0.0384,0.0222,0.0556,990
+reviewer_qwen,override_when_wrong,0.0378,-0.0089,0.0822,450
+reviewer_qwen,accept_when_right,0.0316,0.0168,0.0484,1012

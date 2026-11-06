@@ -1,4 +1,4 @@
-"""E.106–E.108 evaluation: base and post-trained reviewers on E.102's test plan (research_docs/14).
+"""E.106–E.109 evaluation: base and post-trained reviewers on E.102's test plan (research_docs/14, 15).
 
 Every reviewer, the untrained base included, runs on the same self-hosted stack (vLLM), so a
 difference between them is training, not serving. Each one, on E.102's frozen test pools:
@@ -80,6 +80,8 @@ class E106Config:
     run_provider_caps_usd: dict[str, float] = field(default_factory=lambda: {"bedrock": 0.01, "typesafe": 0.01})
     # Pre-registered criteria (research_docs/14), read by sysone.analysis.e106.
     criteria: dict[str, Any] = field(default_factory=dict)
+    # Round 2's criteria, scored on the items the base can solve (research_docs/15).
+    criteria_round2: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
     def load(cls, path: str | Path) -> E106Config:

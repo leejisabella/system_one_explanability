@@ -61,3 +61,13 @@ Cited in [13_cascade_deference.md](13_cascade_deference.md), "Why the reviewer i
 - OpenAI (2025, October 29). *Introducing gpt-oss-safeguard.* https://openai.com/index/introducing-gpt-oss-safeguard/
 - Young, R. J. (2026). *Lie to Me: How Faithful Is Chain-of-Thought Reasoning in Reasoning Models?* Preprint. https://arxiv.org/abs/2603.22582
 - Zaremba, W., et al. (2025). *Trading Inference-Time Compute for Adversarial Robustness.* Preprint (OpenAI). https://arxiv.org/abs/2501.18841
+
+## F. Part 2, round 2 (E.108–E.110)
+
+Cited in [15_part2_round2.md](15_part2_round2.md). Each arXiv abstract was checked on 2026-11-05. All are preprints on arXiv.
+
+- Chua, J., et al. (2024). *Bias-Augmented Consistency Training Reduces Biased Reasoning in Chain-of-Thought.* https://arxiv.org/abs/2403.05518
+- Panickssery, N., et al. (2023). *Steering Llama 2 via Contrastive Activation Addition.* https://arxiv.org/abs/2312.06681
+- Shao, Z., et al. (2024). *DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models.* Introduces GRPO. https://arxiv.org/abs/2402.03300
+- Wei, J., et al. (2023). *Simple Synthetic Data Reduces Sycophancy in Large Language Models.* https://arxiv.org/abs/2308.03958
+- Zelikman, E., et al. (2022). *STaR: Bootstrapping Reasoning With Reasoning.* https://arxiv.org/abs/2203.14465

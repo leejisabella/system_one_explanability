@@ -20,7 +20,7 @@ These two runs prepare data; they test no hypothesis. The design is in [research
 1. **Jev's mistake rates on the training pools match the test pools.** Jev was wrong on 24.5% of Civil Comments, 7.5% of prompts and 5.9% of responses, against 25.0%, 9.7% and 8.4% on E.102's test pools.
    - If Jev had seen these items in its own training, it would be noticeably more accurate here.
    - The WildGuard rates are 2–2.5 points lower, so a small overlap with Jev's training data can't be ruled out. It isn't large.
-2. **On items Jev gets right, the models almost always find the gold label too.** 98–99% of "Jev right" and "no proposal" items got a correct trace.
+2. **On items Jev gets right, the models almost always find the gold label too.** 98–99.5% of "Jev right" and "no proposal" items got a correct trace.
 3. **On Jev's mistakes, about a third never got one.** Neither model reached the gold label in any of 12 tries (4 + 2, in each of the two arms) on:
    - 35% of Jev's Civil Comments mistakes;
    - 29% of its prompt mistakes;
@@ -37,7 +37,7 @@ These two runs prepare data; they test no hypothesis. The design is in [research
      - in none did the models clearly miss something.
 5. **Almost every trace is the reviewer's own.** The teacher wrote 2–3% of the training traces, so the training data mostly reinforces reasoning the reviewer can already produce on the right path.
 
-**An analogy.** To train a junior radiologist, we collect the scans their screener misread and ask the trainee to work out the right diagnosis, keeping their correct workings. On about a third of the misread scans, neither the trainee nor the senior consultant ever agreed with the answer key. When we pulled a sample, the answer key itself was often the problem: the scan had been graded by four people who split. Teaching the trainee to match that key would teach them the graders' quirks, not better radiology.
+**An analogy.** To train a junior radiologist, we collect the scans their screener misread and ask the trainee to work out the right diagnosis, keeping their correct workings. On about a third of the misread scans, neither the trainee nor the senior consultant ever agreed with the answer key. When we pulled a sample, the answer key itself was often the problem: the scan had been graded by only four or five people, or the graders had split evenly. Teaching the trainee to match that key would teach them the graders' quirks, not better radiology.
 
 ## The decision: train as-is
 
@@ -83,7 +83,7 @@ Per-arm counts, including who wrote each trace, are in `data/e105_report.md`.
 | `part2_all_v1` | SFT with proposal (treatment) | 6,592 / 370 | 15% / 57% / 28% |
 | | SFT without proposal (control) | 6,592 / 370 | the same items |
 | | DPO pairs (correct vs. wrong trace) | 1,019 / 64 | 58% / 42% / – |
-| `part2_no_responses_v1` (E.108) | SFT treatment / control | 5,604 / 328 each | 15% / 57% / 28% |
+| `part2_no_responses_v1` (held-out domain, not yet run) | SFT treatment / control | 5,604 / 328 each | 15% / 57% / 28% |
 | | DPO pairs | 900 / 58 | 56% / 44% / – |
 
 All five training configs pass `--check`: files match their manifest hashes and every record has the right shape. One SFT record and one DPO pair would be cut at 4,096 tokens.

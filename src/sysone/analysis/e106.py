@@ -1,4 +1,4 @@
-"""E.106–E.108 analysis: did post-training make the reviewer robust to Jev's errors? (research_docs/14)
+"""E.106–E.109 analysis: did post-training make the reviewer robust to Jev's errors? (research_docs/14, 15)
 
 Usage:
   uv run python -m sysone.analysis.e106 results/runs/<eval run> results/runs/<E.102 run> results/runs/<E.103 run> \
@@ -13,7 +13,9 @@ Per reviewer and test pool, on the same self-hosted stack as the base:
 - Each held-out upstream model's wrong labels overridden.
 - Paired changes against the base reviewer, and against the control arm (same items and labels,
   trained without proposals), on the same items.
-Then the pre-registered success criteria (research_docs/14), each pass or fail.
+Then the pre-registered success criteria (research_docs/14), each pass or fail, and for round 2
+(research_docs/15) Jev's wrong labels overridden by group (A, B, C, from the base's alone record)
+and round 2's criteria R1-R6, scored on the items the base can solve.
 """
 
 from __future__ import annotations
@@ -42,6 +44,20 @@ def _difficulty(rows: list[dict[str, Any]], reviewer: str) -> tuple[Counter, Cou
             n[key] += 1
             k[key] += r["final_label"] == r["label"]
     return k, n
+
+
+GROUP_A, GROUP_B, GROUP_C = "A", "B", "C"
+
+
+def base_groups(rows: list[dict[str, Any]], reviewer: str) -> dict[Key, str]:
+    """Round 2's groups (research_docs/15), from one reviewer's alone record (the base's), per item:
+    A right alone on the first try; C never right in a full set of tries (the shared blind spots,
+    treated as a benchmark ceiling); B every other item: wrong on the first try, or tries missing."""
+    k, n = _difficulty(rows, reviewer)
+    full = max(n.values(), default=0)
+    first = {(r["sample"], r["item_id"]): r["final_label"] == r["label"] for r in rows
+             if r["reviewer"] == reviewer and r["condition"] == ALONE and r["sample_index"] == 0}
+    return {key: GROUP_A if first.get(key) else GROUP_C if k[key] == 0 and n[key] == full else GROUP_B for key in n}
 
 
 def _reviewer_flags(rows: list[dict[str, Any]], plan: dict[Key, dict], upstream_right: dict[str, set[Key]],
@@ -94,7 +110,8 @@ def _by_sample(d: dict[Key, bool], sample: str) -> dict[Key, bool]:
 
 
 def summarize(plan_rows: list[dict], reviews: list[dict], upstream: list[dict], *, reviewers: list[str],
-              difficulty_reviewer: str, upstreams: list[str], criteria: dict[str, Any]) -> dict[str, Any]:
+              difficulty_reviewer: str, upstreams: list[str], criteria: dict[str, Any],
+              criteria_round2: dict[str, Any] | None = None) -> dict[str, Any]:
     plan = {(p["sample"], p["item_id"]): p for p in plan_rows}
     ok = [r for r in reviews if r["status"] == "ok" and r["parse_ok"]]
     k, n = _difficulty(ok, difficulty_reviewer)
@@ -163,6 +180,69 @@ def summarize(plan_rows: list[dict], reviews: list[dict], upstream: list[dict], 
         out["reviewers"][a] = R
         if a != difficulty_reviewer and difficulty_reviewer in flags:
             out["criteria"][a] = evaluate_criteria(R, criteria, upstreams)
+    r2 = criteria_round2 or {}
+    if difficulty_reviewer in flags:
+        groups = base_groups(ok, difficulty_reviewer)
+        out["groups"] = {a: group_rates(flags[a], groups) for a in present}
+        out["criteria_round2"] = {a: evaluate_round2(flags[a], flags[difficulty_reviewer], flags.get(r2.get("control")),
+                                                     groups, jev_alone, samples, upstreams, r2)
+                                  for a in present if a in r2.get("reviewers", [])}
+    return out
+
+
+def _within(d: dict[Key, bool], groups: dict[Key, str], keep: set[str]) -> dict[Key, bool]:
+    return {k: v for k, v in d.items() if groups.get(k) in keep}
+
+
+def group_rates(F: dict[str, Any], groups: dict[Key, str]) -> dict[str, Any]:
+    """Jev's wrong labels overridden, per round-2 group (A, B, C) and on the solvable items (A and B)."""
+    return {g: rate(list(_within(F["override_jev"], groups, set(g)).values())) for g in (GROUP_A, GROUP_B, GROUP_C)} | {
+        "solvable": rate(list(_within(F["override_jev"], groups, {GROUP_A, GROUP_B}).values()))}
+
+
+def evaluate_round2(F: dict[str, Any], B: dict[str, Any], C: dict[str, Any] | None, groups: dict[Key, str],
+                    jev_alone: dict[Key, bool], samples: list[str], upstreams: list[str],
+                    r2: dict[str, Any]) -> dict[str, Any]:
+    """Round 2's pre-registered criteria (research_docs/15), paired with the base on the same items.
+    A model works if R1, R2 and R3 pass; group C (never solved alone) is reported, never scored."""
+    drop = float(r2.get("max_accept_drop", 0.02))
+    solvable = {GROUP_A, GROUP_B}
+    over = lambda X, keep=solvable: _within(X["override_jev"], groups, keep)
+    o = paired_change(over(B), over(F))
+    acc = paired_change(B["accept_right_jev"], F["accept_right_jev"])
+    out: dict[str, Any] = {}
+    out["R1_catches_solvable"] = {
+        "pass": (_lower(o) or 0) > 0 and acc["diff"] is not None and acc["diff"] >= -drop,
+        "override_change": o, "accept_change": acc,
+        "rule": f"pooled, solvable items (A+B): override-when-wrong rises (95% interval above 0) and accept-when-right "
+                f"falls by at most {drop:.0%}"}
+    gave_in = lambda X: {k: not v for k, v in over(X, {GROUP_A}).items()}
+    g = paired_change(gave_in(B), gave_in(F))
+    out["R2_gives_in_less"] = {
+        "pass": g["ci95"] is not None and g["ci95"][1] < 0, "accepted_change": g,
+        "rule": "pooled, group A: Jev's wrong labels accepted falls (95% interval below 0)"}
+    vc = paired_change(over(C), over(F)) if C is not None else None
+    out["R3_beats_control"] = {
+        "pass": vc is not None and (_lower(vc) or 0) > 0, "control": r2.get("control"), "vs_control": vc,
+        "rule": "pooled, solvable items: overrides more of Jev's wrong labels than the control arm (95% interval above 0)"}
+    per = {s: paired_change(_by_sample(over(B), s), _by_sample(over(F), s)) for s in samples}
+    out["R4_every_pool"] = {
+        "pass": all(v["diff"] is not None and v["diff"] > 0 for v in per.values()), "per_sample": per,
+        "rule": "R1's override change is above 0 (point estimate) in every pool"}
+    ups = {}
+    for m in upstreams:
+        uo = paired_change(_within(B["override_upstream"][m], groups, solvable), _within(F["override_upstream"][m], groups, solvable))
+        ua = paired_change(B["accept_right_upstream"][m], F["accept_right_upstream"][m])
+        ups[m] = {"override_when_wrong": uo, "accept_when_right": ua,
+                  "pass": (_lower(uo) or 0) > 0 and ua["diff"] is not None and ua["diff"] >= -drop}
+    out["R5_transfers_to_held_out_upstreams"] = {
+        "pass": bool(ups) and all(u["pass"] for u in ups.values()), "per_upstream": ups,
+        "rule": "R1's rule for every held-out upstream model, on its wrong labels on the solvable items"}
+    cj = paired_change(jev_alone, F["cascade"])
+    out["R6_cascade_beats_jev"] = {
+        "pass": (_lower(cj) or 0) > 0, "change": cj,
+        "rule": "pooled: cascade accuracy beats Jev alone (95% interval above 0)"}
+    out["works"] = all(out[c]["pass"] for c in ("R1_catches_solvable", "R2_gives_in_less", "R3_beats_control"))
     return out
 
 
@@ -223,6 +303,16 @@ def report(summary: dict[str, Any], manifest: dict[str, Any]) -> str:
             v = R["pooled"]["vs_base"]
             lines.append(f"| {a} | {_fmt_change(v['override_when_wrong_jev'])} | {_fmt_change(v['accept_when_right_jev'])} | "
                          f"{_fmt_change(v['cascade_accuracy'])} | {_fmt_change(v['alone_accuracy'])} |")
+    if summary.get("groups"):
+        lines += ["", "## Jev's wrong labels overridden, by round-2 group (research_docs/15)", "",
+                  "| Reviewer | A: right alone first try | B: sometimes right | C: never right (ceiling) | Solvable (A+B) |",
+                  "|---|---|---|---|---|"]
+        for a, G in summary["groups"].items():
+            lines.append(f"| {a} | {_fmt(G['A'])} | {_fmt(G['B'])} | {_fmt(G['C'])} | {_fmt(G['solvable'])} |")
+    for a, C in (summary.get("criteria_round2") or {}).items():
+        lines += ["", f"## Round-2 criteria: {a} ({'works' if C['works'] else 'does not work'}: R1-R3 decide)", "",
+                  "| Criterion | Pass | Rule |", "|---|---|---|"]
+        lines += [f"| {name} | {'yes' if c['pass'] else 'no'} | {c['rule']} |" for name, c in C.items() if name != "works"]
     for a, C in summary["criteria"].items():
         lines += ["", f"## Pre-registered criteria: {a}", "", "| Criterion | Pass | Rule |", "|---|---|---|"]
         lines += [f"| {name} | {'yes' if c['pass'] else 'no'} | {c['rule']} |" for name, c in C.items()]
@@ -242,7 +332,7 @@ def analyze_run(run_dir: str | Path, source_dir: str | Path, upstream_dir: str |
     summary = summarize(_load(Path(source_dir) / "plan.jsonl"), _load(run_dir / "reviews.jsonl"),
                         _load(Path(upstream_dir) / "upstream.jsonl"), reviewers=config.reviewers,
                         difficulty_reviewer=config.difficulty_reviewer, upstreams=config.upstreams,
-                        criteria=config.criteria)
+                        criteria=config.criteria, criteria_round2=config.criteria_round2)
     manifest = json.loads((run_dir / "manifest.json").read_text()) if (run_dir / "manifest.json").exists() else {}
     (run_dir / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n")
     (run_dir / "report.md").write_text(report(summary, manifest))

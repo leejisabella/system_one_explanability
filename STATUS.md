@@ -1,6 +1,6 @@
 # Project Status — start here
 
-Last updated: 2026-11-04 (E.101–E.103 cascade experiments done on branch `e101-cascade-deference`; E.104–E.105, Part 2's training data, done on `e104-part2-posttraining`; training waits for a GPU). Before that, 2026-10-28 (Pilot 0 passes on refund_v1; preflight passed; Pilot 1 ready, with Llama replacing the blocked Claude explainer). Read this first when picking the project back up.
+Last updated: 2026-11-04 (E.101–E.103 cascade experiments done on branch `e101-cascade-deference`; E.104–E.107 done on `e104-part2-posttraining`: neither SFT nor DPO worked; Part 2's strategy goes back to the drawing board). Before that, 2026-10-28 (Pilot 0 passes on refund_v1; preflight passed; Pilot 1 ready, with Llama replacing the blocked Claude explainer). Read this first when picking the project back up.
 
 ## In one paragraph
 
@@ -15,7 +15,7 @@ On branch `e101-cascade-deference`: Jev decides first and a reasoning model (gpt
 - **NO-GO on WildGuard**: Jev is too accurate (9% errors) and beats the reviewer (91% vs. 89%).
 - **The main finding is shared errors, not deference.** Jev's errors fall on items the reviewer also gets wrong alone: 53 of 78 vs. 19 expected by chance on Civil Comments, 22 of 27 vs. 3 on WildGuard. This holds on items the annotators agreed on. So the reviewer overrides 36% of Jev's errors vs. 77% of matched random errors.
 - **Deference beyond difficulty** (20% vs. 11% on items the reviewer gets right alone) points the expected way but isn't significant yet.
-- **The cascade doesn't pay off.** Reviewing takes 25–45% more reasoning tokens than deciding alone, and no confidence threshold beats the better single model.
+- **The cascade doesn't pay off.** Reviewing takes 22–46% more reasoning tokens than deciding alone, and no confidence threshold beats the better single model.
 - **Safety:** on WildGuard, the reviewer let 7 of the 12 harmful prompts Jev passed through, and 0 of the 12 that random errors passed.
 
 **E.102 ran 2026-11-04** (`e102-v1-2026-11-04`, commit `dcfc0d8`, $1.81, 40,179 requests, 0 failures; write-up in [research_analyses/E102/](research_analyses/E102/README.md)). Jev screened 3,000 Civil Comments items and all of WildGuardTest (prompts and responses). gpt-oss-20b reviewed Jev's mistakes, matched random mistakes and a random subsample. Qwen3-32B (no thinking) was a reference model.
@@ -49,7 +49,7 @@ In plain terms:
 - Part 2 should train the reviewer to be *right* on the items Jev finds hard, not just to disagree with Jev, and should report deference next to override and accept rates, since deference can improve while nothing useful changes.
 - Part 2 (E.104 on, post-training gpt-oss-20b) waits for a GPU.
 
-## Part 2: post-training the reviewer (E.104–E.108, built 2026-11-04; E.104–E.105 ran)
+## Part 2: post-training the reviewer (E.104–E.108, built 2026-11-04; E.104–E.107 ran)
 
 On branch `e104-part2-posttraining`, which merges after `e101-cascade-deference`. The design, the pre-registered success criteria and the step-by-step runbook are in [research_docs/14](research_docs/14_part2_posttraining.md).
 
@@ -83,8 +83,39 @@ What exists:
   - in a 30-item reading, half had a doubtful gold label and none was a clear model miss.
 - **Decision (2026-11-04): train as-is.** E.106 should watch accept-when-right first, because the reviewer could learn to agree with Jev. Criterion 2's Civil target may be hard to reach for the same label reason.
 
+**E.106 ran 2026-11-04** (`e106-v1-2026-11-04`; about 4.2 GPU hours on a GCP Spot H100, roughly $10–17 of education credits; write-up in [research_analyses/E106/](research_analyses/E106/README.md)). gpt-oss-20b was LoRA-fine-tuned on E.105's traces in two arms, with Jev's proposal and without. Each arm was evaluated against the untrained base on the same vLLM stack.
+- **It didn't work: both arms fail all five pre-registered criteria.**
+  - Jev's wrong labels overridden: −2.0 and −1.4 points, not significant.
+  - Jev's right labels accepted: +2.3 and +2.7, significant.
+  - Cascade accuracy: +2.3 and +2.8, but only from agreeing with Jev more. It still doesn't beat Jev alone.
+- **Where the change sits:** on items the reviewer gets right alone, it now switches to Jev's wrong label 32% / 31% of the time, against 25% for the base. On random wrong labels nothing changes. Deciding alone, the models are unchanged.
+- **Treatment ≈ control,** so showing the proposal in training made no difference. Rejection sampling leaves out exactly the items the reviewer can't solve, so SFT mostly sharpened what it already does.
+- **Deviations from the recipe:**
+  - LoRA on the linear layers only (expert-weight LoRA ran out of memory on one H100);
+  - the control arm trained at 2 × 8 instead of 4 × 4, which gives the same updates.
+- **GPU machine:** `sysone-part2-h100` (stopped; only its disk is billed, about $1.70 a day). The runbook has the setup fixes, and `scripts/run_e106.sh` runs E.106 resumably.
+
+**E.107 ran 2026-11-05** (DPO from the SFT treatment model, evaluated in the same run; about 1.2 GPU hours; write-up in [research_analyses/E107/](research_analyses/E107/README.md)). It also fails all five criteria.
+- **It landed back near the base:** switching to Jev's wrong label went from 32% to 27% (base 25%), and overrides of Jev's mistakes from 35.6% to 37.5% (base 37.6%). But deference at equal difficulty rose to +7.8 (base +4.8), so DPO doesn't clearly reduce deference. None of these changes is clear of noise.
+- **It got no further:** no more of Jev's mistakes caught than the base, and the blind spots unchanged (93% accepted). The cascade ties Jev alone.
+- **DPO's own loss stayed at chance (0.69).** It rated the right answer higher on 61% of the validation pairs.
+- **The learning rate was raised** to 5e-5 (from the planned 5e-6) before the run.
+
+**All E.1xx results are summarized in [research_analyses/E1xx_summary](research_analyses/E1xx_summary/README.md).**
+
+**Where Part 2 stands.** SFT, DPO and RL on the reviewer's own outputs all need it to reach the gold label at least sometimes, and the shared blind spots are the items where it never does. A new strategy needs a training signal that doesn't depend on that.
+
+**Working assumption (2026-11-05): those never-solved items are a benchmark ceiling.** They are 45% of Jev's test mistakes (group C). We take them to be largely contested or wrong gold labels, so Part 2 aims at the other 55% and reports group C separately. The evidence is from Civil Comments only (E.105's read); WildGuard's group C is still to be checked. Details are in [the summary](research_analyses/E1xx_summary/README.md#working-assumption-the-never-solved-items-are-a-benchmark-ceiling).
+
+Part 2's GPU work so far: about 5.4 hours, roughly $13–22 of education credits.
+
 Not done yet:
-- **The GPU scripts have never run on a GPU.** The first session starts with the smoke test in the runbook (research_docs/14), then E.106.
+- **Part 2, round 2 (designed 2026-11-05; not built):** E.108 consistency training plus balanced-proposal SFT (two arms), E.109 GRPO, and E.110 activation steering as an interpretability study on top. It has new pre-registered criteria scored on groups A and B. Not pursued: deference DPO, self-consistency voting, escalation to a third model, and training toward group C. Full designs: [research_docs/15](research_docs/15_part2_round2.md).
+  - **Step 0 done:** the ceiling assumption fails on WildGuard (10 of 30 group C items were clear model mistakes, at the threshold) and stands on Civil Comments. See [research_analyses/E108](research_analyses/E108/README.md).
+  - **E.108, E.109 (GRPO) and E.110 (steering) are built and tested offline** (`sysone.experiments.e108`, `sysone.posttrain.grpo`, `sysone.interp.steering`; the runbook is in research_docs/15). E.108's dry run selects 2,806 rows. Next live step: its Bedrock sampling, about $0.20; check in first. Check the Spot quota for 2 × H100 before E.109.
+- **No GPU resources remain.** The VM `sysone-part2-h100` and its disk were deleted on 2026-11-05, so Compute Engine costs nothing now.
+  - The three LoRA adapters (SFT treatment, SFT control, DPO, 15 MB each) are kept locally in `checkpoints/`, which is gitignored. With `sysone.posttrain.sft --merge` and the public base model, the trained models can be rebuilt without retraining.
+  - A new GPU session starts from the runbook in research_docs/14.
 
 ## What exists
 
