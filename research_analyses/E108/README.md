@@ -30,8 +30,8 @@
 **What this means.**
 - **On WildGuard, part of group C is learnable,** and it's mostly one kind of mistake: over-flagging. That's different from Civil Comments, where E.105's reading found no clear model mistakes.
 - **The criteria aren't changed.** Round 2 scores groups A and B either way, as fixed in research_docs/15.
-- **But WildGuard's group C becomes a target again,** and the write-ups report it as one.
-- **This reopens one option:** a stronger model could write gold-reaching reasoning for these items, as training data only, never as a cascade stage. Whether to use it is a decision still to make.
+- **WildGuard's group C is reported as a real gap,** not as a ceiling, in every round-2 write-up.
+- **Decided 2026-11-05: no new training data for these items.** A stronger model could have written gold-reaching reasoning for them, as training data only, but we chose to leave WildGuard's group C out of training and report it separately.
 
 **Caveats.**
 - **The result sits exactly on the threshold.** One reading the other way changes the verdict.

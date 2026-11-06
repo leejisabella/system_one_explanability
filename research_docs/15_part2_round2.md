@@ -48,7 +48,7 @@ The code fixes the rule (`sysone.analysis.e106.base_groups`): an item counts as 
   - That's also the one case where a stronger model may write gold-reaching reasoning to train on (see [What we decided not to do](#what-we-decided-not-to-do-and-why)). It would supply training data only, never a new stage in the cascade.
 - Step 0 doesn't block E.108. The criteria below score groups A and B either way.
 
-**Step 0 result (2026-11-05): the ceiling assumption does not hold for WildGuard.** 10 of 30 WildGuard group C items were clear model mistakes, exactly at the pre-registered threshold. They were all benign items both models flagged as harmful. So WildGuard's group C is a target again; on Civil Comments the assumption stands. The round-2 criteria are unchanged. See [research_analyses/E108](../research_analyses/E108/README.md#step-0-is-wildguards-group-c-a-benchmark-ceiling). Whether to add gold training data from a stronger model for those items is a decision still open.
+**Step 0 result (2026-11-05): the ceiling assumption does not hold for WildGuard.** 10 of 30 WildGuard group C items were clear model mistakes, exactly at the pre-registered threshold. They were all benign items both models flagged as harmful. So WildGuard's group C is a target again; on Civil Comments the assumption stands. The round-2 criteria are unchanged. See [research_analyses/E108](../research_analyses/E108/README.md#step-0-is-wildguards-group-c-a-benchmark-ceiling). **Decided 2026-11-05: no gold data from a stronger model.** WildGuard's group C stays out of training and is reported separately, as on Civil Comments.
 
 ## E.108: consistency training and balanced-proposal SFT
 
