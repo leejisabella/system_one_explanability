@@ -1,4 +1,4 @@
-# 14. Part 2: post-training the reviewer to be robust to Jev's errors (E.104–E.108)
+# 14. Part 2: post-training the reviewer to be robust to Jev's errors (E.104–E.110)
 
 **Status (2026-11-05): E.104–E.107 ran. Neither SFT (E.106) nor DPO (E.107) worked; both fail all five criteria** ([E106](../research_analyses/E106/README.md), [E107](../research_analyses/E107/README.md)). Part 2's training strategy needs rethinking: these methods can't reach items the reviewer never solves.
 - Results: [research_analyses/E104_E105](../research_analyses/E104_E105/README.md).
@@ -38,7 +38,7 @@ The training data is in review format:
 | **E.105** | Reasoning traces for every example (reviewer, then teacher); paired datasets exported | Bedrock | `sysone.experiments.e105` | ≈ $3–4 Bedrock |
 | **E.106** | Save the bf16 base, SFT both arms, merge, serve, evaluate base and both arms | GPU (1 × 80 GB) | `sysone.posttrain.sft`, `scripts/serve_part2.sh`, `sysone.experiments.e106` | GPU hours only |
 | **E.107** | DPO on the reviewer's own correct vs. wrong traces, from the SFT treatment checkpoint; evaluate | GPU | `sysone.posttrain.dpo`, `e106` | GPU hours |
-| **E.108** | Generalization: held-out upstream models (in every evaluation) and a held-out domain (train without WildGuard responses) | GPU | `e106` with the `*_no_responses` configs | GPU hours |
+| ~~E.108~~ (superseded by round 2) | Generalization: held-out upstream models (in every evaluation) and a held-out domain (train without WildGuard responses) | GPU | `e106` with the `*_no_responses` configs | GPU hours |
 
 Each step reads the previous step's saved run, so each one can be rerun or resumed on its own.
 
@@ -101,7 +101,7 @@ A trace counts only if:
 
 Two datasets are exported:
 - `part2_all_v1`: every training pool;
-- `part2_no_responses_v1`: without WildGuard responses, for E.108's held-out domain.
+- `part2_no_responses_v1`: without WildGuard responses, for the held-out-domain study first planned as E.108 (not yet run).
 
 **The records** (`sysone.posttrain.formats`) are TRL conversational records. The prompt is built by the same `Reviewer` code as the evaluation prompts, so a test prompt is byte-identical to the training prompts of its kind (a test checks this). The completion is one assistant turn:
 - `thinking`: the trace, which gpt-oss's chat template renders into its analysis channel;

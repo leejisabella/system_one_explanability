@@ -83,7 +83,7 @@ Per-arm counts, including who wrote each trace, are in `data/e105_report.md`.
 | `part2_all_v1` | SFT with proposal (treatment) | 6,592 / 370 | 15% / 57% / 28% |
 | | SFT without proposal (control) | 6,592 / 370 | the same items |
 | | DPO pairs (correct vs. wrong trace) | 1,019 / 64 | 58% / 42% / – |
-| `part2_no_responses_v1` (E.108) | SFT treatment / control | 5,604 / 328 each | 15% / 57% / 28% |
+| `part2_no_responses_v1` (held-out domain, not yet run) | SFT treatment / control | 5,604 / 328 each | 15% / 57% / 28% |
 | | DPO pairs | 900 / 58 | 56% / 44% / – |
 
 All five training configs pass `--check`: files match their manifest hashes and every record has the right shape. One SFT record and one DPO pair would be cut at 4,096 tokens.
