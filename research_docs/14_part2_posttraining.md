@@ -161,7 +161,23 @@ It also gives paired changes against the base and against the control arm, on th
 
 **RL is not built.** The natural next step is GRPO with a reward of 1 for the gold final label, Jev's proposal in the prompt, and a penalty for an inconsistent verdict. Build it only if SFT and DPO leave a gap on criterion 1.
 
-### E.108: generalization
+### Round 2 (after E.107): strategies chosen 2026-11-05
+
+SFT and DPO on the reviewer's own correct traces failed (E.106, E.107). Round 2 targets the items the reviewer can get right: group A (right alone, but gives in to Jev) and group B (sometimes right). Group C, the never-solved items, is a benchmark ceiling (see the criteria section). The design is still to be written; the numbering below replaces the generalization study planned as E.108, whose held-out-upstream check (criterion 4) stays in every evaluation.
+
+| | Strategy | What it trains |
+|---|---|---|
+| E.108, arm 1 | **Consistency training** | Prompt shows Jev's label; the target is the reviewer's own reasoning from deciding alone, so seeing the label shouldn't change the answer (Chua et al., 2024) |
+| E.108, arm 2 | **Balanced-proposal SFT** | Proposals right half the time and wrong half the time; the target is a review trace that reaches the gold label, so the proposal alone carries no information (Wei et al., 2023) |
+| E.109 | **GRPO in review mode** | Reward 1 for the gold label with Jev's proposal in the prompt; likely starting from E.108's better arm |
+| E.110 | **Activation steering** (interpretability, on top of the others) | No training: a "deference direction" from activations with vs. without Jev's wrong label, measured in the base and the trained models |
+
+**Not pursued, and why (the user's decisions):**
+- **Deference DPO with redesigned pairs:** more DPO on the same data isn't expected to work.
+- **Self-consistency review (vote over the reviewer's own samples):** the reviewer's own samples are the thing that's wrong; voting over them isn't a fix.
+- **Uncertainty-gated review / escalation:** it adds a third model to the cascade. A new model is acceptable only as a source of gold training data, never as a new stage in the cascade.
+
+### E.108 (original plan, superseded): generalization
 
 1. **Held-out upstream models:** criterion 4, in every evaluation.
 2. **Held-out domain:**
