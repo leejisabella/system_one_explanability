@@ -145,7 +145,7 @@ Decided 2026-11-05, before choosing Part 2's next strategy. On the test set, the
 **We treat group C as a ceiling of the benchmark, not a target.** We take these items to be largely contested or wrong gold labels, so a reviewer shouldn't be trained to "catch" them. Training that pushes toward those labels would teach label noise. From here on, Part 2's methods aim at groups A and B, and its results are read with group C reported separately.
 
 - **The evidence is on Civil Comments only.** In E.105, the models gave the same answer on every try for the dropped training items. In a reading of 30 of them, about half had a doubtful gold label and none was a clear model mistake.
-- **Not yet checked:** WildGuard's group C, and the test set's group C on either dataset (the reading was on the training pool). A sample of WildGuard group C items should be read before relying on this there.
+- **Checked on WildGuard on 2026-11-05 (step 0): it doesn't hold there.** 10 of 30 test group C items were clear model mistakes, exactly at the pre-registered threshold; all were benign items both models flagged as harmful. So the assumption stands for Civil Comments only, and WildGuard's group C is a target again ([E108](../E108/README.md#step-0-is-wildguards-group-c-a-benchmark-ceiling)).
 - **What it changes:** the objection that SFT, DPO and RL can't reach group C no longer rules them out, since group C isn't the goal. Fixing group A alone would raise override-when-wrong from 38% to about 46% at most.
 
 ## Directions for a new strategy

@@ -111,7 +111,8 @@ Part 2's GPU work so far: about 5.4 hours, roughly $13–22 of education credits
 
 Not done yet:
 - **Part 2, round 2 (designed 2026-11-05; not built):** E.108 consistency training plus balanced-proposal SFT (two arms), E.109 GRPO, and E.110 activation steering as an interpretability study on top. It has new pre-registered criteria scored on groups A and B. Not pursued: deference DPO, self-consistency voting, escalation to a third model, and training toward group C. Full designs: [research_docs/15](research_docs/15_part2_round2.md).
-  - Next: step 0 (read 30 WildGuard group C items, free), then build E.108. Check the Spot quota for 2 × H100 before building E.109.
+  - **Step 0 done:** the ceiling assumption fails on WildGuard (10 of 30 group C items were clear model mistakes, at the threshold) and stands on Civil Comments. See [research_analyses/E108](research_analyses/E108/README.md).
+  - **E.108's data builder is built** (`sysone.experiments.e108`, dry-run: 2,806 rows). Next live step: its Bedrock sampling, about $0.20; check in first. Check the Spot quota for 2 × H100 before E.109.
 - **No GPU resources remain.** The VM `sysone-part2-h100` and its disk were deleted on 2026-11-05, so Compute Engine costs nothing now.
   - The three LoRA adapters (SFT treatment, SFT control, DPO, 15 MB each) are kept locally in `checkpoints/`, which is gitignored. With `sysone.posttrain.sft --merge` and the public base model, the trained models can be rebuilt without retraining.
   - A new GPU session starts from the runbook in research_docs/14.

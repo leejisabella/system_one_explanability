@@ -1,0 +1,19 @@
+# E.108 (consist_review), research_docs/15: consistency training: the target is the reviewer's own reasoning from deciding alone.
+# Same items and proposals in both arms; the recipe is E.106's except 2 epochs and seed 108.
+# Check first (no GPU): uv run python -m sysone.posttrain.sft --config configs/posttrain/consist_review.yaml --check
+name: gpt-oss-20b-consist-review
+method: sft
+dataset: part2_round2_v1        # exported by sysone.experiments.e108
+arm: consist_review
+base_model: openai/gpt-oss-20b
+init_from: null                 # from the untrained base, not E.106's SFT model
+reasoning_effort: medium
+lora: {r: 8, alpha: 16, dropout: 0.0, target_modules: all-linear}   # linear layers only, as E.106
+learning_rate: 2.0e-4
+epochs: 2                       # ~2,800 examples: one epoch would be fewer updates than E.106's 412
+per_device_batch_size: 2        # 2 x 8 = 16 per update; E.106's control ran out of memory at 4 x 4
+gradient_accumulation_steps: 8
+max_length: 4096
+warmup_ratio: 0.03
+seed: 108
+max_steps: null

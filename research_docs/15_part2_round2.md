@@ -1,6 +1,6 @@
 # 15. Part 2, round 2: targeting the items the reviewer can get right (E.108–E.110)
 
-**Status (2026-11-05): designed, not built, nothing run.** The strategies were chosen with the user on 2026-11-05, after SFT (E.106) and DPO (E.107) both failed all five criteria. Check in before every live step.
+**Status (2026-11-05): E.108's data builder, the round-2 criteria and step 0 are built and tested offline; step 0 has run (below). E.109 and E.110 are being built. Nothing has been trained.** The strategies were chosen with the user on 2026-11-05, after SFT (E.106) and DPO (E.107) both failed all five criteria. Check in before every live step.
 
 Round 1 is in [14_part2_posttraining.md](14_part2_posttraining.md), and its results are in [the E.1xx summary](../research_analyses/E1xx_summary/README.md).
 
@@ -11,10 +11,10 @@ Round 1 trained the reviewer on its own correct reasoning, and it didn't catch m
 | Group | Share of Jev's mistakes | Civil / WG prompts / WG responses | What goes wrong | Reachable by training on the reviewer's own outputs? |
 |---|---|---|---|---|
 | **A.** Right alone on the first try | 34% (364) | 281 / 41 / 42 | It gives in to Jev's wrong label 25% of the time: **deference** | Yes: it already has the right reasoning |
-| **B.** Wrong on the first try, right at least once in 5 | 21% (~221) | 154 / 42 / 24 | It's **inconsistent** | Yes, with a weaker signal |
-| **C.** Never right alone (0 of 5) | 45% (~473) | 315 / 81 / 78 | **Shared blind spots** | No: there's no correct answer of its own to learn from |
+| **B.** Wrong on the first try, right at least once in 5 | 21% (221) | 155 / 42 / 24 | It's **inconsistent** | Yes, with a weaker signal |
+| **C.** Never right alone (0 of 5) | 45% (473) | 314 / 81 / 78 | **Shared blind spots** | No: there's no correct answer of its own to learn from |
 
-The counts for B and C can move by one item, depending on how a parse failure among the 5 tries is counted. The code fixes the rule: an item needs at least 4 parsed tries to count as C.
+The code fixes the rule (`sysone.analysis.e106.base_groups`): an item counts as C only if all 5 tries parsed and none was right, as in E.106's never-right measure; with that rule the split is 364 / 221 / 473.
 
 **Group C is treated as a benchmark ceiling, not a target** (decided 2026-11-05).
 - We take these items to be largely contested or wrong gold labels. The evidence is E.105's reading of the Civil Comments items that were never solved: about half had a doubtful gold label and none was a clear model mistake.
@@ -47,6 +47,8 @@ The counts for B and C can move by one item, depending on how a parse failure am
   - In that case, WildGuard group C becomes a target again, and the write-ups say so.
   - That's also the one case where a stronger model may write gold-reaching reasoning to train on (see [What we decided not to do](#what-we-decided-not-to-do-and-why)). It would supply training data only, never a new stage in the cascade.
 - Step 0 doesn't block E.108. The criteria below score groups A and B either way.
+
+**Step 0 result (2026-11-05): the ceiling assumption does not hold for WildGuard.** 10 of 30 WildGuard group C items were clear model mistakes, exactly at the pre-registered threshold. They were all benign items both models flagged as harmful. So WildGuard's group C is a target again; on Civil Comments the assumption stands. The round-2 criteria are unchanged. See [research_analyses/E108](../research_analyses/E108/README.md#step-0-is-wildguards-group-c-a-benchmark-ceiling). Whether to add gold training data from a stronger model for those items is a decision still open.
 
 ## E.108: consistency training and balanced-proposal SFT
 
@@ -104,11 +106,11 @@ As E.106, with nothing new to build:
 
 These apply to **E.108's two arms and to E.109.** They're fixed before any round-2 model is trained, and will be encoded in `configs/experiments/e106.yaml` (`criteria_round2`) and `sysone.analysis.e106`. All changes are paired with the base on the same items, with 95% bootstrap intervals.
 
-**Group definitions** come from the base's alone record in `e106-v1-2026-11-04` and are fixed for every model. **"Solvable"** means groups A and B together, the ~585 of Jev's mistakes the base gets right at least once alone (584 by the strictest parse rule).
+**Group definitions** come from the base's alone record in `e106-v1-2026-11-04` and are fixed for every model. **"Solvable"** means groups A and B together, the 585 of Jev's mistakes the base gets right at least once alone (or has fewer than 5 parsed tries on).
 
 | # | Criterion | Rule | Base value |
 |---|---|---|---|
-| R1 | **Catches more of the solvable mistakes, without becoming contrarian** (primary) | Pooled: Jev's wrong labels overridden on solvable items rises (interval above 0), *and* Jev's right labels accepted falls by at most 2 points | Override 61.8% (361/584); accept 89.9% |
+| R1 | **Catches more of the solvable mistakes, without becoming contrarian** (primary) | Pooled: Jev's wrong labels overridden on solvable items rises (interval above 0), *and* Jev's right labels accepted falls by at most 2 points | Override 61.7% (361/585); accept 89.9% |
 | R2 | **Gives in less where it knows the answer** (primary) | Pooled, group A: Jev's wrong labels accepted falls (interval below 0) | 25.0% (91/364) |
 | R3 | **Not just a more accurate model** (primary) | Pooled, solvable items: overrides more of Jev's wrong labels than the E.106 control arm `sft_plain`, which trained on gold labels with no proposals (interval above 0) | `sft_plain`: measured in the same run |
 | R4 | **Holds in every pool** | R1's override change is above 0 (point estimate) in each of the three pools | – |

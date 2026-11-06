@@ -51,6 +51,10 @@ local:
   gpt-oss-20b-dpo-review: {input: 0.0, output: 0.0}
   gpt-oss-20b-sft-review-no-responses: {input: 0.0, output: 0.0}
   gpt-oss-20b-sft-plain-no-responses:  {input: 0.0, output: 0.0}
+  # Round 2 (research_docs/15).
+  gpt-oss-20b-consist-review:  {input: 0.0, output: 0.0}
+  gpt-oss-20b-balanced-review: {input: 0.0, output: 0.0}
+  gpt-oss-20b-grpo-review:     {input: 0.0, output: 0.0}
 
 gemini:
   # Paid-tier Gemini API prices from ai.google.dev/gemini-api/docs/pricing (checked 2026-10-21,
