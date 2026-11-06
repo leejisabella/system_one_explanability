@@ -163,7 +163,7 @@ It also gives paired changes against the base and against the control arm, on th
 
 ### Round 2 (after E.107): strategies chosen 2026-11-05
 
-SFT and DPO on the reviewer's own correct traces failed (E.106, E.107). Round 2 targets the items the reviewer can get right: group A (right alone, but gives in to Jev) and group B (sometimes right). Group C, the never-solved items, is a benchmark ceiling (see the criteria section). The design is still to be written; the numbering below replaces the generalization study planned as E.108, whose held-out-upstream check (criterion 4) stays in every evaluation.
+SFT and DPO on the reviewer's own correct traces failed (E.106, E.107). Round 2 targets the items the reviewer can get right: group A (right alone, but gives in to Jev) and group B (sometimes right). Group C, the never-solved items, is a benchmark ceiling (see the criteria section). **The full designs, round 2's own criteria, and what we decided not to do are in [15_part2_round2.md](15_part2_round2.md).** The numbering below replaces the generalization study planned as E.108, whose held-out-upstream check (criterion 4) stays in every evaluation.
 
 | | Strategy | What it trains |
 |---|---|---|

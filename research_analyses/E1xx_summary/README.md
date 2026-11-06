@@ -150,6 +150,8 @@ Decided 2026-11-05, before choosing Part 2's next strategy. On the test set, the
 
 ## Directions for a new strategy
 
+**Superseded 2026-11-05:** round 2 chose consistency training, balanced-proposal SFT, GRPO and activation steering, aimed at groups A and B. See [research_docs/15](../../research_docs/15_part2_round2.md). The table below is the earlier list of options, kept for the record.
+
 These are options to weigh, not results. Each targets the blind spots, which the methods so far couldn't reach.
 
 | Direction | Idea | Main risk |
