@@ -1,6 +1,6 @@
 # 15. Part 2, round 2: targeting the items the reviewer can get right (E.108–E.110)
 
-**Status (2026-11-05): E.108's data builder, the round-2 criteria and step 0 are built and tested offline; step 0 has run (below). E.109 and E.110 are being built. Nothing has been trained.** The strategies were chosen with the user on 2026-11-05, after SFT (E.106) and DPO (E.107) both failed all five criteria. Check in before every live step.
+**Status (2026-11-05): E.108, E.109 and E.110 are built and tested offline; step 0 has run (below). Nothing has been trained or sampled live.** See [the code map and runbook](#code-map-and-runbook). The strategies were chosen with the user on 2026-11-05, after SFT (E.106) and DPO (E.107) both failed all five criteria. Check in before every live step.
 
 Round 1 is in [14_part2_posttraining.md](14_part2_posttraining.md), and its results are in [the E.1xx summary](../research_analyses/E1xx_summary/README.md).
 
@@ -243,18 +243,35 @@ Decided with the user on 2026-11-05.
 
 **Deferred, not rejected:** the held-out-domain study first planned as E.108 (train without WildGuard responses and test on them). It runs on whichever round-2 method works, using the existing `part2_no_responses_v1` split.
 
-## To build
+## Code map and runbook
 
-| Piece | Where (planned) | For |
+Built 2026-11-05 and tested offline (357 tests pass). None of the GPU code has run on a GPU yet.
+
+| Piece | Where | Tests |
 |---|---|---|
-| Group A/B/C labels from the base's alone record | `sysone.analysis.e106` | Criteria, E.110 |
-| Round-2 criteria R1–R6 | `sysone.analysis.e106.evaluate_criteria`, `configs/experiments/e106.yaml` (`criteria_round2`) | E.108, E.109 |
-| E.108 data: new review samples, the mix, export of both arms with a manifest | `sysone.experiments.e108` (reusing E.105's sampler and `sysone.posttrain.formats`) | E.108 |
-| Training configs | `configs/posttrain/consist_review.yaml`, `balanced_review.yaml`; aliases in `configs/models.yaml` | E.108 |
-| GRPO: pre-pass, reward, trainer, stop rules | `sysone.posttrain.grpo`, `configs/posttrain/grpo_review.yaml`, `scripts/run_e109.sh` | E.109 |
-| Steering: activation capture, directions, probes, steered generation | `sysone.interp.steering`, `scripts/run_e110.sh` | E.110 |
-| WildGuard group C sample for step 0 | `research_analyses/E108/step0_group_c.py` | Step 0 |
-| Tests for each, offline | `tests/test_part2_round2.py` | All |
+| Groups A/B/C, round-2 criteria R1–R6, report tables | `sysone.analysis.e106` (`base_groups`, `evaluate_round2`); `configs/experiments/e106.yaml` (`criteria_round2`) | `tests/test_part2_round2.py` |
+| Step 0 | `research_analyses/E108/step0_group_c.py` | – |
+| E.108 data (select, sample, export of both arms and the GRPO prompts) | `sysone.experiments.e108`, `configs/experiments/e108.yaml` | `tests/test_part2_round2.py` |
+| E.108 training and evaluation | `configs/posttrain/{consist,balanced}_review.yaml`, `scripts/run_e108.sh`; aliases in `configs/models.yaml` | `tests/test_part2_round2.py` |
+| E.109 GRPO | `sysone.posttrain.grpo`, `configs/posttrain/grpo_review.yaml`, `scripts/run_e109.sh` | `tests/test_grpo.py` |
+| E.110 steering | `sysone.interp.steering` (`build`, `capture`, `directions`, `select-alpha`, `steer`, `compare`, `report`), `scripts/run_e110.sh` | `tests/test_steering.py` |
+
+**Runbook, in order** (check in before each live step):
+1. **Laptop, Bedrock (~$0.20):** `uv run python -m sysone.experiments.e108 --run-id e108-v1-<date>`. Read its report, then commit `benchmarks/posttrain/part2_round2_v1/`.
+2. **Laptop, free:** `uv run python -m sysone.interp.steering build --run-id e110-v1-<date>`. This freezes E.110's items and config.
+3. **GPU session 1 (1 × H100):** copy `data/posttrain/part2_round2_v1`, `data/cascade`, and the runs `e102`, `e103`, `e106`, `e110`. Also copy E.104 and E.105, which E.110's capture reads. The bf16 base comes from E.106, or `sft --save-base`. Then:
+   - run `scripts/run_e108.sh e106-v1-2026-11-04`;
+   - run E.110's base steps, `scripts/run_e110.sh e110-v1-<date>`, in the same session.
+4. **Choose E.109's start** by the rule in its config. Set `init_from`, commit, and check the quota for 2 × H100.
+5. **GPU session 2 (2 × H100):** a 20-update smoke run from a copy of `grpo_review.yaml`, then `scripts/run_e109.sh`, then `scripts/run_e110.sh` again for `compare` on the trained models.
+
+**E.110's choices beyond the design:**
+- **The direction is paired within items.** It uses the 451 training items that have both a give-in and a held trace: 353 to fit, 98 held out. Each item contributes its mean give-in activation minus its mean held one. Gaps in measurements 1 and 3 are paired the same way. AUC and the probe use every held-out trace.
+- **An unsteered pass through the same transformers stack** is the paired baseline for the causal test. The base's vLLM rows are shown for reference.
+- **Each layer from the best layer ±1 gets its own direction,** subtracted at every position. The controls are scaled to that norm.
+- **The α rule:** the smallest α with the largest drop in giving in, keeping accept-when-right within 2 points. It's frozen to `alpha.json` before the test steering.
+- **Prompts carry one fixed date** (`chat_date`), because the chat template stamps the current date.
+- **Run time:** about 7,000 transformers generations, which may exceed the 2–4 hours estimated above. Time one batch first.
 
 ## Risks and open questions
 
