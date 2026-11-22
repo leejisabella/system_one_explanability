@@ -1,0 +1,35 @@
+# E.112: teacher screen for distillation (research_docs/15, revised 2026-11-21). Bedrock only, no Jev calls.
+# 300 training-pool items (per pool: 40 unsolved Jev mistakes, 30 solved, 30 Jev-right) x 3 teachers,
+# one review each. Projected ~$0.5; worst case (every call at its output cap) ~$2.7, under the run cap.
+
+source_run: e104-v1-2026-11-04
+traces_run: e105-v1-2026-11-04
+samples: [civil_toxicity_train_v1, wildguard_prompt_train_v1, wildguard_response_train_v1]
+per_stratum: {unsolved: 40, solved: 30, right: 30}
+teachers:
+  teacher_mistral: written     # Mistral Large 3
+  teacher_qwen: written        # Qwen3-235B (same family as held-out Qwen3-32B; see configs/models.yaml)
+  teacher_high: native         # gpt-oss-120b, high reasoning effort
+native_reasoning_max_tokens: 8192
+native_max_output_tokens: 256
+written_max_output_tokens: 1500
+seed: e112-v1
+
+# Pass rule, fixed before the run (2026-11-21). A teacher passes if all four hold:
+criteria:
+  # Override on Jev's mistakes (weighted to the mix) beats gpt-oss-20b's first E.105 try
+  # by at least this much, with the paired 95% bootstrap interval above 0.
+  min_override_gain: 0.10
+  # Keeps at least this share of Jev's right labels (not contrarian).
+  min_accept_right: 0.90
+  # Reaches the gold label on at least this share of WildGuard's unsolved items, where step 0 found
+  # real model mistakes. Civil Comments' unsolved items are reported only: their gold labels are often doubtful.
+  min_unsolved_wg: 0.25
+  min_parse_rate: 0.95
+# If several pass: the highest weighted override; prefer a non-Qwen teacher when within noise (R5).
+
+workers: 8
+use_cache: false
+max_consecutive_errors: 10
+run_provider_caps_usd: {bedrock: 3.00, typesafe: 0.01}
+bootstrap: 2000

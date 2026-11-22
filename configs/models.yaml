@@ -154,3 +154,24 @@ sft_plain_no_responses:
   provider: local
   model: gpt-oss-20b-sft-plain-no-responses
   reasoning_effort: medium
+
+# E.112 teacher screen (research_docs/15, revised 2026-11-21): candidate teachers for distillation.
+# Training data only, never a stage in the cascade. Bedrock, so GCP credits stay for the GPUs.
+teacher_mistral:
+  # Mistral Large 3, a family outside the cascade and every held-out upstream model. Not a
+  # reasoning model: E.112 asks it to reason in writing before its JSON answer.
+  provider: bedrock
+  model: mistral.mistral-large-3-675b-instruct
+
+teacher_qwen:
+  # Qwen3-235B (2507 instruct, no thinking). Same family as Qwen3-32B, a held-out upstream model
+  # (criterion R5), so picking it as the teacher would weaken that test. Reasons in writing like Mistral.
+  provider: bedrock
+  model: qwen.qwen3-235b-a22b-2507-v1:0
+
+teacher_high:
+  # gpt-oss-120b at high reasoning effort: E.105's teacher (medium effort), pushed harder. The baseline teacher.
+  provider: bedrock
+  model: openai.gpt-oss-120b-1:0
+  service_tier: flex
+  reasoning_effort: high
