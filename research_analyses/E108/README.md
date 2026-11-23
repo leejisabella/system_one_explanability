@@ -38,7 +38,7 @@
 - **There was one reader,** and it was a model, not a person. The classifications are easy to check: the sheet is in the run folder.
 - **30 items** out of the 159 WildGuard group C items.
 
-## Building the data (not run yet)
+## Building the data (run 2026-11-22)
 
 `sysone.experiments.e108` selects the rows, samples new review traces where E.105 has no correct one, and exports both arms plus E.109's GRPO prompts. A dry run on the real E.104 and E.105 data, with no API calls, selects:
 
@@ -56,6 +56,22 @@
 
   That's at most about 2,700 Bedrock calls, roughly $0.20 at E.105's rates. This live step needs a check-in first.
 - **E.109's GRPO candidates** are 6,109 training and 317 validation prompts.
+
+### Live run: `e108-v1-2026-11-22` (Bedrock, $0.10)
+
+1,166 new review samples by gpt-oss-20b, all returned and 1,165 parsed, for **$0.1037** (ledger). That's about half the estimate. The dry run's fake reviewer sampled more because it rarely solved anything.
+
+| Pool | Jev's mistakes re-sampled → now solved | Flipped labels → solved | Jev right → solved |
+|---|---|---|---|
+| Civil Comments | 97 → 66 | 230 → 227 | 16 → 9 |
+| WildGuard prompts | 37 → 24 | 69 → 68 | 1 → 1 |
+| WildGuard responses | 21 → 13 | 52 → 52 | 0 → 0 |
+
+- **8 more tries recover most of the "gave in every time" rows:** 103 of 155 of Jev's mistakes now have a correct review trace by the reviewer itself. 52 still don't, and they are dropped.
+- **Exported:** both arms on the same items, 2,592 training and 151 validation rows each (2,743 of 2,806 selected; 63 dropped for no correct trace). Also 6,109 / 317 GRPO prompts for E.109.
+- **Checks:** both arms hold identical item sets; train and validation share no item; no item appears in E.102's test plan.
+- **Files:** `data/posttrain/part2_round2_v1/`, manifest in `benchmarks/posttrain/part2_round2_v1/manifest.json`, report in `results/runs/e108-v1-2026-11-22/report.md`.
+- **Next (GPU, on hold):** `scripts/run_e108.sh e106-v1-2026-11-04` on one H100, about 4–5 GPU hours.
 
 ## Reproduce
 

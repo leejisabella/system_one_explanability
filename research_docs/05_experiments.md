@@ -2,6 +2,13 @@
 
 Experiments 1–8 address the main research questions. Stretch-goal experiments (S1–S5) are in [07_stretch_goal_explainer_misalignment.md](07_stretch_goal_explainer_misalignment.md).
 
+> **Note (2026-11-21): prompt engineering is a separate experiment track from post-training.** In the cascade line of work (E.1xx: [13](13_cascade_deference.md), [14](14_part2_posttraining.md), [15](15_part2_round2.md)), changing the reviewer's prompt and post-training the reviewer are studied as two separate tracks.
+> - **The standard reviewer prompt is frozen.** It is the protocol for every result so far (E.101–E.114) and for all post-training (E.108–E.110, criteria R1–R6).
+> - **Prompt variants are tested only as labelled arms in their own experiments** (E.115–E.117, [16](16_prompt_engineering.md)), against the standard prompt on the same items, with their own criteria (P1–P5).
+> - **A prompt is combined with a trained reviewer only in E.118,** a later 2 × 2 with its own baselines.
+>
+> Post-training runs first; the prompt track is planned but not built.
+
 | Experiment | RQ | Primary data | Formerly |
 |------------|----|--------------|----------|
 | 1. Jev vs. explainer: faithfulness vs. contestability | RQ1 | A (+B) | 1 |

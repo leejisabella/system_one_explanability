@@ -40,6 +40,7 @@ The stretch goal is subordinate to the main question. It reuses the same benchma
 | 13 | [13_cascade_deference.md](13_cascade_deference.md) | Refined direction (E.1xx), Part 1: Jev → reviewer cascade, flip rate, datasets, E.101–E.103 |
 | 14 | [14_part2_posttraining.md](14_part2_posttraining.md) | Part 2, round 1 (E.104–E.107): post-training the reviewer, training pools, traces, control arm, pre-registered criteria, runbook |
 | 15 | [15_part2_round2.md](15_part2_round2.md) | Part 2, round 2 (E.108–E.110): consistency training, balanced-proposal SFT, GRPO, activation steering; round-2 criteria; what we decided not to do |
+| 16 | [16_prompt_engineering.md](16_prompt_engineering.md) | Prompt engineering (E.115–E.118), a track separate from post-training: frozen standard prompt, policy audit, development screen, confirmatory test, criteria P1–P5 |
 | — | [ai_use_disclosure.md](ai_use_disclosure.md) | AI-use disclosure |
 
 ## Intended contributions (summary)

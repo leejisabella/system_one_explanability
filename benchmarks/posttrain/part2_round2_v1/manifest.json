@@ -1,0 +1,94 @@
+{
+  "balanced_review_traces": {
+    "civil_toxicity_train_v1/jev_right/index_e105": 903,
+    "civil_toxicity_train_v1/jev_right/index_new": 9,
+    "civil_toxicity_train_v1/jev_wrong/index_e105": 592,
+    "civil_toxicity_train_v1/jev_wrong/index_new": 66,
+    "civil_toxicity_train_v1/matched_wrong/index_new": 227,
+    "wildguard_prompt_train_v1/jev_right/index_e105": 276,
+    "wildguard_prompt_train_v1/jev_right/index_new": 1,
+    "wildguard_prompt_train_v1/jev_wrong/index_e105": 171,
+    "wildguard_prompt_train_v1/jev_wrong/index_new": 24,
+    "wildguard_prompt_train_v1/matched_wrong/index_new": 68,
+    "wildguard_response_train_v1/jev_right/index_e105": 207,
+    "wildguard_response_train_v1/jev_wrong/index_e105": 134,
+    "wildguard_response_train_v1/jev_wrong/index_new": 13,
+    "wildguard_response_train_v1/matched_wrong/index_new": 52
+  },
+  "dropped": {
+    "civil_toxicity_train_v1/jev_right/no_trace_balanced_arm": 7,
+    "civil_toxicity_train_v1/jev_wrong/no_trace_balanced_arm": 31,
+    "civil_toxicity_train_v1/matched_wrong/no_trace_balanced_arm": 3,
+    "wildguard_prompt_train_v1/jev_wrong/no_trace_balanced_arm": 13,
+    "wildguard_prompt_train_v1/matched_wrong/no_trace_balanced_arm": 1,
+    "wildguard_response_train_v1/jev_wrong/no_trace_balanced_arm": 8
+  },
+  "files": {
+    "balanced_review.train.jsonl": {
+      "groups": {
+        "jev_right": 1321,
+        "jev_wrong": 943,
+        "matched_wrong": 328
+      },
+      "n": 2592,
+      "sha256": "e3e794ed5f9b08bfb371213a05b00a29f4af0fc56ce892af036cfd6d69d73d11"
+    },
+    "balanced_review.val.jsonl": {
+      "groups": {
+        "jev_right": 75,
+        "jev_wrong": 57,
+        "matched_wrong": 19
+      },
+      "n": 151,
+      "sha256": "0d9fc3d552a4c65ec3d3e069402d5859ff7ec7429f3117b5e977dbe1d53cd007"
+    },
+    "consist_review.train.jsonl": {
+      "groups": {
+        "jev_right": 1321,
+        "jev_wrong": 943,
+        "matched_wrong": 328
+      },
+      "n": 2592,
+      "sha256": "95c3d950515f4034c68339f7cf8409d92d397b6757a3c09eaa72c7d3837367e7"
+    },
+    "consist_review.val.jsonl": {
+      "groups": {
+        "jev_right": 75,
+        "jev_wrong": 57,
+        "matched_wrong": 19
+      },
+      "n": 151,
+      "sha256": "69345072fc670e135ed5ff78a1a0ef2a1aef02ce2aae1e25984d00187ae425c2"
+    },
+    "grpo_prompts.train.jsonl": {
+      "groups": {
+        "jev_right": 3844,
+        "jev_wrong": 1933,
+        "matched_wrong": 332
+      },
+      "n": 6109,
+      "sha256": "ffbd3146fd4d64e8af334be654945b246474ccfe06f24e842b458976dc1b7d99"
+    },
+    "grpo_prompts.val.jsonl": {
+      "groups": {
+        "jev_right": 206,
+        "jev_wrong": 92,
+        "matched_wrong": 19
+      },
+      "n": 317,
+      "sha256": "c401995aa00575015339ebce9ff9ed9950130611ff7cb1c3065647a30eb69d29"
+    }
+  },
+  "format": "TRL conversational prompt-completion (both arms); prompt-only with meta (grpo_prompts); see sysone.posttrain.formats and research_docs/15",
+  "name": "part2_round2_v1",
+  "pools": [
+    "civil_toxicity_train_v1",
+    "wildguard_prompt_train_v1",
+    "wildguard_response_train_v1"
+  ],
+  "source": {
+    "e104_run": "e104-v1-2026-11-04",
+    "e105_run": "e105-v1-2026-11-04",
+    "e108_run": "e108-v1-2026-11-22"
+  }
+}

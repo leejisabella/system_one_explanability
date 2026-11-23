@@ -24,7 +24,8 @@ for arm in consist_review balanced_review; do
   name=gpt-oss-20b-${arm//_/-}
   uv run python -m sysone.posttrain.sft --config $cfg --check || fail "check $arm"
   if [ ! -f $CK/$name/train_info.json ]; then
-    stage "sft $arm START"; rm -rf $CK/$name
+    # No rm: an unfinished run's checkpoint-* folders let sft resume after a Spot preemption.
+    stage "sft $arm START"
     uv run --group train python -m sysone.posttrain.sft --config $cfg || fail "sft $arm"
     stage "sft $arm OK"
   fi

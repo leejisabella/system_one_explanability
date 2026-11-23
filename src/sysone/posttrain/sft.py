@@ -50,13 +50,19 @@ def train(config: TrainConfig) -> Path:
         per_device_eval_batch_size=1,
         gradient_accumulation_steps=config.gradient_accumulation_steps, gradient_checkpointing=True,
         max_length=config.max_length, warmup_ratio=config.warmup_ratio, lr_scheduler_type="cosine_with_min_lr",
-        lr_scheduler_kwargs={"min_lr_rate": 0.1}, bf16=True, logging_steps=10, save_strategy="epoch",
+        lr_scheduler_kwargs={"min_lr_rate": 0.1}, bf16=True, logging_steps=10,
+        # Checkpoints every save_steps updates (adapter + optimizer state, small for LoRA), so a Spot
+        # preemption resumes mid-epoch instead of restarting; the last two are kept.
+        save_strategy="steps", save_steps=config.save_steps, save_total_limit=2,
         eval_strategy="epoch" if val_ds is not None else "no", seed=config.seed, report_to="none",
         completion_only_loss=True,
     )
     trainer = SFTTrainer(model=load_model(source, train=True), args=args, train_dataset=train_ds, eval_dataset=val_ds,
                          processing_class=tokenizer, peft_config=lora_config(config))
-    trainer.train()
+    resume = any(Path(config.output_dir).glob("checkpoint-*"))
+    if resume:
+        print(f"resuming from the last checkpoint in {config.output_dir}")
+    trainer.train(resume_from_checkpoint=True if resume else None)
     trainer.save_model(str(config.output_dir))
     return config.output_dir
 

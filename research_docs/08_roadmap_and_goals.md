@@ -87,6 +87,15 @@ The final research contribution will be assessed on:
 
 Failure of CAPE to outperform strong baselines is treated as evidence against the claimed methodological contribution (Risk 4), not hidden.
 
+## Current plan: the cascade line (updated 2026-11-21)
+
+The project now studies the Jev → reviewer cascade (E.1xx; see [STATUS.md](../STATUS.md)). It has two separate tracks for making the reviewer catch Jev's mistakes:
+
+1. **Post-training (next):** round 2, E.108 then E.109 and E.110, on groups A and B, under the frozen standard prompt, against criteria R1–R6 ([15](15_part2_round2.md)). It needs the go-ahead for E.108's Bedrock sampling (about $0.20) and GPU time.
+2. **Prompt engineering (planned, after post-training):** E.115 policy audit, E.116 development screen and E.117 confirmatory test, WildGuard only, against the standard prompt with criteria P1–P5 ([16](16_prompt_engineering.md)).
+
+**The tracks are kept apart so each result is interpretable.** Prompt variants never replace the standard prompt in post-training's baselines, groups or criteria. The two meet only in E.118, an optional 2 × 2 of {base, trained} × {standard, chosen prompt}.
+
 ## Milestone checklist
 
 Status as of 2026-10-21. For where the project stands and what to do next, see [STATUS.md](../STATUS.md).

@@ -60,6 +60,7 @@ class TrainConfig:
     seed: int = 106
     # A smoke test caps the steps (e.g. 5); None trains for `epochs`.
     max_steps: int | None = None
+    save_steps: int = 25            # a resumable checkpoint every N updates (sft)
     checkpoints_dir: str = "checkpoints"
 
     @classmethod
