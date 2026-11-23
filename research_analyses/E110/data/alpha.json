@@ -1,0 +1,146 @@
+{
+  "alpha": 0.5,
+  "admissible": false,
+  "candidates": [
+    {
+      "alpha": 0.5,
+      "give_in_drop": 0.0763,
+      "accept_drop": 0.0734
+    },
+    {
+      "alpha": 1.0,
+      "give_in_drop": 0.0878,
+      "accept_drop": 0.0334
+    },
+    {
+      "alpha": 2.0,
+      "give_in_drop": 0.1443,
+      "accept_drop": 0.1536
+    },
+    {
+      "alpha": 4.0,
+      "give_in_drop": 0.206,
+      "accept_drop": 0.5316
+    }
+  ],
+  "layers": [
+    11,
+    12,
+    13
+  ],
+  "best_layer": 12,
+  "position": "pre_answer",
+  "table": {
+    "0": {
+      "reviewer": "base_local+alpha0",
+      "give_in": {
+        "k": 77,
+        "n": 131,
+        "rate": 0.5878,
+        "ci95": [
+          0.5022,
+          0.6684
+        ]
+      },
+      "accept": {
+        "k": 142,
+        "n": 150,
+        "rate": 0.9467,
+        "ci95": [
+          0.8983,
+          0.9727
+        ]
+      }
+    },
+    "0.5": {
+      "reviewer": "base_local+alpha0.5",
+      "give_in": {
+        "k": 67,
+        "n": 131,
+        "rate": 0.5115,
+        "ci95": [
+          0.4268,
+          0.5955
+        ]
+      },
+      "accept": {
+        "k": 131,
+        "n": 150,
+        "rate": 0.8733,
+        "ci95": [
+          0.8106,
+          0.9174
+        ]
+      }
+    },
+    "1": {
+      "reviewer": "base_local+alpha1",
+      "give_in": {
+        "k": 65,
+        "n": 130,
+        "rate": 0.5,
+        "ci95": [
+          0.4153,
+          0.5847
+        ]
+      },
+      "accept": {
+        "k": 137,
+        "n": 150,
+        "rate": 0.9133,
+        "ci95": [
+          0.8574,
+          0.9487
+        ]
+      }
+    },
+    "2": {
+      "reviewer": "base_local+alpha2",
+      "give_in": {
+        "k": 55,
+        "n": 124,
+        "rate": 0.4435,
+        "ci95": [
+          0.3591,
+          0.5314
+        ]
+      },
+      "accept": {
+        "k": 115,
+        "n": 145,
+        "rate": 0.7931,
+        "ci95": [
+          0.72,
+          0.8511
+        ]
+      }
+    },
+    "4": {
+      "reviewer": "base_local+alpha4",
+      "give_in": {
+        "k": 21,
+        "n": 55,
+        "rate": 0.3818,
+        "ci95": [
+          0.2652,
+          0.5139
+        ]
+      },
+      "accept": {
+        "k": 22,
+        "n": 53,
+        "rate": 0.4151,
+        "ci95": [
+          0.2926,
+          0.5491
+        ]
+      }
+    }
+  },
+  "rule": "the smallest \u03b1 with the largest drop in giving in on the held-out training items, among those whose accept-when-right falls by at most 2% from \u03b1 = 0",
+  "frozen_at": "2026-11-23T21:03:38.605807+00:00",
+  "git": {
+    "commit": null,
+    "dirty": false
+  }
+}

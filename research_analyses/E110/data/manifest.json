@@ -1,0 +1,101 @@
+{
+  "built_at": "2026-11-23T03:19:26.730665+00:00",
+  "config": {
+    "alpha_right_items": 150,
+    "alphas": [
+      0.5,
+      1.0,
+      2.0,
+      4.0
+    ],
+    "base_reviewer": "base_local",
+    "chat_date": "2026-11-05",
+    "e102_run": "e102-v1-2026-11-04",
+    "e104_run": "e104-v1-2026-11-04",
+    "e105_run": "e105-v1-2026-11-04",
+    "e106_run": "e106-v1-2026-11-04",
+    "found_auc": 0.7,
+    "heldout_fraction": 0.2,
+    "max_accept_drop": 0.02,
+    "max_new_tokens": 4352,
+    "neighbours": 1,
+    "probe_l2": 0.01,
+    "reasoning_effort": "medium",
+    "seed": 110,
+    "temperature": 1.0
+  },
+  "counts": {
+    "alpha_items": {
+      "jev_right/civil_toxicity_train_v1": 104,
+      "jev_right/wildguard_prompt_train_v1": 28,
+      "jev_right/wildguard_response_train_v1": 18,
+      "jev_wrong/civil_toxicity_train_v1": 80,
+      "jev_wrong/wildguard_prompt_train_v1": 26,
+      "jev_wrong/wildguard_response_train_v1": 25
+    },
+    "left_out": {
+      "civil_toxicity_train_v1/never_gave_in": 307,
+      "civil_toxicity_train_v1/not_solved_alone": 668,
+      "wildguard_prompt_train_v1/never_gave_in": 81,
+      "wildguard_prompt_train_v1/not_solved_alone": 165,
+      "wildguard_response_train_v1/never_gave_in": 59,
+      "wildguard_response_train_v1/not_solved_alone": 140
+    },
+    "selection": {
+      "civil_toxicity_train_v1": {
+        "items": 382,
+        "items_fit": 302,
+        "items_heldout": 80,
+        "items_with_both": 285,
+        "items_with_both_fit": 224,
+        "items_with_both_heldout": 61,
+        "traces_gave_in": 790,
+        "traces_held": 285
+      },
+      "total": {
+        "items": 605,
+        "items_fit": 474,
+        "items_heldout": 131,
+        "items_with_both": 451,
+        "items_with_both_fit": 353,
+        "items_with_both_heldout": 98,
+        "traces_gave_in": 1242,
+        "traces_held": 451
+      },
+      "wildguard_prompt_train_v1": {
+        "items": 127,
+        "items_fit": 101,
+        "items_heldout": 26,
+        "items_with_both": 91,
+        "items_with_both_fit": 72,
+        "items_with_both_heldout": 19,
+        "traces_gave_in": 272,
+        "traces_held": 91
+      },
+      "wildguard_response_train_v1": {
+        "items": 96,
+        "items_fit": 71,
+        "items_heldout": 25,
+        "items_with_both": 75,
+        "items_with_both_fit": 57,
+        "items_with_both_heldout": 18,
+        "traces_gave_in": 180,
+        "traces_held": 75
+      }
+    },
+    "test_items": {
+      "jev_right/civil_toxicity_pool_v1": 303,
+      "jev_right/wildguard_prompt_full_v1": 361,
+      "jev_right/wildguard_response_full_v1": 370,
+      "jev_wrong/civil_toxicity_pool_v1": 281,
+      "jev_wrong/wildguard_prompt_full_v1": 41,
+      "jev_wrong/wildguard_response_full_v1": 42
+    }
+  },
+  "experiment": "e110",
+  "git": {
+    "commit": "34564ee7d76830ac9347326bd04421671fca5c66",
+    "dirty": true
+  },
+  "run_id": "e110-v1-2026-11-22"
+}

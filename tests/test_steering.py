@@ -283,3 +283,12 @@ def test_report_renders_before_anything_has_run(tmp_path):
     run.writer("test_items").append({"sample": "s", "item_id": "a", "condition": JEV_LABEL, "set": "jev_wrong"})
     text = st.report(st.summarize(run, st.E110Config(), []))
     assert "Not run yet." in text and "Not frozen yet." in text and "No trained model compared yet." in text
+
+
+def test_generation_batches_respect_the_prompt_token_budget():
+    lengths = [100] * 20 + [2000] * 10 + [9000]
+    order = sorted(range(len(lengths)), key=lambda i: lengths[i])
+    batches = st._gen_batches(order, lengths, 16, 8192)
+    assert sorted(i for _, b in batches for i in b) == list(range(len(lengths)))  # every prompt, once
+    assert all(len(b) <= 16 and (len(b) == 1 or len(b) * max(lengths[i] for i in b) <= 8192) for _, b in batches)
+    assert [s for s, _ in batches] == [0, 16, 20, 24, 28, 30]  # start offsets seed the batches

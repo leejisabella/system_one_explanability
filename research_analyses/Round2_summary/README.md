@@ -1,5 +1,7 @@
 # Part 2, round 2 (E.108–E.113): a negative result
 
+> **Update 2026-11-23: E.108 has now run, and neither arm works.** Consistency training and balanced-proposal SFT both fail R1–R3. Override on solvable items is 62% / 63% against the base's 62%, and group A still gives in 24% / 26% against 25% ([E108](../E108/README.md#result-2026-11-23-neither-arm-works)). E.110's base steps have also run: the give-in direction is found (AUC 0.998 just before the answer) but not causal. Steering it out lowers accepting Jev's wrong and right labels alike ([E110](../E110/README.md)). Where this page says round 2's training "never ran", that now applies only to E.109 (GRPO), which is set aside.
+
 **Status:** round 2 was designed on 2026-11-05 and closed on 2026-11-21. **Round 2's training never ran.** E.108 (consistency training and balanced-proposal SFT), E.109 (GRPO) and E.110 (activation steering) are built and tested offline, but nothing was trained, sampled live or run on a GPU (on hold since 2026-11-05, the user's decision). What did run were four cheap checks: step 0, E.111, E.112 and E.113. None of the four found a cheap route to the mistakes the reviewer can't fix alone (E.113 produced no data at all), and on 2026-11-21 the user stopped distillation. This page summarizes them. Each write-up has the full numbers and methods; the links are in [the last section](#the-write-ups).
 
 ## The question
@@ -141,7 +143,7 @@ Fixed on 2026-11-05, before any round-2 model was trained ([research_docs/15](..
 - **Treating group C as uniformly a ceiling.** By the pre-registered rule, which step 0 met exactly (10/30, one model reader), WildGuard's group C is treated as a real gap rather than a ceiling. Nothing we have confirmed reaches it; E.112's exploratory Mistral result is the only lead (step 0, E.112).
 
 **It does not rule out:**
-- **Training on groups A and B.** E.108's consistency training and balanced-proposal SFT target the items the reviewer can already solve. They were never run, so round 2 says nothing about whether they work. The +9-point group-A ceiling still stands as a possible gain. Even at that ceiling, the plan expects the cascade to stay below Jev alone (R6; base −3.5 points), because group C still counts.
+- **Training on groups A and B.** *(Updated 2026-11-23: E.108's two SFT arms have since run and failed R1–R3; steering (E.110) found a direction that isn't causal; GRPO (E.109) remains untested.)* E.108's consistency training and balanced-proposal SFT target the items the reviewer can already solve. The +9-point group-A ceiling still stands as a possible gain. Even at that ceiling, the plan expects the cascade to stay below Jev alone (R6; base −3.5 points), because group C still counts.
 - **GRPO (E.109) and activation steering (E.110).** Built and tested offline (357 tests passed as of 2026-11-05, before `tests/test_e112.py` was added), but none of the GPU code has run on a GPU. Where the code lives is [below](#the-untested-code).
 - **A narrower, WildGuard-only fix for over-flagging.** E.112's one lead is exploratory and needs a fresh test.
 - **Other teachers or people.** E.112 screened three affordable models on 300 items; it doesn't show that no source of correct reasoning exists.

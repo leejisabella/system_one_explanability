@@ -661,6 +661,23 @@ def steer_vectors(dirs: dict[str, Any], direction: str, alpha: float, layers: li
     return out
 
 
+# Prompt tokens per generation batch (batch x longest prompt). gpt-oss's transformers path runs every
+# expert on every token, so 16 prompts of ~2,000 tokens ran out of an H100's memory at prefill (2026-11-23).
+GEN_TOKEN_BUDGET = 8192
+
+
+def _gen_batches(order: list[int], lengths: list[int], batch_size: int, token_budget: int) -> list[tuple[int, list[int]]]:
+    """(start, indices) batches over `order` (sorted by length): at most `batch_size` prompts and
+    `token_budget` padded prompt tokens each, but never empty. `start` is the batch's offset, its seed."""
+    out, cur, start = [], [], 0
+    for pos, i in enumerate(order):
+        if cur and (len(cur) >= batch_size or (len(cur) + 1) * lengths[i] > token_budget):
+            out.append((start, cur))
+            cur, start = [], pos
+        cur.append(i)
+    return out + ([(start, cur)] if cur else [])
+
+
 def _generate(model: Any, tok: Any, prompts: list[str], *, vectors: dict[int, Any], batch_size: int,
               max_new_tokens: int, temperature: float, seed: int, on_batch) -> None:
     """Sampled generation in batches (left padding), steered by `vectors`. Batches are seeded by
@@ -672,10 +689,10 @@ def _generate(model: Any, tok: Any, prompts: list[str], *, vectors: dict[int, An
     eos = set(eos if isinstance(eos, list) else [eos])
     end_id = tok.convert_tokens_to_ids(END)
     device = model.get_input_embeddings().weight.device
-    order = sorted(range(len(prompts)), key=lambda i: len(prompts[i]))
+    lengths = [len(ids) for ids in tok(prompts, add_special_tokens=False)["input_ids"]]
+    order = sorted(range(len(prompts)), key=lambda i: lengths[i])
     with steering(model, vectors), torch.inference_mode():
-        for start in range(0, len(order), batch_size):
-            idx = order[start:start + batch_size]
+        for start, idx in _gen_batches(order, lengths, batch_size, GEN_TOKEN_BUDGET):
             enc = tok([prompts[i] for i in idx], return_tensors="pt", padding=True, add_special_tokens=False).to(device)
             torch.manual_seed(_seed(seed, start))
             t0 = time.monotonic()
@@ -690,7 +707,7 @@ def _generate(model: Any, tok: Any, prompts: list[str], *, vectors: dict[int, An
                 results.append((i, tok.decode(gen, skip_special_tokens=False), int(enc["attention_mask"][b].sum()),
                                 len(gen), gen.index(end_id) if end_id in gen else len(gen), secs))
             on_batch(results)
-            print(f"  generated {min(start + batch_size, len(order))}/{len(order)} ({secs}s for the batch)", flush=True)
+            print(f"  generated {start + len(idx)}/{len(order)} ({secs}s for the batch)", flush=True)
 
 
 def review_with(run: Run, config: E110Config, model: Any, tok: Any, model_path: str, rows: list[dict[str, Any]],

@@ -258,6 +258,16 @@ Built 2026-11-05 and tested offline (357 tests pass). None of the GPU code has r
 | E.109 GRPO | `sysone.posttrain.grpo`, `configs/posttrain/grpo_review.yaml`, `scripts/run_e109.sh` | `tests/test_grpo.py` |
 | E.110 steering | `sysone.interp.steering` (`build`, `capture`, `directions`, `select-alpha`, `steer`, `compare`, `report`), `scripts/run_e110.sh` | `tests/test_steering.py` |
 
+**GPU sessions (lessons from E.108, 2026-11-23):**
+- The driver must power the machine off itself (`sudo shutdown -h now`) after the last stage and on any failure, and enforce a cost cutoff on the machine. Never rely on a laptop-side watcher.
+- On the `common-cu129-ubuntu-2204-nvidia-580` image:
+  - install vLLM separately (`uv tool install --python 3.12 vllm==0.33.0`);
+  - put `/usr/local/cuda/bin` on the path;
+  - `sudo apt-get install -y g++`, needed for FlashInfer's startup compile.
+- The Spot H100 cost about $6.60 an hour in total on 2026-11-22, not the $2.50–4 assumed below.
+- Stop a run by explicit PID. `pkill -f <name>` sent over SSH also matches the SSH command's own text and kills the session.
+- E.110's generation in transformers ran out of memory at prefill with 16 long prompts. Batches are now capped at 8,192 prompt tokens (2026-11-23). Its base steps took about 5 machine hours (about $35), not 2–4 GPU hours.
+
 **Runbook, in order** (check in before each live step):
 1. **Laptop, Bedrock (~$0.20):** `uv run python -m sysone.experiments.e108 --run-id e108-v1-<date>`. Read its report, then commit `benchmarks/posttrain/part2_round2_v1/`.
 2. **Laptop, free:** `uv run python -m sysone.interp.steering build --run-id e110-v1-<date>`. This freezes E.110's items and config.
