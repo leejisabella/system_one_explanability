@@ -119,6 +119,12 @@ Not done yet:
 - **Prompt engineering is a separate track (decided 2026-11-21).** The standard reviewer prompt stays frozen for every result and for all post-training. Prompt variants aimed at WildGuard over-flagging are planned as E.115–E.118, with their own criteria P1–P5 ([research_docs/16](research_docs/16_prompt_engineering.md)). Not built. **Next: post-training (round 2).**
 - **E.108 data built (2026-11-22, $0.10 Bedrock, `e108-v1-2026-11-22`).** 1,166 new reviewer samples; both arms exported on the same 2,743 items (2,592 train / 151 val), plus E.109's GRPO prompts ([research_analyses/E108](research_analyses/E108/README.md)). 
 - **E.108 trained and evaluated (2026-11-23, one Spot H100): neither arm works.** Consistency training and balanced-proposal SFT both fail R1–R3. Override of Jev's mistakes on solvable items is 62% / 63% against the base's 62%, and group A still gives in 24% / 26% against 25%. Both cascades stay below Jev alone ([research_analyses/E108](research_analyses/E108/README.md#result-2026-11-23-neither-arm-works)). GPU cost was about $57, of which about $32 was idle time after the run finished: the machine wasn't set to shut itself down, and the project's billing was cut off. Billing is restored and the machine is deleted. E.109 (GRPO) is set aside for now (user, 2026-11-23).
+- **E.119 capability check (2026-11-24, $1.70 Bedrock, `e119-v1-2026-11-24`): a stronger reviewer doesn't fix it** ([research_analyses/E119](research_analyses/E119/README.md)).
+  - Setup: gpt-oss-120b as the reviewer on E.102's frozen plan, everything else unchanged.
+  - The 120b cascade vs. Jev alone: −1.3 [−3.1, +0.3]. vs. the 20b cascade: +0.2.
+  - On the 434 Jev mistakes the 20b never gets right alone, the 120b gets 6% right too.
+  - Error overlap with Jev is identical (phi 0.57), and the 120b overrides fewer of Jev's mistakes (29% vs 37%).
+
 - **Prompt-engineering track started (2026-11-23, $0).**
   - **E.115 policy audit done and reviewed** ([research_analyses/E115](research_analyses/E115/README.md)): our WildGuard policy covers the annotators' rules, so there is no real mismatch.
     - The step-0 trigger "stereotype quoted to criticize it" is in neither text.

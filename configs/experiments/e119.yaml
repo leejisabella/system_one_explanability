@@ -1,0 +1,29 @@
+# E.119: capability check. Does a stronger reviewer fix the cascade? (decided 2026-11-24)
+# E.102's design, re-run with gpt-oss-120b (6x the parameters, same family, same prompt and settings) as
+# the reviewer, on E.102's frozen plan. No Jev calls: Jev's labels, the matched random labels and the
+# subsample are E.102's. About 17,400 Bedrock calls (5 alone samples on every reviewed item, plus one
+# review per proposal), projected about $2 at E.105's measured 120b rate; capped at $5.
+
+source_run: e102-v1-2026-11-04
+samples: [civil_toxicity_pool_v1, wildguard_prompt_full_v1, wildguard_response_full_v1]
+reviewer: reviewer_120b
+alone_samples: 5
+reviewer_temperature: null
+reviewer_reasoning_max_tokens: 4096
+reviewer_max_output_tokens: 256
+
+# Decision rule, fixed before the run (2026-11-24). On E.102's random subsample (400 items per pool),
+# paired on the same items, pooled over the three pools:
+#   "A stronger reviewer fixes it" if the 120b cascade is more accurate than Jev alone, with the
+#   95% paired bootstrap interval above 0.
+# Also reported, not part of the rule: 120b cascade vs. the 20b cascade; 120b vs. 20b alone accuracy;
+# override of Jev's wrong labels, paired with the 20b, by the 20b's alone record (never / sometimes /
+# always right); error overlap with Jev (phi); deference at equal difficulty (E.102's measure).
+rule: {comparison: cascade_120b_minus_jev, ci_lower_above: 0.0}
+
+workers: 8
+max_items: null
+use_cache: false
+max_consecutive_errors: 10
+run_provider_caps_usd: {bedrock: 5.00, typesafe: 0.01}   # no Jev calls; TypeSafe needs a positive cap
+bootstrap: 2000

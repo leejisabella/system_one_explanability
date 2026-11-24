@@ -1,0 +1,39 @@
+{
+  "run_id": "e119-v1-2026-11-24",
+  "status": "completed",
+  "started_at": "2026-11-24T02:09:26.637343+00:00",
+  "finished_at": "2026-11-24T02:59:46.939359+00:00",
+  "spent_usd": 1.69618,
+  "spent_by_provider": {
+    "bedrock": 1.69618
+  },
+  "source_run": {
+    "path": "/Users/isabellalee/Desktop/329X/system_one_explanability/results/runs/e102-v1-2026-11-04",
+    "run_id": "e102-v1-2026-11-04"
+  },
+  "models": {
+    "reviewer_120b": {
+      "alias": "reviewer_120b",
+      "model": "openai.gpt-oss-120b-1:0",
+      "price_per_m": {
+        "input_per_m": 0.15,
+        "output_per_m": 0.6
+      },
+      "provider": "bedrock",
+      "reasoning_effort": "medium",
+      "service_tier": "flex",
+      "tier_price_per_m": {
+        "input_per_m": 0.075,
+        "output_per_m": 0.3
+      }
+    }
+  },
+  "cost_projection": {
+    "calls": 17361,
+    "expected_usd": 2.26
+  },
+  "git": {
+    "commit": "41d6a961b843c3d8cc33bbb1fa6bb098458abf11",
+    "dirty": true
+  }
+}

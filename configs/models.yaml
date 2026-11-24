@@ -97,6 +97,14 @@ teacher:
   service_tier: flex
   reasoning_effort: medium
 
+reviewer_120b:
+  # E.119: the capability check. gpt-oss-20b's larger sibling as the cascade's reviewer, with the
+  # reviewer's own settings (medium effort, flex), so only the model's size changes.
+  provider: bedrock
+  model: openai.gpt-oss-120b-1:0
+  service_tier: flex
+  reasoning_effort: medium
+
 # Part 2 reviewers on our own GPU (research_docs/14). Served by vLLM under these names
 # (--served-model-name); set LOCAL_LLM_BASE_URL to the server. All are gpt-oss-20b in bf16:
 # the base is the dequantized checkpoint saved by `sysone.posttrain.sft --save-base`, so it runs
