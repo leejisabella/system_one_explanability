@@ -92,6 +92,7 @@ class Reviewer:
 
     def build_request(self, text: str, proposal: str | None = None, confidence: float | None = None, *,
                       note: str | None = None, task_prefix: str | None = None, own_answer: str | None = None,
+                      policy_addendum: str | None = None, examples: str | None = None,
                       sample_index: int = 0, tags: dict[str, str] | None = None) -> ChatRequest:
         t = self.task
         a, b = t.labels
@@ -101,6 +102,8 @@ class Reviewer:
         if own_answer is not None and not review:
             raise ValueError("blind-first (own_answer) needs a proposal to review")
         render = lambda parts: "\n\n".join(f"## {name}\n{body}" for name, body in parts)
+        policy = f"{t.policy}\n\n{policy_addendum}" if policy_addendum else t.policy
+        policy_parts = [(t.policy_name.capitalize(), policy)] + ([("Worked examples", examples)] if examples else [])
         decision = None
         if review:
             decision = f'"{proposal}"'
@@ -113,7 +116,7 @@ class Reviewer:
             task_text = f"{task_prefix}\n\n{task_text}"
         if own_answer is not None:
             # Blind-first: the reviewer's answer alone is a prior turn; then the review.
-            first = render([("Context", _ALONE_CONTEXT.format(**fill)), (t.policy_name.capitalize(), t.policy),
+            first = render([("Context", _ALONE_CONTEXT.format(**fill)), *policy_parts,
                             (t.item_heading, text), ("Task", _ALONE_TASK.format(**fill))])
             then = render([("Context", _BLIND_FIRST_CONTEXT.format(**fill)), ("Automated model's decision", decision),
                            ("Task", task_text)])
@@ -121,7 +124,7 @@ class Reviewer:
                         Message("user", then))
         else:
             parts = [("Context", (_REVIEW_CONTEXT if review else _ALONE_CONTEXT).format(**fill)),
-                     (t.policy_name.capitalize(), t.policy),
+                     *policy_parts,
                      (t.item_heading, text)]
             if review:
                 parts.append(("Automated model's decision", decision))
@@ -139,9 +142,11 @@ class Reviewer:
 
     def decide(self, text: str, proposal: str | None = None, confidence: float | None = None, *,
                note: str | None = None, task_prefix: str | None = None, own_answer: str | None = None,
+               policy_addendum: str | None = None, examples: str | None = None,
                sample_index: int = 0, tags: dict[str, str] | None = None) -> ReviewResult:
         request = self.build_request(text, proposal, confidence, note=note, task_prefix=task_prefix,
-                                     own_answer=own_answer, sample_index=sample_index, tags=tags)
+                                     own_answer=own_answer, policy_addendum=policy_addendum, examples=examples,
+                                     sample_index=sample_index, tags=tags)
         response = self.client.complete(request)
         return parse_review(response, self.client.request_key(request), self.task.labels, proposal)
 

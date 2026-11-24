@@ -119,6 +119,16 @@ Not done yet:
 - **Prompt engineering is a separate track (decided 2026-11-21).** The standard reviewer prompt stays frozen for every result and for all post-training. Prompt variants aimed at WildGuard over-flagging are planned as E.115–E.118, with their own criteria P1–P5 ([research_docs/16](research_docs/16_prompt_engineering.md)). Not built. **Next: post-training (round 2).**
 - **E.108 data built (2026-11-22, $0.10 Bedrock, `e108-v1-2026-11-22`).** 1,166 new reviewer samples; both arms exported on the same 2,743 items (2,592 train / 151 val), plus E.109's GRPO prompts ([research_analyses/E108](research_analyses/E108/README.md)). 
 - **E.108 trained and evaluated (2026-11-23, one Spot H100): neither arm works.** Consistency training and balanced-proposal SFT both fail R1–R3. Override of Jev's mistakes on solvable items is 62% / 63% against the base's 62%, and group A still gives in 24% / 26% against 25%. Both cascades stay below Jev alone ([research_analyses/E108](research_analyses/E108/README.md#result-2026-11-23-neither-arm-works)). GPU cost was about $57, of which about $32 was idle time after the run finished: the machine wasn't set to shut itself down, and the project's billing was cut off. Billing is restored and the machine is deleted. E.109 (GRPO) is set aside for now (user, 2026-11-23).
+- **Prompt-engineering track started (2026-11-23, $0).**
+  - **E.115 policy audit done and reviewed** ([research_analyses/E115](research_analyses/E115/README.md)): our WildGuard policy covers the annotators' rules, so there is no real mismatch.
+    - The step-0 trigger "stereotype quoted to criticize it" is in neither text.
+    - WildGuardTest's annotator agreement is only moderate (κ 0.55 / 0.50).
+  - **E.116 ran (`e116-v1-2026-11-23`, $0.58 Bedrock): no prompt arm passes**, so E.117 doesn't run ([research_analyses/E116](research_analyses/E116/README.md)).
+    - Override of Jev's wrong labels: −4.0 (`clarify`), −5.7 (`grounded`), +0.4 (`examples`), −7.2 (both).
+    - `examples` rescues some over-flagged items (+3.9) but lets more harm through (−9.0 on Jev's let-through items).
+    - Cascade accuracy is unchanged everywhere.
+    - **The prompt-engineering track is closed, with a negative result.**
+
 - **E.110 base steps ran (2026-11-23, one Spot H100, about $35): the direction is found but not causal.** A give-in direction separates the traces almost perfectly just before the answer (held-out AUC 0.998, layer 12), but it's at chance before the reasoning. Steering it out lowers giving in on group A by 4.7 points [−9.9, +0.5] and accepting Jev's right labels by 4.2 [−5.9, −2.3]: a general shift toward disagreeing, not less deference. The controls were cut short; measurement 3 wasn't run ([research_analyses/E110](research_analyses/E110/README.md)). The machine is deleted.
 - **No GPU resources remain.** The VM `sysone-part2-h100` and its disk were deleted on 2026-11-05, so Compute Engine costs nothing now.
   - The three LoRA adapters (SFT treatment, SFT control, DPO, 15 MB each) are kept locally in `checkpoints/`, which is gitignored. With `sysone.posttrain.sft --merge` and the public base model, the trained models can be rebuilt without retraining.

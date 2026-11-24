@@ -1,6 +1,11 @@
 # 16. Prompt engineering: a separate track from post-training (E.115–E.118)
 
-**Status:** planned 2026-11-21, nothing built or run. By our decision, post-training (round 2, [15](15_part2_round2.md)) comes first. Every step below needs a go-ahead before any live call.
+**Status (2026-11-23):**
+- **E.115:** done and reviewed ([research_analyses/E115](../research_analyses/E115/README.md)). It finds no real mismatch.
+- **E.116:** ran 2026-11-23 (`e116-v1-2026-11-23`, $0.58). **No arm passes the selection rule** ([research_analyses/E116](../research_analyses/E116/README.md)). `clarify` and `grounded` made the reviewer catch fewer of Jev's mistakes; `examples` traded over-flagging for letting harm through.
+- **E.117 and E.118:** not run, by the plan's rule. **The track's result is negative.**
+
+Post-training (round 2, [15](15_part2_round2.md)) is closed. Every step below needs a go-ahead before any live call.
 
 ## Why a separate track
 
@@ -71,7 +76,7 @@ Mixing the two would make neither result interpretable. So they are kept apart:
 | `standard` | Nothing (control; re-run on these items so the comparison is paired) |
 | `clarify` | E.115's clarification paragraph appended to the reviewer's policy. **The reviewer only**; Jev's policy is unchanged |
 | `grounded` | A task prefix: before calling an item harmful, name the risk category and quote the specific content that falls in it. If none can be quoted, it is unharmful. Before calling it unharmful, say why no category applies. The policy is unchanged |
-| `examples` | Six worked examples from development items outside the scored set. Three are benign items with harm vocabulary (unharmful) and three are disguised harmful requests or responses (harmful), so the prompt isn't just lenient |
+| `examples` | Six worked examples, hand-written or from development items outside the scored set (changed 2026-11-23). Three are benign items with harm vocabulary (unharmful) and three are disguised harmful requests or responses (harmful), so the prompt isn't just lenient |
 | `clarify+grounded` | Both |
 
 **Measures, per arm, paired against `standard`:**
@@ -139,9 +144,24 @@ A 2 × 2 on the frozen test plan: {base, trained reviewer} × {standard, chosen 
 | E.117 | Bedrock | about $0.10–0.20 |
 | E.118 | GPU, inside a post-training session | counted with that session |
 
-## Build list (not started)
+## Build list
 
-1. `sysone.experiments.e116`: arms as `Reviewer.build_request` arguments. This needs one new option, a reviewer-only policy addendum, defaulting to none so the standard prompt is byte-identical.
-2. `configs/experiments/e116.yaml` and `e117.yaml`, with the selection rule and P1–P5 written in.
-3. Tests that the standard prompt is unchanged: a fixed hash of the rendered prompt for one item per task.
-4. The analysis, reusing `sysone.analysis.e103`'s paired measures.
+1. ✅ **Reviewer options:** `Reviewer.build_request(policy_addendum=..., examples=...)`. Both default to none, so the standard prompt is byte-identical. Pinned by hashes of the rendered prompt per task (alone, review, blind-first) in `tests/test_prompteng.py`.
+2. ✅ **`sysone.prompteng.arms`:** the five arms.
+   - Texts that come from other steps live in `configs/prompteng/`: `clarify_<task>.md` from E.115, and `examples.yaml`.
+   - The loader refuses a missing or TODO text, a Civil Comments arm, and examples that aren't 3 harmful + 3 unharmful training-pool items.
+3. ✅ **`sysone.experiments.e116`** and **`configs/experiments/e116.yaml`**, with the selection rule written in.
+   - Items: every Jev mistake in E.104's WildGuard mix, plus 300 Jev-right items per pool, by hash. That is 1,268 items × 5 arms = 6,340 reviews.
+   - Worked-example items are kept out of the scored set.
+   - Resumable; cost projection printed; run cap enforced per call.
+4. ✅ **`sysone.analysis.e116`:**
+   - paired changes against `standard` (override of wrong labels, split into over-flagged and let-through; accept-when-right; parse rate);
+   - cascade accuracy and harmful let-through, weighted back to the pools, with a paired bootstrap within pool cells;
+   - the selection rule applied.
+5. ✅ **`configs/prompteng/examples.yaml`: approved by the user 2026-11-23.** Changed 2026-11-23:
+   - Examples may be hand-written instead of picked from development items. The user is writing or editing them.
+   - Harmful content in the response examples is described in brackets, not written out.
+   - There is no "critiqued stereotype" example: that trigger came from reading test items.
+   - Before a run, hand-written text is checked against the test pools for shared wording.
+   - The arm runs only once the file's `status` is `approved`.
+6. ☐ **E.117:** `sysone.experiments.e117` and `configs/experiments/e117.yaml`, with P1–P5. It reuses E.102's standard reviews and `sysone.analysis.e103`'s measures.
