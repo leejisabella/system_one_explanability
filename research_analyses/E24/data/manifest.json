@@ -1,0 +1,82 @@
+{
+  "config": {
+    "bootstrap": 2000,
+    "cascade": {
+      "reviewer": "reviewer",
+      "samples": 1
+    },
+    "hypotheses_families": [
+      "P1",
+      "P2",
+      "P3",
+      "P4"
+    ],
+    "jev_samples": 3,
+    "max_consecutive_errors": 10,
+    "models": {
+      "jev_1_14": 3,
+      "reviewer": 5,
+      "reviewer_120b": 5,
+      "reviewer_mistral": 3,
+      "reviewer_qwen": 1
+    },
+    "probe_set": "benchmarks/probes/minimal_pairs_v1",
+    "reviewer_max_output_tokens": 256,
+    "reviewer_reasoning_max_tokens": 4096,
+    "run_provider_caps_usd": {
+      "bedrock": 4.0,
+      "typesafe": 0.2
+    },
+    "seed": 24,
+    "workers": 8,
+    "written_max_output_tokens": 1500
+  },
+  "cost_projection": {
+    "calls": {
+      "jev_1_14": 1620,
+      "reviewer": 3240,
+      "reviewer_120b": 2700,
+      "reviewer_mistral": 1620,
+      "reviewer_qwen": 540
+    },
+    "expected_usd": 1.92
+  },
+  "experiment": "e24",
+  "finished_at": "2026-11-24T20:04:34.353754+00:00",
+  "git": {
+    "commit": "e25d332216af964335a89fbe7b6a9a937fa35e6b",
+    "dirty": true
+  },
+  "n_items": 540,
+  "probe_manifest": "6010aea6ca430222c76544238feded82b998dc6b32dcc3c23493ecf5d0551d68",
+  "project_spend_at_start": {
+    "bedrock": {
+      "cap_usd": 50.0,
+      "spent_usd": 10.654049
+    },
+    "gemini": {
+      "cap_usd": 50.0,
+      "spent_usd": 0.20137
+    },
+    "local": {
+      "cap_usd": 0.0,
+      "spent_usd": 0.0
+    },
+    "openrouter": {
+      "cap_usd": 0.0,
+      "spent_usd": 0.0
+    },
+    "typesafe": {
+      "cap_usd": 5.0,
+      "spent_usd": 2.100655
+    }
+  },
+  "run_id": "e24-v1-2026-11-24",
+  "spent_by_provider": {
+    "bedrock": 1.181801,
+    "typesafe": 0.038937
+  },
+  "spent_usd": 1.220738,
+  "started_at": "2026-11-24T19:43:51.825282+00:00",
+  "status": "completed"
+}

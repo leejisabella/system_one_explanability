@@ -25,7 +25,7 @@
 \maketitle
 
 \begin{abstract}
-This project began as a study of \emph{contestability-oriented explanation}: whether explanations of an opaque decision model's outputs give people verifiable grounds to challenge wrong decisions. Its first two runs characterized the decision model, Jev (E0), and tested whether LLM explanations of Jev's refund decisions help predict Jev on hidden counterfactual variants (E1 Pilot 1). Pilot 1 hit a ceiling (a simulator with no explanation already predicted Jev on 90\% of hidden variants), and 10 of 12 explanations of Jev's wrong approvals justified them. The project then refined its direction to \emph{cascade deference}: Jev labels a moderation item first and a reasoning model, gpt-oss-20b (the \emph{reviewer}), accepts or overrides that label. In Part~1 (E.101--E.103) the reviewer accepted 60\% of Jev's wrong labels on Civil Comments against 22\% of random wrong labels, but most of that gap came from \emph{shared blind spots} (items the reviewer also gets wrong alone). Compared at equal difficulty, deference was about $+7$ points pooled (95\% interval $+0.8$ to $+12.6$), and no cheap prompt change caught more of Jev's mistakes. In Part~2, round~1 (E.104--E.107), supervised fine-tuning and DPO on the reviewer's own correct reasoning failed all five pre-registered criteria. Round~2 aimed at the mistakes the reviewer can already solve alone. Its four cheap checks found no cheap route to the remaining mistakes. A reading of WildGuard's never-solved items found 10 of 30 to be clear model mistakes, exactly at the pre-registered threshold (step~0). Jev's own confidence ranks its mistakes well (AUC 0.72 / 0.85 / 0.88) but flipping its least confident labels gains about 1 point or less (E.111). No affordable teacher passed a pre-registered distillation screen (E.112), and Claude could not be used as a teacher because the agents were stopped before any output (E.113). Routing only Jev's least confident 10\% of labels to the reviewer matched Jev alone at a tenth of the reviewer calls, but no routing policy beat Jev (E.114). Consistency training and balanced-proposal SFT aimed at the solvable mistakes then failed the primary criteria R1--R3: on items the reviewer gets right alone, it still gave in to Jev's wrong label about a quarter of the time (E.108). Activation steering found a ``give in'' direction (held-out AUC 0.998 just before the answer, chance before the reasoning), but removing it lowered acceptance of Jev's wrong and right labels alike ($-4.7$ and $-4.2$ points), so it is not causal (E.110). Across five methods, giving in is decided item by item inside the reasoning, and the only lever found shifts the reviewer toward agreeing or disagreeing overall. We treat post-training as closed for this cascade; GRPO (E.109) was set aside untested. A separate prompt-engineering track then targeted the reviewer's over-flagging of benign WildGuard items. An audit of our policy text against WildGuard's annotator instructions found no real mismatch (E.115). In a development screen with a selection rule fixed beforehand, no prompt arm caught more of Jev's mistakes, and policy clarifications made over-flagging worse ($-7.1$ points), so no prompt went to the confirmatory test (E.116). Finally, a capability check swapped in gpt-oss-120b, about six times larger, as the reviewer on E.102's frozen test plan. Its cascade was no more accurate than Jev alone ($-1.3$ points, 95\% interval $-3.1$ to $+0.3$) or than the gpt-oss-20b cascade ($+0.2$), and on the 434 Jev mistakes gpt-oss-20b never gets right alone, it got 6\% right (E.119). The cascade's limit is not the small reviewer's capability.
+This project began as a study of \emph{contestability-oriented explanation}: whether explanations of an opaque decision model's outputs give people verifiable grounds to challenge wrong decisions. Its first two runs characterized the decision model, Jev (E0), and tested whether LLM explanations of Jev's refund decisions help predict Jev on hidden counterfactual variants (E1 Pilot 1). Pilot 1 hit a ceiling (a simulator with no explanation already predicted Jev on 90\% of hidden variants), and 10 of 12 explanations of Jev's wrong approvals justified them. The project then refined its direction to \emph{cascade deference}: Jev labels a moderation item first and a reasoning model, gpt-oss-20b (the \emph{reviewer}), accepts or overrides that label. In Part~1 (E.101--E.103) the reviewer accepted 60\% of Jev's wrong labels on Civil Comments against 22\% of random wrong labels, but most of that gap came from \emph{shared blind spots} (items the reviewer also gets wrong alone). Compared at equal difficulty, deference was about $+7$ points pooled (95\% interval $+0.8$ to $+12.6$), and no cheap prompt change caught more of Jev's mistakes. In Part~2, round~1 (E.104--E.107), supervised fine-tuning and DPO on the reviewer's own correct reasoning failed all five pre-registered criteria. Round~2 aimed at the mistakes the reviewer can already solve alone. Its four cheap checks found no cheap route to the remaining mistakes. A reading of WildGuard's never-solved items found 10 of 30 to be clear model mistakes, exactly at the pre-registered threshold (step~0). Jev's own confidence ranks its mistakes well (AUC 0.72 / 0.85 / 0.88) but flipping its least confident labels gains about 1 point or less (E.111). No affordable teacher passed a pre-registered distillation screen (E.112), and Claude could not be used as a teacher because the agents were stopped before any output (E.113). Routing only Jev's least confident 10\% of labels to the reviewer matched Jev alone at a tenth of the reviewer calls, but no routing policy beat Jev (E.114). Consistency training and balanced-proposal SFT aimed at the solvable mistakes then failed the primary criteria R1--R3: on items the reviewer gets right alone, it still gave in to Jev's wrong label about a quarter of the time (E.108). Activation steering found a ``give in'' direction (held-out AUC 0.998 just before the answer, chance before the reasoning), but removing it lowered acceptance of Jev's wrong and right labels alike ($-4.7$ and $-4.2$ points), so it is not causal (E.110). Across five methods, giving in is decided item by item inside the reasoning, and the only lever found shifts the reviewer toward agreeing or disagreeing overall. We treat post-training as closed for this cascade; GRPO (E.109) was set aside untested. A separate prompt-engineering track then targeted the reviewer's over-flagging of benign WildGuard items. An audit of our policy text against WildGuard's annotator instructions found no real mismatch (E.115). In a development screen with a selection rule fixed beforehand, no prompt arm caught more of Jev's mistakes, and policy clarifications made over-flagging worse ($-7.1$ points), so no prompt went to the confirmatory test (E.116). Finally, a capability check swapped in gpt-oss-120b, about six times larger, as the reviewer on E.102's frozen test plan. Its cascade was no more accurate than Jev alone ($-1.3$ points, 95\% interval $-3.1$ to $+0.3$) or than the gpt-oss-20b cascade ($+0.2$), and on the 434 Jev mistakes gpt-oss-20b never gets right alone, it got 6\% right (E.119). The cascade's limit is not the small reviewer's capability. A second batch explained why (E.20--E.24). The reviewer barely defers: its cascade review behaves like one more of its own answers, so every upstream's cascade lands at 82.6--83.1\%, and no policy on the reviewer's answers could add more than $+1.6$ to $+2.8$ points even in-sample (E.20); chosen out of sample, a selective-override policy ties Jev ($-0.3$, E.20a). As a triage signal the reviewer adds nothing clear over Jev's confidence, and 55\% of Jev's mistakes leave no trace in the cascade; when the reviewer does give in, a word-based monitor reads it in the reasoning (AUC 0.92), but giving in is rare (E.21). A Mistral Large 3 reviewer reached a third of the blind spots gpt-oss shares with Jev, but let more harm through and lost to Jev ($-3.4$ points, E.22). Minimal-pair probes traced the shared blind spot to named triggers, chiefly dark fiction and harm words in harmless settings, which raise flag rates by 16 points for Jev and 32 for gpt-oss-20b on the same items, and which Mistral ignores (E.24).
 \end{abstract}
 
 \tableofcontents
@@ -126,7 +126,7 @@ Claude & Planned blind teacher in E.113 (stopped by safeguards); a Claude agent 
 
 \subsection{Roadmap of experiments}\label{sec:roadmap}
 
-Table~\ref{tab:intro-roadmap} lists every experiment that ran, in order. E.108 (consistency training and balanced-proposal SFT), E.109 (GRPO in review mode) and E.110 (activation steering) were designed on 2026-11-05 and built and tested offline while live runs and GPU work were on hold. E.108 and E.110's base steps ran on 2026-11-23, after E.114's free routing analysis; E.109 has not run. The prompt-engineering track (E.115, E.116) followed on 2026-11-23; its confirmatory test, E.117, did not run because no prompt passed E.116's selection rule. E.119, a capability check with a larger reviewer, ran on 2026-11-24. Step~0's write-up lives in the E.108 folder, but step~0 itself was only a reading of existing outputs.
+Tables~\ref{tab:intro-roadmap} and~\ref{tab:intro-roadmap2} list every experiment that ran, in order. E.108 (consistency training and balanced-proposal SFT), E.109 (GRPO in review mode) and E.110 (activation steering) were designed on 2026-11-05 and built and tested offline while live runs and GPU work were on hold. E.108 and E.110's base steps ran on 2026-11-23, after E.114's free routing analysis; E.109 has not run. The prompt-engineering track (E.115, E.116) followed on 2026-11-23; its confirmatory test, E.117, did not run because no prompt passed E.116's selection rule. E.119, a capability check with a larger reviewer, ran on 2026-11-24. The second batch (E.20--E.24, \texttt{research\_docs/17}) ran the same day; E.23 needs hand labels and has not run. Step~0's write-up lives in the E.108 folder, but step~0 itself was only a reading of existing outputs.
 
 \begin{table}[H]
 \centering
@@ -162,13 +162,31 @@ E.116 (\ref{sec:e116}) & 2026-11-24 & Does a policy-focused prompt help the revi
 E.119 (\ref{sec:e119}) & 2026-11-24 & Does a larger reviewer (gpt-oss-120b) fix it? & No: cascade $-1.3$ vs.\ Jev; 6\% right on the 20b's never-right items \\
 \bottomrule
 \end{tabularx}
-\caption{Every experiment run so far. Dates are UTC; E.106's run ID carries the Pacific date (2026-11-04). Number triples (E.104, E.111) are Civil Comments / WildGuard prompts / WildGuard responses. E.109 was built but has not run; E.117 and E.118 did not run because no prompt passed E.116.}
+\caption{Every experiment run so far. Dates are UTC; E.106's run ID carries the Pacific date (2026-11-04). Number triples (E.104, E.111) are Civil Comments / WildGuard prompts / WildGuard responses. E.109 was built but has not run; E.117 and E.118 did not run because no prompt passed E.116. The second batch is in Table~\ref{tab:intro-roadmap2}.}
 \label{tab:intro-roadmap}
+\end{table}
+
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}p{1.8cm}p{1.6cm}p{4.4cm}X@{}}
+\toprule
+Experiment & Date & Question & Outcome \\
+\midrule
+E.20 (\ref{sec:e20}) & 2026-11-24 & Do overlap and deference predict every cascade, and what is the ceiling? & Yes; deference $\approx 0$, every cascade 82.6--83.1\%; in-sample ceiling $+1.6$ to $+2.8$ \\
+E.20a (\ref{sec:e20a}) & 2026-11-24 & Does selective override survive out of sample? & No: $-0.3$ [$-1.8$, $+1.2$] vs.\ Jev \\
+E.21 (\ref{sec:e21}) & 2026-11-24 & Can the reviewer route items to a person? Does its reasoning show giving in? & Routing no ($+4.4$ [$-1.7$, $+10.0$]); lexical monitor yes (AUC 0.92), 120b judge no (0.41); 55\% of Jev's mistakes silent \\
+E.22 (\ref{sec:e22}) & 2026-11-24 & Does a reviewer from another family (Mistral Large 3) beat Jev on WildGuard? & No: $-3.4$ [$-5.5$, $-1.1$]; reaches 37\% of shared blind spots but lets more harm through (3.8\% $\to$ 9.5\%) \\
+E.24 (\ref{sec:e24}) & 2026-11-24 & Do named triggers cause the shared over-flagging? & H1, H2 pass: Jev $+16$, 20b $+32$ points, same items; Mistral immune; H3, H4 fail \\
+\bottomrule
+\end{tabularx}
+\caption{The second batch (\texttt{research\_docs/17}), numbered E.20--E.29. E.23 (re-labelling WildGuard) needs hand labels and has not run.}
+\label{tab:intro-roadmap2}
 \end{table}
 
 \subsection{Budget and constraints}\label{sec:budget}
 
-The harness enforces cost limits in code (\texttt{configs/budget.yaml}). Any request whose worst-case cost exceeds \$2 is never sent, and each run is capped at \$25. Project-wide caps per provider are summed over every run's spending log: \textbf{Bedrock (AWS) \$50}, \textbf{GCP \$50} and \textbf{TypeSafe (Jev) \$5}. Many experiments also had their own lower caps. Part~2's GPU work (E.106, E.107) ran on a GCP Spot H100 billed to the same GCP education credits. It was tracked outside the harness, because self-hosted inference costs \$0 per token in the ledger. Two practical constraints shaped the work. Claude was unavailable on Bedrock for this account (agreement \texttt{NOT\_AVAILABLE}), so Llama 4 Maverick replaced it in Pilot~1. Since 2026-11-05, live runs and GPU sessions have been on hold, by our decision. The hold was lifted for E.108's data (Bedrock, 2026-11-22), for the GPU sessions of E.108 and E.110 (2026-11-23) for E.116 (Bedrock, 2026-11-23) and for E.119 (Bedrock, 2026-11-24).
+The harness enforces cost limits in code (\texttt{configs/budget.yaml}). Any request whose worst-case cost exceeds \$2 is never sent, and each run is capped at \$25. Project-wide caps per provider are summed over every run's spending log: \textbf{Bedrock (AWS) \$50}, \textbf{GCP \$50} and \textbf{TypeSafe (Jev) \$5}. Many experiments also had their own lower caps. Part~2's GPU work (E.106, E.107) ran on a GCP Spot H100 billed to the same GCP education credits. It was tracked outside the harness, because self-hosted inference costs \$0 per token in the ledger. Two practical constraints shaped the work. Claude was unavailable on Bedrock for this account (agreement \texttt{NOT\_AVAILABLE}), so Llama 4 Maverick replaced it in Pilot~1. Since 2026-11-05, live runs and GPU sessions have been on hold, by our decision. The hold was lifted for E.108's data (Bedrock, 2026-11-22), for the GPU sessions of E.108 and E.110 (2026-11-23) for E.116 (Bedrock, 2026-11-23) for E.119 (Bedrock, 2026-11-24) and for the second batch's live runs, E.21's judge, E.22 and E.24 (Bedrock and TypeSafe, 2026-11-24).
 
 \begin{table}[H]
 \centering
@@ -177,14 +195,14 @@ The harness enforces cost limits in code (\texttt{configs/budget.yaml}). Any req
 \toprule
 Provider & Spent (all run ledgers) & Cap \\
 \midrule
-Bedrock (AWS) & \$9.95 & \$50 \\
+Bedrock (AWS) & \$15.70 & \$50 \\
 GCP (Gemini API ledger) & \$0.20 & \$50 \\
-TypeSafe (Jev) & \$2.10 & \$5 \\
+TypeSafe (Jev) & \$2.14 & \$5 \\
 GCP Spot H100 (E.106--E.107) & about 5.5 GPU hours plus disk, roughly \$13--22 of credits (estimate) & shares the GCP credits \\
 GCP Spot H100 (E.108, E.110) & about 8.6 h (\$57, of which about \$32 idle) and 5.3 h (\$35) at about \$6.60/h (estimate) & shares the GCP credits \\
 \bottomrule
 \end{tabularx}
-\caption{Project spend to date, from the round-2 summary (\texttt{Round2\_summary}), summed over every ledger under \texttt{results/runs}. Round~2's cheap checks cost \$0.58 on Bedrock (E.112); E.108's data added \$0.10, E.116 \$0.58 and E.119 \$1.70. The GPU figure is an estimate from uptime, and the provider consoles are the authoritative record.}
+\caption{Project spend to date, from the round-2 summary (\texttt{Round2\_summary}), summed over every ledger under \texttt{results/runs}. Round~2's cheap checks cost \$0.58 on Bedrock (E.112); E.108's data added \$0.10, E.116 \$0.58 and E.119 \$1.70. The second batch added \$0.21 (E.21), \$4.31 including the pilot (E.22, 35\% over its projection) and \$1.26 including the pilot (E.24, of which \$0.04 TypeSafe). The GPU figure is an estimate from uptime, and the provider consoles are the authoritative record.}
 \label{tab:intro-budget}
 \end{table}
 
@@ -2182,7 +2200,296 @@ Caveats:
 \end{itemize}
 
 \paragraph{How it changed what came next.}
-It closes the capability question for this model family, at one size step.
+It closes the capability question for this model family, at one size step. The second batch (Section~\ref{sec:batch2}) then asked why every reviewer lands at or below Jev, and tested a reviewer from another family.
+
+\section{Second batch: why no reviewer beats Jev (E.20--E.24)}\label{sec:batch2}
+
+Every intervention in the first batch failed the same way: it moved the reviewer's overall lean toward accepting or overriding, and never changed \emph{which} items the reviewer gets right. The second batch (\texttt{research\_docs/17\_second\_batch.md}, numbered E.20--E.29 so the two batches cannot be confused) does two things with that. It explains the failure: a quantitative ceiling (E.20, E.20a), what a router and a reasoning monitor can still do (E.21), and what the shared blind spot is (E.24). And it tests the one route still open, a reviewer from another model family (E.22). A fifth experiment, re-labelling WildGuard's gold labels (E.23), needs hand labels and has not run. The rules of the first batch carried over: the standard reviewer prompt stayed frozen, no prompt or probe item was written from test items, every confirmatory test had a decision rule in its config before it ran, and labelling and reading were done by subagents separate from the agent designing the analysis.
+
+\subsection{E.20: A correlation ceiling for the cascade}\label{sec:e20}
+
+\paragraph{What we ran and why.}
+E.20 asks whether a few numbers predict every cascade result we have, for any upstream model and any reviewer variant: how often each model is right alone, which items they get wrong together, and one or two deference parameters. It also asks what the most is that any reviewer could add. It was free, a re-analysis of saved runs.
+
+\paragraph{Connection to earlier work.}
+The tasks are binary and the reviewer is never told who proposed a label, so its review of ``label $L$ shown on item $i$'' is the same whichever upstream proposed $L$. Cascades with Llama 4 Maverick, Qwen3-32B, Nova Lite or a random-error upstream can therefore be computed from reviews already saved: E.102's reviews of correct, Jev and matched labels, and E.106's reviews of other upstreams' wrong labels (coverage 94--100\% of each upstream's items on E.102's subsample).
+
+\paragraph{Setup.}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Ceiling.} The reviewer's alone vote share against the upstream's label is used as a detector of the upstream's mistakes. The ceiling is the best gain over the upstream alone of any threshold policy on that detector, with thresholds set separately for each proposed label. It is chosen on the same items, so it is an upper bound.
+  \item \textbf{Deference model.} With $s$ the share of the reviewer's alone answers that are right on an item, the cascade is right with probability $s + (1-s)\,d_r$ when the right label is shown and $s\,(1-d_w)$ when the wrong one is. $d_w$ and $d_r$ are fitted per pool, by moments, on Jev $\to$ gpt-oss-20b only, then used to predict the other upstreams' cascades. The comparison is an \emph{independence} model that replaces $s$ with the pool's mean alone accuracy.
+  \item \textbf{Rules, fixed before computing} (\texttt{configs/experiments/e20.yaml}): R1, every held-out cascade lies inside its prediction's 95\% interval and the item-level model beats the independence model; R2, no cascade with a five-sample reviewer is above its ceiling.
+\end{itemize}
+
+\paragraph{Results.}
+Both rules pass. Table~\ref{tab:e20-pred} gives the predictions and Table~\ref{tab:e20-ceiling} the ceilings.
+
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}p{2.0cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{2.4cm}>{\raggedright\arraybackslash}p{2.4cm}@{}}
+\toprule
+Upstream $\to$ 20b & Upstream alone & Observed cascade [95\%] & Predicted, item-level & Predicted, independence \\
+\midrule
+Jev (fitted) & 86.2\% & 82.6\% [80.5, 84.6] & 83.0\% & 82.6\% \\
+Llama 4 Maverick & 84.5\% & 83.0\% [80.9, 85.0] & 83.5\% & 81.4\% \\
+Qwen3-32B & 85.7\% & 83.1\% [80.9, 85.1] & 83.3\% & 82.2\% \\
+Nova Lite & 85.6\% & 83.1\% [81.1, 85.2] & 83.3\% & 81.9\% \\
+Matched random & 86.2\% & 82.9\% [80.7, 84.9] & 83.0\% & 82.6\% \\
+\bottomrule
+\end{tabularx}
+\caption{E.20, rule R1: cascades with gpt-oss-20b (vLLM, E.106) as reviewer on E.102's subsample, pooled. Mean absolute error over the four held-out cascades is 0.3 points for the item-level model and 1.0 for the independence model.}
+\label{tab:e20-pred}
+\end{table}
+
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}Xp{3.4cm}p{3.6cm}@{}}
+\toprule
+Reviewer (5 alone answers) & Ceiling over Jev [95\%] & Observed cascade $-$ Jev [95\%] \\
+\midrule
+gpt-oss-20b, vLLM (E.106) & $+1.6$ [$+0.7$, $+3.2$] & $-3.6$ [$-5.6$, $-1.4$] \\
+gpt-oss-20b, Bedrock (E.102) & $+2.2$ [$+1.3$, $+4.2$] & $-1.7$ [$-3.6$, $+0.2$] \\
+E.103's four prompt protocols & $+2.2$ & $-1.9$ to $-2.3$ \\
+gpt-oss-120b (E.119) & $+2.8$ [$+1.5$, $+4.5$] & $-1.3$ [$-3.1$, $+0.4$] \\
+\bottomrule
+\end{tabularx}
+\caption{E.20, rule R2: the in-sample ceiling on what a threshold policy over the reviewer's own alone answers could add to Jev, against the observed cascade. Against weaker upstreams the ceiling is higher (Llama $\to$ 20b $+4.8$, Nova $\to$ 20b $+3.2$, random-error upstream $\to$ 20b $+2.9$), but those cascades are still below their upstreams (Llama $-1.4$, Nova $-2.5$).}
+\label{tab:e20-ceiling}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/e20_frontier.png}
+\caption{E.20: each reviewer variant's fix rate (share of Jev's mistakes overridden) against its break rate (share of Jev's right labels overridden), with Jev upstream. Above the dashed line the cascade would beat Jev alone. The grey curve is what thresholding the 20b's own alone answers can reach. On WildGuard every variant sits far below break-even, along the 20b's curve; on Civil Comments a few trained reviewers come near it ($+2.4$ at best, the DPO reviewer).}
+\label{fig:e20-frontier}
+\end{figure}
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{The reviewer re-decides; it barely defers.} The fitted deference parameters are 0 in every pool (unclipped estimates slightly negative), so the cascade review behaves like one more of its alone answers. The Bedrock 20b and the 120b show small positive deference ($d_w$ up to 0.24 and 0.40, largest on WildGuard, where the subsample has only 30--39 Jev mistakes).
+  \item \textbf{The cascade's accuracy is set by the reviewer, not the upstream.} Every upstream's cascade with the 20b lands at 82.6--83.1\%, whatever that upstream's own accuracy (84.5--86.2\%).
+  \item \textbf{Error overlap matters less than expected.} Across 57 pairs of upstream and reviewer, the ceiling correlates only weakly with phi (Spearman $-0.27$). With a random-error upstream (phi $\approx 0$) the 20b's ceiling is still only $+2.9$.
+\end{itemize}
+
+\paragraph{Interpretation.}
+``Deference'' was the wrong frame for the cascade's \emph{accuracy}. E.102's deference ($+7$ points at equal difficulty) is real, but it compares Jev's wrong labels with random wrong labels. Measured against the reviewer's own alone answers, its one review adds almost nothing toward the proposed label. The cascade is right about as often as the reviewer alone, item by item, and a reviewer no more accurate than Jev pulls the cascade below Jev. The limiting arithmetic is the base rate: Jev is right 86\% of the time pooled and 90--92\% on WildGuard, so breaking 1\% of its right labels costs as much as fixing 6--10\% of its mistakes gains. Every intervention of the first batch moved the reviewer along a fixed curve of what its judgment can detect (Figure~\ref{fig:e20-frontier}); none moved the curve.
+
+Caveats: the ceiling is in-sample and so optimistic. R1 is an easy test once deference is near 0, and the four upstreams have similar accuracy, so the independence model's error is only 1.0 point.
+
+\paragraph{How it changed what came next.}
+The ceiling suggested one cheap policy: override only when several alone answers agree, with a threshold per label. E.20a tested whether that survives out of sample.
+
+\subsection{E.20a: Selective override, out of sample}\label{sec:e20a}
+
+\paragraph{What we ran and why.}
+E.20's $+1.6$ to $+2.8$ points were in-sample. E.20a chooses a selective-override policy on the training pools and tests it once on E.102's subsample. It was free.
+
+\paragraph{Setup.}
+For each pool and each label Jev proposed, one of three rules: never override; override if both of the reviewer's first two alone answers disagree with Jev (\emph{unanimous}); or override if at least one does (\emph{majority}). Rules were chosen on E.104's Jev decisions and E.105's alone tries (most training items have exactly 2 tries, hence $n = 2$), reweighted to Jev's real error rate in each direction. The rule, fixed before computing (\texttt{configs/experiments/e20a.yaml}), compares the chosen policy with Jev alone on the Bedrock 20b, paired.
+
+\paragraph{Results.}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{The chosen policy gains $-0.3$ points over Jev [$-1.8$, $+1.2$].} With all 5 alone answers it gains $+0.4$ [$-0.8$, $+1.6$]; on the vLLM 20b, $-0.2$ and $+0.4$. It stops the plain cascade's loss ($-1.7$ for the same reviewer) but adds nothing over Jev. It overrides 67, 15 and 4 of the 400 items per pool, a sixth to a hundredth as often as the plain cascade.
+  \item \textbf{Even on training the best estimated gain in any direction is $+1.3$ points} (overriding Jev's ``harmful'' on WildGuard prompts).
+  \item \textbf{The in-sample best rule on the test items gains $+1.2$ [$+0.3$, $+2.0$] but overrides in other directions.} On WildGuard prompts it overrides only Jev's ``unharmful''; training chose the opposite direction.
+\end{itemize}
+
+\paragraph{Interpretation.}
+A careful override policy turns the cascade into a tie with Jev, as E.114's confidence routing did: a cost lever, not an accuracy lever. E.20's ceiling is mostly in-sample optimism. On WildGuard the training pools' labels (GPT-4's) and the test labels (human) point in opposite directions, which alone could explain the WildGuard part of the failure. That is the label question E.23 would answer.
+
+\subsection{E.21: Routing to a person, and a deference monitor on the reasoning}\label{sec:e21}
+
+\paragraph{What we ran and why.}
+If the reviewer cannot correct Jev, it might still be useful for \emph{triage}: picking which items a person should check (Part~A, free). And E.110 found a ``give in'' direction inside the model; Part~B asks whether giving in is also readable in the reasoning text, which is the project's explainability question.
+
+\paragraph{Setup.}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Part A.} A router sends the $k$\% of items with the highest risk score in each pool to a person, assumed always right, on E.102's subsample. Signals: Jev's confidence; the 20b's alone disagreement with Jev (5 answers); its cascade override (1 call); and a logistic regression combining them, fitted on the training pools only. Rule A: at a 10\% budget, the combined score catches more of Jev's mistakes than Jev's confidence, with the interval above 0.
+  \item \textbf{Part B.} Reviews of Jev's labels are classed by outcome and the reviewer's alone majority: \emph{gave in} (accepted Jev's wrong label, right alone), \emph{held firm} (overrode it, right alone), \emph{genuine} (accepted it, never right alone) and \emph{correct accept} (accepted Jev's right label). Two monitors read the reasoning: a lexical one (TF-IDF on word 1--2-grams with logistic regression, trained on gave-in against correct-accept training traces from E.105), and a gpt-oss-120b judge that sees only the proposed label and the reasoning and scores 0--10 how much the decision rests on the label, with a prompt written from training traces only. Rule B: the monitor with the higher training AUC reaches test AUC $\ge 0.70$ (gave in against correct accept) with the interval's lower end above 0.60. Test traces are E.106's vLLM base run.
+\end{itemize}
+
+\paragraph{How we ran it.}
+Part~A and the lexical monitor used saved runs. The judge ran as \texttt{e21-judge-v1-2026-11-24} on Bedrock: 2{,}024 calls (293 development, 1{,}731 test), 2 unparsed, \$0.21 against a \$1.50 cap, after a 12-call pilot.
+
+\paragraph{Results.}
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabular}{lrrr}
+\toprule
+Signal & 5\% sent & 10\% sent & 25\% sent \\
+\midrule
+Random & 4.0\% & 11.2\% & 26.0\% \\
+Jev's confidence & 18.5\% & 30.8\% & 62.1\% \\
+20b alone disagreement (5 calls) & 17.5\% & 29.5\% & 61.3\% \\
+20b cascade override (1 call) & 18.8\% & 28.8\% & 63.0\% \\
+Combined & 18.7\% & \textbf{35.2\%} & 63.9\% \\
+Combined + lexical monitor (reported only) & 21.1\% & 34.1\% & 64.4\% \\
+\bottomrule
+\end{tabular}
+\caption{E.21 Part A: share of Jev's mistakes caught when the riskiest $k$\% of items per pool go to a person (E.102's subsample, pools weighted equally). Rule A compares the bold cell with Jev's confidence: $+4.4$ points [$-1.7$, $+10.0$], fail.}
+\label{tab:e21-route}
+\end{table}
+
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabular}{lccc}
+\toprule
+Monitor & Gave in vs.\ correct accept & Gave in vs.\ genuine & Gave in vs.\ held firm \\
+\midrule
+\textbf{Lexical} & \textbf{0.92} [0.89, 0.94] & 0.85 [0.80, 0.89] & 0.73 [0.68, 0.78] \\
+Judge (gpt-oss-120b) & 0.41 [0.36, 0.46] & 0.47 [0.41, 0.52] & 0.81 [0.76, 0.86] \\
+\bottomrule
+\end{tabular}
+\caption{E.21 Part B: test AUC of the two reasoning monitors. Test classes: 78 gave in, 286 held firm, 437 genuine, 930 correct accepts. Rule B (bold) passes. The lexical monitor had the higher training AUC (0.86 against the judge's 0.46 on development traces).}
+\label{tab:e21-monitor}
+\end{table}
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Routing: the reviewer adds nothing clear over Jev's confidence.} In the combined model's training fit, Jev's confidence carries most of the weight.
+  \item \textbf{Most of Jev's mistakes are silent.} In 55\% of Jev's 1{,}058 test mistakes, the reviewer's alone majority agrees with Jev and its cascade review accepts: 9\% of group A, 51\% of group B and 92\% of group C. The share is similar in every pool (53\%, 60\%, 59\%).
+  \item \textbf{The lexical monitor reads giving in.} Within each proposed label it still separates gave in from correct accepts (0.89--0.94) and from genuine agreement (0.75--0.91), so it is not just reading the label word. Words pointing to giving in are unresolved hedges (\emph{but}, \emph{might be}, \emph{mild}, \emph{no direct}); words pointing to a correct accept are decisive conclusions (\emph{so verdict accept}, \emph{is insulting}).
+  \item \textbf{The judge fails.} It separates accepting from overriding but rates correct accepts as \emph{more} label-dependent than giving in; it appears to read ``the automated label is correct, so accept'' as deference.
+  \item \textbf{Giving in is rare,} 78 of the reviews of Jev's mistakes, so the monitor adds nothing as a routing signal (34.1\% against 35.2\%).
+\end{itemize}
+
+\paragraph{Interpretation.}
+For the explainability question, this kind of deference \emph{is} visible in the explanation, as unresolved uncertainty, to a monitor trained on outcomes; an LLM judge asked to recognize deference in the words does not see it. It is the text-level counterpart of E.110's internal direction. But it is a small part of the problem. The mistakes that matter are the confident shared ones, which leave no trace in the cascade's disagreement, overrides or reasoning.
+
+Caveats: the lexical monitor may partly read item difficulty, since gave-in items may be more borderline; gave in against held firm, which controls for that better, is weaker (0.73, and near chance within three of the four labels on 11--15 gave-in items each). Training traces came from Bedrock and test traces from vLLM (same weights). The judge prompt was one fixed attempt.
+
+\subsection{E.22: A reviewer from another family, on WildGuard}\label{sec:e22}
+
+\paragraph{What we ran and why.}
+E.119 closed the capability question within gpt-oss; the open caveat was model family. In E.112's training-pool screen, Mistral Large 3 fixed far more of Jev's over-flagged WildGuard items than gpt-oss did (85 of 112 against 17). E.22 tests whether a Mistral reviewer beats Jev alone on WildGuard's \emph{test} items.
+
+\paragraph{Setup.}
+E.119's design on E.102's frozen plan, WildGuard prompts and responses only (400 + 400 in the subsample), with Mistral Large 3 as the reviewer: 3 alone samples per reviewed item plus one review of each proposal. Mistral is not a reasoning model, so the standard prompt gets E.112's instruction to write its reasoning before the JSON; nothing else changes. Rule, fixed before the run (\texttt{configs/experiments/e22.yaml}): Mistral cascade $-$ Jev $> 0$ on the pooled WildGuard subsample with the interval above 0, \emph{and} harmful items let through rise by no more than 1 point.
+
+\paragraph{How we ran it.}
+Run \texttt{e22-v1-2026-11-24} on Bedrock: 5{,}181 calls, 1 unparsed, \$4.19 against a \$6 cap, after a 162-call pilot (\$0.12). The run came in 35\% over the runner's \$3.11 projection: the pilot had measured a higher rate per call than the runner assumed (\$0.00077 against \$0.0006), and the projection was not updated.
+
+\paragraph{Results.}
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{2.8cm}>{\raggedright\arraybackslash}p{2.8cm}>{\raggedright\arraybackslash}p{2.8cm}@{}}
+\toprule
+ & WildGuard prompts & WildGuard responses & Pooled \\
+\midrule
+Jev alone & 90\% & 92\% & 91\% \\
+gpt-oss-20b alone & 90\% & 90\% & 90\% \\
+Mistral alone & 85\% & 92\% & 89\% \\
+20b cascade & 88\% & 88\% & 88\% \\
+Mistral cascade & 84\% & 92\% & 88\% \\
+\midrule
+\textbf{Mistral cascade $-$ Jev} & $-6.5$ [$-10.0$, $-3.2$] & $-0.2$ [$-2.8$, $+2.2$] & $\mathbf{-3.4}$ [$-5.5$, $-1.1$] \\
+Mistral cascade $-$ 20b cascade & $-4.5$ [$-8.5$, $-0.8$] & $+4.0$ [$+0.8$, $+7.5$] & $-0.2$ [$-2.6$, $+2.1$] \\
+\bottomrule
+\end{tabularx}
+\caption{E.22: accuracy on the WildGuard subsample, paired on the same 800 items. Harmful items let through (share of all items): Jev 3.8\%, Mistral cascade 9.5\%, 20b cascade 3.5\%. Against the 120b cascade (E.119) on the same items: $-0.9$ [$-3.1$, $+1.5$].}
+\label{tab:e22-acc}
+\end{table}
+
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}X p{1.0cm} p{2.2cm} >{\raggedright\arraybackslash}p{3.2cm} p{2.2cm}@{}}
+\toprule
+20b's record alone & Items & 20b overrides Jev & Mistral overrides Jev & Mistral right alone \\
+\midrule
+Never right (shared blind spots) & 142 & 4\% & \textbf{37\%} ($+33$ [$+25$, $+42$]) & 42\% \\
+Sometimes right & 131 & 44\% & 56\% & 57\% \\
+Always right & 35 & 86\% & 46\% & 46\% \\
+\midrule
+All of Jev's WildGuard mistakes & 308 & 30\% & \textbf{46\%} ($+16$ [$+9$, $+23$]) & 49\% \\
+\bottomrule
+\end{tabularx}
+\caption{E.22: Jev's wrong WildGuard labels, grouped by the 20b's record alone (as in Table~\ref{tab:e119-wrong}). Error overlap (phi): Jev--20b 0.64, Jev--Mistral 0.44, 20b--Mistral 0.32.}
+\label{tab:e22-wrong}
+\end{table}
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{The rule fails on both counts:} the cascade is 3.4 points below Jev, and harmful items let through rise by 5.8 points.
+  \item \textbf{Mistral reaches the shared blind spots.} It overrides 37\% of the Jev mistakes the 20b never gets right, against the 20b's 4\%, and its errors overlap with Jev's much less.
+  \item \textbf{But its errors run the other way.} Alone, it misses 30\% of harmful prompts (55 of 184) and 31\% of harmful responses (22 of 71), while over-flagging only 2\% of benign items; the 20b misses 8--10\% and over-flags 11--12\%.
+  \item \textbf{Exploratory, not pre-registered:} letting Mistral overturn only Jev's ``harmful'' labels gives $-3.1$ [$-5.2$, $-1.1$], with 9.8\% let through. It un-flags real harm along with Jev's false alarms.
+\end{itemize}
+
+\paragraph{Interpretation.}
+Lower error overlap is necessary but not enough: a reviewer must also be about as accurate as Jev in \emph{both} directions. Mistral trades Jev's over-flagging for letting harm through, mostly on prompts, where many of WildGuard's harmful test items are adversarial or indirect. This is E.20's arithmetic again, and the same trade as E.116's worked-examples prompt. Across sizes (E.119) and families (E.22), no reviewer we can afford beats Jev on WildGuard.
+
+Caveats: written reasoning before the JSON rather than native reasoning, and no reasoning-mode model from another family was tried; 3 alone samples rather than 5; WildGuard only. WildGuardTest's human labels have only moderate annotator agreement ($\kappa$ 0.55 / 0.50, E.115), so some of Mistral's misses may be contestable labels (Section~\ref{sec:e23}).
+
+\subsection{E.24: Minimal-pair probes of the shared blind spot}\label{sec:e24}
+
+\paragraph{What we ran and why.}
+Step~0 traced the shared over-flagging on WildGuard to a few kinds of trigger by reading items. Counting mistakes on natural items cannot separate a trigger from everything else in the text; controlled pairs can. E.24 asks whether those triggers \emph{cause} the errors, in Jev and gpt-oss alike, and whether a model from another family resists them.
+
+\paragraph{Setup.}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Probe set} (\texttt{benchmarks/probes/minimal\_pairs\_v1}): 9 families of 20 triplets, 540 items. Each triplet is (a) a neutral benign item, (b) the same item with one trigger added, still benign, and (c) a minimal edit of (b) that is truly harmful. P1--P4 are prompt triggers (a harm word in a harmless setting; a stereotype quoted or critiqued; an education or safety question; dark fiction with no actionable request). R1--R2 are response triggers (a refusal; a response that discusses harm critically). C1--C2 are toxicity triggers (undirected mild profanity; a neutral identity mention). P5 is the let-through test: (b) is a plainly harmful request and (c) the same request in euphemism.
+  \item \textbf{How the items were made.} Subagents wrote them from the task policies, WildGuard's published taxonomy and step~0's failure \emph{types} only, with no test item read. A script checked every item for character 8-gram overlap with every cascade pool, test and training. Two minimality reviews followed (the first led to 79 triplets being revised), and two blind labellers agreed with the intended label on all 540 items. Five triplets near the minimality line and 33 items a labeller marked unsure are flagged for a sensitivity check.
+  \item \textbf{Models,} each deciding alone: Jev (jev-1.14.0) $\times 3$, gpt-oss-20b $\times 5$, gpt-oss-120b $\times 5$, Mistral Large 3 $\times 3$ (writing its reasoning first, as in E.22) and Qwen3-32B $\times 1$, plus one 20b cascade review of Jev's label per item. A model flags an item if most of its samples give the positive label.
+  \item \textbf{Hypotheses, fixed before the run} (\texttt{configs/experiments/e24.yaml}): H1, the trigger raises the flag rate (P1--P4, b $-$ a) for Jev and the 20b; H2, Jev's and the 20b's trigger flags overlap (phi $> 0.3$), more than Jev's and Mistral's; H3, the cascade keeps Jev's trigger flags at least as often as it accepts Jev's natural mistakes; H4, euphemism lowers the flag rate on harmful requests (P5, c $-$ b).
+\end{itemize}
+
+\paragraph{How we ran it.}
+Run \texttt{e24-v1-2026-11-24}: 9{,}720 calls (1{,}620 Jev, 8{,}100 Bedrock), 2 unparsed, \$1.22 (Bedrock \$1.18, TypeSafe \$0.04) against a projection of \$1.92, after a \$0.04 pilot. Intervals are paired bootstraps over triplets.
+
+\paragraph{Results.}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{H1 passes.} The trigger raises the flag rate by 16 points for Jev [$+8$, $+25$] and 32 for the 20b [$+21$, $+44$]; also 19 for the 120b, 20 for Qwen, and 1 for Mistral [0, $+4$]. Without the flagged triplets and items: Jev $+14$, 20b $+30$.
+  \item \textbf{H2 passes.} On the trigger items, Jev's flags overlap with the 20b's (phi 0.41), the 120b's (0.48) and Qwen's (0.26), but not Mistral's ($-0.05$).
+  \item \textbf{H3 fails.} Jev flagged only 14 trigger items, and the cascade kept 64\% of those flags (9 of 14) against 70\% on E.102's WildGuard prompts; $n = 14$ is too small to say much.
+  \item \textbf{H4 fails.} Every model flags 95--100\% of the euphemistic versions.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}Xcccccc@{}}
+\toprule
+Family (trigger) & Jev & 20b & 120b & Qwen3-32B & Mistral & 20b cascade \\
+\midrule
+P1 harm word, harmless setting & 5\% & 45\% & 25\% & 35\% & 5\% & 35\% \\
+P2 stereotype quoted or critiqued & 5\% & 25\% & 5\% & 20\% & 0\% & 25\% \\
+P3 education or safety question & 15\% & 20\% & 15\% & 0\% & 0\% & 20\% \\
+P4 dark fiction, no actionable ask & \textbf{45\%} & \textbf{55\%} & 40\% & 25\% & 0\% & 35\% \\
+R1 refusal of a harmful request & 0\% & 0\% & 0\% & 0\% & 0\% & 0\% \\
+R2 response discusses harm critically & 5\% & 20\% & 5\% & 5\% & 0\% & 25\% \\
+C1 undirected mild profanity & 0\% & 0\% & 5\% & 0\% & 0\% & 10\% \\
+C2 neutral identity mention & 0\% & 0\% & 0\% & 0\% & 0\% & 0\% \\
+\bottomrule
+\end{tabularx}
+\caption{E.24: flag rate on the benign trigger items (b), 20 per family. In every family every model flags 95--100\% of the harmful versions (c) and 0--10\% of the neutral versions (a). Full table: \texttt{research\_analyses/E24/data/report.md}.}
+\label{tab:e24-families}
+\end{table}
+
+\paragraph{Interpretation.}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{The shared blind spot has a cause we can name.} Benign prompts with dark fiction, harm vocabulary in a harmless setting, or a safety question get flagged as harmful, by Jev, both gpt-oss models and Qwen, on the \emph{same} items. This confirms step~0's reading by controlled edits rather than by reading.
+  \item \textbf{The cascade makes it worse.} On P1--P4, Jev flags 18\% of the benign trigger items on average, the 20b alone 36\% and the 20b cascade 29\%; on R2 the cascade flags 25\% against Jev's 5\%. Reviewing Jev with a reviewer that has the same blind spot, more strongly, adds over-flagging.
+  \item \textbf{Mistral does not have it,} which fits E.112's lead and E.22's blind-spot overrides. Its weakness on real WildGuard items is the opposite one: leniency on harmful items that are less plain than the probes' (c) versions.
+  \item \textbf{The blind spot is specific.} Refusals, mild profanity and identity mentions trigger no model, and euphemism hides harm from none.
+  \item \textbf{For explainability,} a cheap counterfactual probe set exposes \emph{which} input features drive a black box's mistakes and \emph{which other model} shares them, the kind of evidence the project's guiding question asks for.
+\end{itemize}
+
+Caveats: the probes are synthetic and short, so they show that the triggers \emph{can} cause errors, not how often each occurs in WildGuard's real mistakes. With 20 triplets per family the per-family intervals are wide; the hypotheses pool P1--P4. The labels are by construction, checked by subagent labellers, not people.
+
+\subsection{E.23: Re-labelling WildGuard (not run)}\label{sec:e23}
+
+E.23 would re-label WildGuard's gold labels to measure how much of ``the cascade loses to Jev'' and of the never-right group is label noise. Two blind subagent labellers would label the WildGuard subsample and every Jev-wrong WildGuard item; a person would label every item they disagree on plus an audit of 40 they agree on, an estimated 60--100 items. The rule, written in \texttt{research\_docs/17}: labels are part of the wall if, on consensus labels, the sign of 20b cascade $-$ Jev on the WildGuard subsample changes, or the never-right share of Jev's mistakes falls by at least a third. It needs hand labels and has not run.
+
+What the saved runs say about its odds:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Only items where Jev and the cascade disagree can move the comparison.} On the 800 WildGuard subsample items, the 20b cascade fixes 17 of Jev's labels and breaks 42 (net $-25$). Each gold error on a broken item turns it into a fix (net $+2$). To change the sign, gold errors on broken items must outnumber those on fixed items by at least 13: about a third of the 42 breaks if the fixes are clean, about half of all 59 disagreements if errors fall evenly.
+  \item \textbf{The 20b's breaks are the wrong kind for that.} 36 of its 42 breaks are benign-gold items the cascade over-flags, the type step~0 most often judged clear model mistakes. Among the benign-gold items step~0 read (25 of 30, a different population: items both models got wrong), it judged the gold label doubtful on 5, about 1 in 5, short of the third needed.
+  \item \textbf{Mistral's breaks are the right kind.} 48 of its 52 breaks are harmful-gold items it let through, 40 of them adversarial prompts or responses; step~0 found every harmful-gold item it read doubtful or ambiguous (5 of 5). Its fixes are 23 benign-gold items. Mistral's cascade (net $-27$) would need gold errors on about 14 more breaks than fixes. That test is not in the rule.
+  \item \textbf{The never-right leg turns on ambiguous items.} 142 of Jev's 308 WildGuard mistakes (46\%) are never right for the 20b; falling by a third means 31\%. Step~0 read 30 such items as 9 doubtful gold, 11 ambiguous and 10 clear model mistakes. Assuming Jev's other mistakes keep their labels: if only doubtful labels flip, the share falls to about 37\%, short; if ambiguous items are also dropped, it falls to about 22\%, a pass. The rule does not yet say how ambiguous items are treated.
+\end{itemize}
 
 \section{Summary of findings and current status}\label{sec:conclusion}
 
@@ -2225,8 +2532,18 @@ Together with E.103, prompts about how much to trust Jev and prompts about how t
 
 \paragraph{A stronger reviewer.} A last capability check asked whether a stronger reviewer would remove the limit (Section~\ref{sec:e119}). With gpt-oss-120b, about six times larger, as the reviewer on E.102's frozen test plan, the cascade was no more accurate than Jev alone ($-1.3$ points [$-3.1$, $+0.3$]) or than the gpt-oss-20b cascade ($+0.2$). On the 434 Jev mistakes the 20b never gets right alone, the 120b got 6\% right alone and overrode 6\%. Its errors overlapped with Jev's as much as the 20b's did (phi 0.57), and it overrode fewer of Jev's mistakes (29\% against 37\%). The shared blind spots hold across model size within this family.
 
-\paragraph{What the project rules out and what it does not.} At this budget and on these samples, the project rules out: fixing Jev's mistakes by flipping on Jev's confidence (E.111); improving cascade accuracy by routing on Jev's confidence (E.114); reducing deference with SFT, DPO or consistency training on the reviewer's own traces (E.106--E.108); removing it with a single steering direction (E.110); catching more of Jev's WildGuard mistakes with prompts about how to apply the policy (E.116), as well as prompts about how much to trust Jev (E.103); and fixing the cascade with a larger reviewer of the same family (E.119). It also counts as a failed screen for distilling an affordable teacher across all pools (E.112). It does \emph{not} show that distillation cannot help: E.112's screen was small, and Mistral's interval cannot exclude the 10-point gain the rule asked for. It does not test GRPO, reviewers from other model families or clearly stronger than Jev, other upstream models or other tasks, and E.116's prompts were screened on GPT-4 labels, not human ones. All results carry the same scope limits: one reviewer, one upstream model and three moderation tasks.
+\paragraph{Second batch: why no reviewer beats Jev.} Five experiments on 2026-11-24 explained the wall and tested the last open route (Section~\ref{sec:batch2}).
+\begin{itemize}[leftmargin=*,itemsep=2pt]
+  \item \textbf{E.20:} the reviewer re-decides rather than defers. Its cascade review behaves like one more of its alone answers (fitted deference $\approx 0$), so every upstream's cascade with gpt-oss-20b lands at 82.6--83.1\%, and a model of overlap and deference predicts four held-out cascades within 0.3 points. No threshold policy on the reviewer's own answers could add more than $+1.6$ to $+2.8$ points, even in-sample. The limit is the base rate: Jev is right 90--92\% of the time on WildGuard, so a reviewer must fix about ten of its mistakes for every right label it breaks.
+  \item \textbf{E.20a:} chosen on the training pools, a selective-override policy ties Jev ($-0.3$ [$-1.8$, $+1.2$]); the ceiling was in-sample optimism.
+  \item \textbf{E.21:} as a triage signal the reviewer adds nothing clear over Jev's confidence ($+4.4$ [$-1.7$, $+10.0$] at a 10\% budget), and 55\% of Jev's mistakes are silent: the reviewer agrees alone and accepts. When it does give in, a word-based monitor reads it in the reasoning (AUC 0.92 [0.89, 0.94]) as unresolved hedging; a gpt-oss-120b judge does not (0.41). Giving in is rare (78 reviews), so it matters little for accuracy.
+  \item \textbf{E.22:} a Mistral Large 3 reviewer overrides 37\% of the WildGuard mistakes gpt-oss never gets right, against 4\%, but misses 30\% of harmful items alone. Its cascade is 3.4 points below Jev [$-5.5$, $-1.1$], with harmful items let through rising from 3.8\% to 9.5\%.
+  \item \textbf{E.24:} on 180 minimal-pair triplets, dark fiction, harm words in a harmless setting and safety questions make benign prompts look harmful to Jev ($+16$ points), gpt-oss-20b ($+32$), gpt-oss-120b ($+19$) and Qwen3-32B ($+20$), on the same items (phi 0.41--0.48 with Jev). Mistral is immune ($+1$). The 20b cascade adds over-flagging on these items (29\% against Jev's 18\%).
+\end{itemize}
+The batch's answer is that a reviewer must be wrong on different items from Jev \emph{and} about as accurate in both directions. gpt-oss models fail the first condition, sharing Jev's triggers; Mistral fails the second, being lenient. For the explainability question, two results are positive: deference, when it happens, is visible in the reviewer's reasoning to a trained monitor (E.21), and a cheap counterfactual probe set names the input features behind the shared mistakes and which models share them (E.24).
 
-\paragraph{Status.} No training, GPU work or live run is running, and every GPU machine and disk has been deleted. Both the post-training and the prompt-engineering tracks are closed, and the capability check (E.119) is done. Measured costs are Bedrock \$9.95 of \$50, the GCP API ledger \$0.20 and TypeSafe \$2.10 of \$5. GPU time is estimated from uptime at roughly \$13--22 for round~1, about \$57 for E.108 (including about \$32 idle) and about \$35 for E.110 (Table~\ref{tab:intro-budget}).
+\paragraph{What the project rules out and what it does not.} At this budget and on these samples, the project rules out: fixing Jev's mistakes by flipping on Jev's confidence (E.111); improving cascade accuracy by routing on Jev's confidence (E.114); reducing deference with SFT, DPO or consistency training on the reviewer's own traces (E.106--E.108); removing it with a single steering direction (E.110); catching more of Jev's WildGuard mistakes with prompts about how to apply the policy (E.116), as well as prompts about how much to trust Jev (E.103); fixing the cascade with a larger reviewer of the same family (E.119); a selective-override policy chosen out of sample (E.20a); routing to a person on the reviewer's signals beyond Jev's confidence (E.21); and, on WildGuard, a Mistral Large 3 reviewer (E.22). It also counts as a failed screen for distilling an affordable teacher across all pools (E.112). It does \emph{not} show that distillation cannot help: E.112's screen was small, and Mistral's interval cannot exclude the 10-point gain the rule asked for. It does not test GRPO, a reasoning-mode reviewer from another family or one clearly stronger than Jev, other tasks, or whether WildGuard's gold labels are part of the wall (E.23, which needs hand labels), and E.116's prompts were screened on GPT-4 labels, not human ones. All results carry the same scope limits: one reviewer, one upstream model and three moderation tasks.
+
+\paragraph{Status.} No training, GPU work or live run is running, and every GPU machine and disk has been deleted. Both the post-training and the prompt-engineering tracks are closed, and the capability check (E.119) and the second batch (E.20--E.22, E.24) are done; E.23 waits on hand labels. Measured costs are Bedrock \$15.70 of \$50, the GCP API ledger \$0.20 and TypeSafe \$2.14 of \$5. GPU time is estimated from uptime at roughly \$13--22 for round~1, about \$57 for E.108 (including about \$32 idle) and about \$35 for E.110 (Table~\ref{tab:intro-budget}).
 
 \end{document}

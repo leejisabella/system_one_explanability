@@ -183,3 +183,14 @@ teacher_high:
   model: openai.gpt-oss-120b-1:0
   service_tier: flex
   reasoning_effort: high
+
+reviewer_mistral:
+  # E.22: a reviewer from another family. Mistral Large 3 (as teacher_mistral, E.112), used as the
+  # cascade's reviewer on WildGuard. Not a reasoning model: asked to write its reasoning before the JSON.
+  provider: bedrock
+  model: mistral.mistral-large-3-675b-instruct
+
+jev_1_14:
+  # Jev pinned to the version every cascade run used (E.101-E.119), for E.24's probes.
+  provider: typesafe
+  model: jev-1.14.0

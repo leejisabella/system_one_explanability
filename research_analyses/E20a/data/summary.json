@@ -1,0 +1,303 @@
+{
+ "choice": {
+  "civil_toxicity_pool_v1": {
+   "chosen": {
+    "non_toxic": "unanimous",
+    "toxic": "unanimous"
+   },
+   "detail": {
+    "non_toxic": {
+     "jev_right_share": 0.4305,
+     "jev_wrong_share": 0.1342,
+     "n_mix_right": 2322,
+     "n_mix_wrong": 744,
+     "train_gain": {
+      "majority": -0.02073,
+      "never": 0.0,
+      "unanimous": 0.00092
+     }
+    },
+    "toxic": {
+     "jev_right_share": 0.3248,
+     "jev_wrong_share": 0.1106,
+     "n_mix_right": 1749,
+     "n_mix_wrong": 613,
+     "train_gain": {
+      "majority": -0.003,
+      "never": 0.0,
+      "unanimous": 0.00129
+     }
+    }
+   },
+   "n_train_items": 5545
+  },
+  "wildguard_prompt_full_v1": {
+   "chosen": {
+    "harmful": "majority",
+    "unharmful": "never"
+   },
+   "detail": {
+    "harmful": {
+     "jev_right_share": 0.4854,
+     "jev_wrong_share": 0.06,
+     "n_mix_right": 577,
+     "n_mix_wrong": 300,
+     "train_gain": {
+      "majority": 0.01322,
+      "never": 0.0,
+      "unanimous": 0.00511
+     }
+    },
+    "unharmful": {
+     "jev_right_share": 0.44,
+     "jev_wrong_share": 0.0146,
+     "n_mix_right": 542,
+     "n_mix_wrong": 73,
+     "train_gain": {
+      "majority": -0.08517,
+      "never": 0.0,
+      "unanimous": -0.03377
+     }
+    }
+   },
+   "n_train_items": 5000
+  },
+  "wildguard_response_full_v1": {
+   "chosen": {
+    "harmful": "unanimous",
+    "unharmful": "never"
+   },
+   "detail": {
+    "harmful": {
+     "jev_right_share": 0.479,
+     "jev_wrong_share": 0.038,
+     "n_mix_right": 461,
+     "n_mix_wrong": 190,
+     "train_gain": {
+      "majority": -0.00439,
+      "never": 0.0,
+      "unanimous": 0.00172
+     }
+    },
+    "unharmful": {
+     "jev_right_share": 0.462,
+     "jev_wrong_share": 0.021,
+     "n_mix_right": 424,
+     "n_mix_wrong": 105,
+     "train_gain": {
+      "majority": -0.02947,
+      "never": 0.0,
+      "unanimous": -0.00328
+     }
+    }
+   },
+   "n_train_items": 5000
+  }
+ },
+ "decision": {
+  "ci95": [
+   -0.0183,
+   0.0125
+  ],
+  "gain": -0.0033,
+  "selective_override_beats_jev": false
+ },
+ "in_sample_best_bedrock_n2": {
+  "ci95": [
+   0.0033,
+   0.02
+  ],
+  "gain": 0.0117,
+  "policy_acc": 0.8733,
+  "pools": {
+   "civil_toxicity_pool_v1": {
+    "broken": 2,
+    "fixed": 5,
+    "jev_acc": 0.7575,
+    "n": 400,
+    "overrides": 7,
+    "policy_acc": 0.765
+   },
+   "wildguard_prompt_full_v1": {
+    "broken": 4,
+    "fixed": 8,
+    "jev_acc": 0.9025,
+    "n": 400,
+    "overrides": 12,
+    "policy_acc": 0.9125
+   },
+   "wildguard_response_full_v1": {
+    "broken": 1,
+    "fixed": 8,
+    "jev_acc": 0.925,
+    "n": 400,
+    "overrides": 9,
+    "policy_acc": 0.9425
+   }
+  }
+ },
+ "in_sample_best_policy_bedrock_n2": {
+  "civil_toxicity_pool_v1": {
+   "non_toxic": "never",
+   "toxic": "unanimous"
+  },
+  "wildguard_prompt_full_v1": {
+   "harmful": "never",
+   "unharmful": "unanimous"
+  },
+  "wildguard_response_full_v1": {
+   "harmful": "majority",
+   "unharmful": "never"
+  }
+ },
+ "policy": {
+  "civil_toxicity_pool_v1": {
+   "non_toxic": "unanimous",
+   "toxic": "unanimous"
+  },
+  "wildguard_prompt_full_v1": {
+   "harmful": "majority",
+   "unharmful": "never"
+  },
+  "wildguard_response_full_v1": {
+   "harmful": "unanimous",
+   "unharmful": "never"
+  }
+ },
+ "test_bedrock_n2": {
+  "ci95": [
+   -0.0183,
+   0.0125
+  ],
+  "gain": -0.0033,
+  "policy_acc": 0.8583,
+  "pools": {
+   "civil_toxicity_pool_v1": {
+    "broken": 35,
+    "fixed": 32,
+    "jev_acc": 0.7575,
+    "n": 400,
+    "overrides": 67,
+    "policy_acc": 0.75
+   },
+   "wildguard_prompt_full_v1": {
+    "broken": 10,
+    "fixed": 5,
+    "jev_acc": 0.9025,
+    "n": 400,
+    "overrides": 15,
+    "policy_acc": 0.89
+   },
+   "wildguard_response_full_v1": {
+    "broken": 0,
+    "fixed": 4,
+    "jev_acc": 0.925,
+    "n": 400,
+    "overrides": 4,
+    "policy_acc": 0.935
+   }
+  }
+ },
+ "test_bedrock_n5": {
+  "ci95": [
+   -0.0075,
+   0.0158
+  ],
+  "gain": 0.0042,
+  "policy_acc": 0.8658,
+  "pools": {
+   "civil_toxicity_pool_v1": {
+    "broken": 20,
+    "fixed": 23,
+    "jev_acc": 0.7575,
+    "n": 400,
+    "overrides": 43,
+    "policy_acc": 0.765
+   },
+   "wildguard_prompt_full_v1": {
+    "broken": 3,
+    "fixed": 2,
+    "jev_acc": 0.9025,
+    "n": 400,
+    "overrides": 5,
+    "policy_acc": 0.9
+   },
+   "wildguard_response_full_v1": {
+    "broken": 0,
+    "fixed": 3,
+    "jev_acc": 0.925,
+    "n": 400,
+    "overrides": 3,
+    "policy_acc": 0.9325
+   }
+  }
+ },
+ "test_vllm_n2": {
+  "ci95": [
+   -0.0158,
+   0.0133
+  ],
+  "gain": -0.0017,
+  "policy_acc": 0.86,
+  "pools": {
+   "civil_toxicity_pool_v1": {
+    "broken": 32,
+    "fixed": 30,
+    "jev_acc": 0.7575,
+    "n": 400,
+    "overrides": 62,
+    "policy_acc": 0.7525
+   },
+   "wildguard_prompt_full_v1": {
+    "broken": 8,
+    "fixed": 4,
+    "jev_acc": 0.9025,
+    "n": 400,
+    "overrides": 12,
+    "policy_acc": 0.8925
+   },
+   "wildguard_response_full_v1": {
+    "broken": 0,
+    "fixed": 4,
+    "jev_acc": 0.925,
+    "n": 400,
+    "overrides": 4,
+    "policy_acc": 0.935
+   }
+  }
+ },
+ "test_vllm_n5": {
+  "ci95": [
+   -0.0067,
+   0.015
+  ],
+  "gain": 0.0042,
+  "policy_acc": 0.8658,
+  "pools": {
+   "civil_toxicity_pool_v1": {
+    "broken": 16,
+    "fixed": 22,
+    "jev_acc": 0.7575,
+    "n": 400,
+    "overrides": 38,
+    "policy_acc": 0.7725
+   },
+   "wildguard_prompt_full_v1": {
+    "broken": 4,
+    "fixed": 2,
+    "jev_acc": 0.9025,
+    "n": 400,
+    "overrides": 6,
+    "policy_acc": 0.8975
+   },
+   "wildguard_response_full_v1": {
+    "broken": 0,
+    "fixed": 1,
+    "jev_acc": 0.925,
+    "n": 400,
+    "overrides": 1,
+    "policy_acc": 0.9275
+   }
+  }
+ }
+}

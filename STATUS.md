@@ -124,6 +124,16 @@ Not done yet:
   - The 120b cascade vs. Jev alone: −1.3 [−3.1, +0.3]. vs. the 20b cascade: +0.2.
   - On the 434 Jev mistakes the 20b never gets right alone, the 120b gets 6% right too.
   - Error overlap with Jev is identical (phi 0.57), and the 120b overrides fewer of Jev's mistakes (29% vs 37%).
+- **Second batch planned (2026-11-24): E.20–E.24** ([research_docs/17](research_docs/17_second_batch.md)). E.24's minimal-pair probe set is built and frozen (180 triplets, `benchmarks/probes/minimal_pairs_v1/`); E.22–E.24 need a go-ahead, and E.23 needs about 60–100 hand labels.
+- **E.20 (2026-11-24, free): the reviewer re-decides rather than defers, and the ceiling is low** ([research_analyses/E20](research_analyses/E20/README.md)).
+  - Fitted deference is about 0: every upstream's cascade with the 20b lands at 82.6–83.1%, whatever the upstream's own accuracy. A two-parameter model predicts the held-out upstreams within 0.3 points (R1 pass).
+  - The best policy built on the reviewer's own alone answers would add only +1.6 (20b) to +2.8 (120b) over Jev, in-sample. Every observed cascade is 3–5 points below that (R2 pass).
+- **E.21 (2026-11-24, $0.21 Bedrock, `e21-judge-v1-2026-11-24`): no triage value; deference is visible in the reasoning but rare** ([research_analyses/E21](research_analyses/E21/README.md)).
+  - Part A fails: routing by the reviewer catches no more of Jev's mistakes than Jev's confidence (+4.4 [−1.7, +10.0] at a 10% budget). 55% of Jev's mistakes are silent.
+  - Part B passes: a lexical monitor on the reasoning separates giving in from correct accepts (AUC 0.92) and from genuine agreement (0.85). The gpt-oss-120b judge fails (0.41). Giving in covers only 78 reviews, so the monitor doesn't help routing.
+- **E.20a (2026-11-24, free): selective override doesn't beat Jev** ([research_analyses/E20a](research_analyses/E20a/README.md)). Overriding only when the reviewer's alone answers agree, with the rule chosen on the training pools, gains −0.3 [−1.8, +1.2] over Jev (+0.4 with 5 answers). It stops the cascade's loss, but E.20's ceiling doesn't survive out of sample.
+- **E.24 (2026-11-24, $1.22, `e24-v1-2026-11-24`): the shared blind spot has a nameable cause** ([research_analyses/E24](research_analyses/E24/README.md)). On 180 minimal-pair triplets, a dark fiction frame or harm words in a harmless setting make benign prompts get flagged by Jev (+16 points), gpt-oss-20b (+32), 120b (+19) and Qwen (+20), on the same items (phi 0.41–0.48 with Jev). Mistral Large 3 is immune (+1; phi −0.05). The 20b cascade adds over-flagging.
+- **E.22 (2026-11-24, $4.19 Bedrock, `e22-v1-2026-11-24`, 35% over its $3.11 projection): another family doesn't fix it** ([research_analyses/E22](research_analyses/E22/README.md)). Mistral as the WildGuard reviewer: cascade −3.4 [−5.5, −1.1] vs Jev, harmful let through 3.8% → 9.5%. It reaches Jev's blind spots (37% of the 20b's never-right items) but misses 30% of harmful items.
 
 - **Prompt-engineering track started (2026-11-23, $0).**
   - **E.115 policy audit done and reviewed** ([research_analyses/E115](research_analyses/E115/README.md)): our WildGuard policy covers the annotators' rules, so there is no real mismatch.

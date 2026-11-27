@@ -1,0 +1,38 @@
+# E.20a: selective override, out of sample (research_docs/17, follow-up to E.20). Free: no API calls.
+# Written and fixed on 2026-11-24, before any E.20a number was computed.
+#
+# E.20's in-sample ceiling says a policy that overrides Jev only when the reviewer's own alone answers
+# disagree strongly enough could add +1.6 to +2.8 points over Jev. E.20a chooses that policy on the
+# training pools only and tests it once on E.102's subsample.
+
+source_runs:
+  plan: e102-v1-2026-11-04            # test: Jev's labels and the subsample (400 per pool)
+  test_reviewer: e102-v1-2026-11-04   # gpt-oss-20b on Bedrock, 5 alone answers per item: the same stack as training
+  test_reviewer_alt: e106-v1-2026-11-04   # base_local (vLLM 20b), reported alongside
+  jev_train: e104-v1-2026-11-04
+  traces_train: e105-v1-2026-11-04    # gpt-oss-20b on Bedrock: alone tries on E.104's mix (mostly 2 per item)
+
+# Policy: per pool and per label Jev proposed (two directions), one of
+#   never      keep Jev's label
+#   unanimous  override if all n alone answers disagree with Jev
+#   majority   override if at least half of the n alone answers disagree with Jev
+# with n = 2: the first two alone answers (sample_index 0 and 1), on training and test alike.
+rules: [never, unanimous, majority]
+n_answers: 2
+
+# Choice, on the training pools only: for each pool and direction, the rule with the largest estimated
+# gain over Jev alone, err * P(override | Jev wrong) - (1 - err) * P(override | Jev right), where the two
+# rates are measured within E.104's mix (its items were chosen on Jev's correctness only) and err is
+# Jev's error rate in that direction on the whole training pool (E.104's screen). Ties go to the more
+# conservative rule (never > unanimous > majority).
+
+# Decision rule: "selective override beats Jev" if, on E.102's subsample (pooled, equal pool weight),
+# the chosen policy's accuracy minus Jev alone has a 95% paired bootstrap interval above 0.
+rule: {ci_lower_above: 0.0}
+
+# Reported, not part of the rule: per pool; the same chosen policy applied with all 5 test answers
+# (unanimous = 5 of 5, majority = 3 or more of 5); the policy on the vLLM 20b (E.106 base_local);
+# the in-sample best policy on the test subsample (E.20's ceiling, for comparison); the standard
+# cascade; calls per item (n alone answers instead of one review).
+bootstrap: 2000
+seed: 201

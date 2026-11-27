@@ -1,0 +1,60 @@
+# E.20: a correlation ceiling for the cascade (research_docs/17). Free: a re-analysis of saved runs,
+# no API calls. Written and fixed on 2026-11-24, before any E.20 number was computed.
+#
+# Scope: E.102's random subsample (400 items per pool, three pools, pooled with equal weight), the
+# items every earlier cascade result uses. The reviewer is gpt-oss-20b as served in E.106
+# (`base_local`, 5 alone samples per item), unless a cascade names another reviewer.
+#
+# Key fact: each task is binary and the reviewer is never told who proposed a label, so its review of
+# "label L shown on item i" is the same whichever upstream model proposed L. Reviews that show the
+# wrong label (conditions jev_label, matched_label, upstream_wrong) are pooled per item as one
+# observed probability of a correct final label.
+
+source_runs:
+  plan: e102-v1-2026-11-04          # Jev's labels, the matched random labels, the subsample
+  reviews_20b: e106-v1-2026-11-04   # base_local and the trained arms (alone + every review condition)
+  reviews_20b_bedrock: e102-v1-2026-11-04
+  protocols: e103-v1-2026-11-04     # prompt protocols (alone answers taken from E.102's Bedrock run)
+  upstream: e103-v1-2026-11-04      # Llama 4 Maverick, Qwen3-32B, Nova Lite alone on every pool item
+  reviews_120b: e119-v1-2026-11-24
+
+upstreams: {jev: Jev, explainer_open: Llama 4 Maverick, reviewer_qwen: Qwen3-32B, decision_alt: Nova Lite, matched: matched random}
+
+# --- Part 1: the ceiling (from alone answers only) ---------------------------------------------------
+# For an upstream U and a reviewer R, the reviewer's alone vote share against U's label is a detector of
+# U's mistakes. Any cascade policy that uses only R's own answers (its alone votes, at any threshold,
+# in either label direction) lies under the ROC hull of that detector. The ceiling is the largest gain
+# over U alone that a point on the hull gives:  max_t [ P(U wrong) * TPR(t) - P(U right) * FPR(t) ],
+# with policies allowed to differ by the label U proposed (two directions, thresholds chosen separately).
+
+# --- Part 2: the deference model ----------------------------------------------------------------------
+# Per item i, s_i = share of R's alone samples that are right. Final label correct with probability
+#   shown right label:  s_i + (1 - s_i) * d_r
+#   shown wrong label:  s_i * (1 - d_w)
+# d_w, d_r are fitted per pool by the method of moments on ONE cascade only: Jev -> 20b (base_local),
+# standard prompt, subsample. The independence model is the same with s_i replaced by R's mean alone
+# accuracy in that pool (no item-level overlap).
+fit_cascade: {upstream: jev, reviewer: base_local}
+held_out_cascades: [explainer_open, reviewer_qwen, decision_alt, matched]   # each -> base_local
+# Held-out cascades are scored on subsample items where a wrong-label review exists for every item
+# the upstream gets wrong (coverage is reported); the prediction is computed on exactly those items.
+
+rule:
+  # R1 "overlap and deference explain the cascade": for every held-out cascade, the predicted pooled
+  # accuracy lies inside the observed cascade's 95% paired bootstrap interval; AND the item-level
+  # model's mean absolute error over the held-out cascades is below the independence model's.
+  r1_all_inside_ci: true
+  r1_beats_independence: true
+  # R2 "the ceiling holds": no observed cascade has a gain over its upstream whose 95% interval lies
+  # entirely above that pair's ceiling. Applies to reviewers with 5 alone samples per item (base_local,
+  # E.102's Bedrock 20b and E.103's protocols on its alone answers, E.119's 120b), every upstream.
+  # E.106's trained arms have 1 alone sample per item, so their ceiling uses less information than one
+  # extra review gives; they are reported but not part of R2 (amended 2026-11-24, before computing).
+  r2_no_cascade_above_ceiling: true
+
+# Reported, not part of the rules: per-pool results; the ceiling against phi across all pairs
+# (Spearman); Jev -> 120b predicted with 20b's d and with 120b's own fitted d; the frontier
+# (fix rate on U's mistakes against break rate on U's right labels) for E.102, E.103's protocols,
+# E.106's trained arms, and E.119; E.110 is left out (its reviews cover group A only).
+bootstrap: 2000
+seed: 20

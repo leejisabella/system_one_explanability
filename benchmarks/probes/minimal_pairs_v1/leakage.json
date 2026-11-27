@@ -1,0 +1,107 @@
+{
+  "ngram": 8,
+  "threshold": 0.5,
+  "flagged": [],
+  "top20": [
+    {
+      "item_id": "probe-P1-13-neutral",
+      "max_share": 0.477,
+      "nearest": "wildguard_response_train_v1/wgtrain-r-44410"
+    },
+    {
+      "item_id": "probe-P5-12-neutral",
+      "max_share": 0.436,
+      "nearest": "wildguard_response_train_v1/wgtrain-r-74334"
+    },
+    {
+      "item_id": "probe-P2-15-neutral",
+      "max_share": 0.414,
+      "nearest": "wildguard_prompt_train_v1/wgtrain-p-62704"
+    },
+    {
+      "item_id": "probe-P5-12-trigger",
+      "max_share": 0.404,
+      "nearest": "wildguard_response_train_v1/wgtrain-r-64833"
+    },
+    {
+      "item_id": "probe-P5-04-neutral",
+      "max_share": 0.385,
+      "nearest": "wildguard_response_train_v1/wgtrain-r-31623"
+    },
+    {
+      "item_id": "probe-P1-20-neutral",
+      "max_share": 0.38,
+      "nearest": "wildguard_response_full_v1/wgr-0752"
+    },
+    {
+      "item_id": "probe-C1-18-neutral",
+      "max_share": 0.375,
+      "nearest": "wildguard_response_train_v1/wgtrain-r-60865"
+    },
+    {
+      "item_id": "probe-P1-03-neutral",
+      "max_share": 0.364,
+      "nearest": "wildguard_response_train_v1/wgtrain-r-30068"
+    },
+    {
+      "item_id": "probe-C1-18-trigger",
+      "max_share": 0.358,
+      "nearest": "wildguard_response_train_v1/wgtrain-r-60865"
+    },
+    {
+      "item_id": "probe-P4-06-neutral",
+      "max_share": 0.357,
+      "nearest": "wildguard_response_train_v1/wgtrain-r-63552"
+    },
+    {
+      "item_id": "probe-P5-15-trigger",
+      "max_share": 0.355,
+      "nearest": "wildguard_response_full_v1/wgr-0569"
+    },
+    {
+      "item_id": "probe-P5-16-trigger",
+      "max_share": 0.35,
+      "nearest": "wildguard_response_train_v1/wgtrain-r-58957"
+    },
+    {
+      "item_id": "probe-P4-01-neutral",
+      "max_share": 0.349,
+      "nearest": "wildguard_prompt_full_v1/wgt-1497"
+    },
+    {
+      "item_id": "probe-P3-20-harmful",
+      "max_share": 0.345,
+      "nearest": "wildguard_response_train_v1/wgtrain-r-00139"
+    },
+    {
+      "item_id": "probe-P5-18-neutral",
+      "max_share": 0.341,
+      "nearest": "wildguard_response_train_v1/wgtrain-r-56709"
+    },
+    {
+      "item_id": "probe-P1-04-neutral",
+      "max_share": 0.34,
+      "nearest": "wildguard_response_train_v1/wgtrain-r-67489"
+    },
+    {
+      "item_id": "probe-P3-07-harmful",
+      "max_share": 0.333,
+      "nearest": "wildguard_response_train_v1/wgtrain-r-32913"
+    },
+    {
+      "item_id": "probe-P4-20-neutral",
+      "max_share": 0.333,
+      "nearest": "wildguard_prompt_train_v1/wgtrain-p-21426"
+    },
+    {
+      "item_id": "probe-P2-05-neutral",
+      "max_share": 0.33,
+      "nearest": "wildguard_response_full_v1/wgr-0320"
+    },
+    {
+      "item_id": "probe-C1-18-harmful",
+      "max_share": 0.324,
+      "nearest": "wildguard_response_train_v1/wgtrain-r-60865"
+    }
+  ]
+}

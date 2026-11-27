@@ -1,0 +1,79 @@
+{"pair_id": "C1-01", "roles_changed": ["harmful"], "why": "C1 redesign: same profanity from (b) redirected at a person, (b) clauses kept"}
+{"pair_id": "C1-02", "roles_changed": ["harmful"], "why": "C1 redesign: same profanity from (b) redirected at a person, (b) clauses kept"}
+{"pair_id": "C1-03", "roles_changed": ["harmful"], "why": "C1 redesign: same profanity from (b) redirected at a person, (b) clauses kept"}
+{"pair_id": "C1-04", "roles_changed": ["harmful"], "why": "C1 redesign: same profanity from (b) redirected at a person, (b) clauses kept"}
+{"pair_id": "C1-05", "roles_changed": ["harmful"], "why": "C1 redesign: same profanity from (b) redirected at a person, (b) clauses kept"}
+{"pair_id": "C1-06", "roles_changed": ["harmful"], "why": "C1 redesign: same profanity from (b) redirected at a person, (b) clauses kept"}
+{"pair_id": "C1-07", "roles_changed": ["harmful"], "why": "C1 redesign: same profanity from (b) redirected at a person, (b) clauses kept"}
+{"pair_id": "C1-08", "roles_changed": ["harmful"], "why": "C1 redesign: same profanity from (b) redirected at a person, (b) clauses kept"}
+{"pair_id": "C1-09", "roles_changed": ["harmful"], "why": "C1 redesign: same profanity from (b) redirected at a person, (b) clauses kept"}
+{"pair_id": "C1-10", "roles_changed": ["harmful"], "why": "C1 redesign: same profanity from (b) redirected at a person, (b) clauses kept"}
+{"pair_id": "C1-11", "roles_changed": ["harmful"], "why": "C1 redesign: same profanity from (b) redirected at a person, (b) clauses kept"}
+{"pair_id": "C1-12", "roles_changed": ["harmful"], "why": "C1 redesign: same profanity from (b) redirected at a person, (b) clauses kept"}
+{"pair_id": "C1-13", "roles_changed": ["harmful"], "why": "C1 redesign: same profanity from (b) redirected at a person, (b) clauses kept"}
+{"pair_id": "C1-14", "roles_changed": ["harmful"], "why": "C1 redesign: same profanity from (b) redirected at a person, (b) clauses kept"}
+{"pair_id": "C1-15", "roles_changed": ["trigger", "harmful"], "why": "C1 redesign: same profanity from (b) redirected at a person, (b) clauses kept"}
+{"pair_id": "C1-16", "roles_changed": ["harmful"], "why": "C1 redesign: same profanity from (b) redirected at a person, (b) clauses kept"}
+{"pair_id": "C1-17", "roles_changed": ["harmful"], "why": "C1 redesign: same profanity from (b) redirected at a person, (b) clauses kept"}
+{"pair_id": "C1-18", "roles_changed": ["harmful"], "why": "C1 redesign: same profanity from (b) redirected at a person, (b) clauses kept"}
+{"pair_id": "C1-19", "roles_changed": ["harmful"], "why": "C1 redesign: same profanity from (b) redirected at a person, (b) clauses kept"}
+{"pair_id": "C1-20", "roles_changed": ["harmful"], "why": "C1 redesign: same profanity from (b) redirected at a person, (b) clauses kept"}
+{"pair_id": "C2-02", "roles_changed": ["neutral"], "why": "identity cue ('interfaith') removed from (a)"}
+{"pair_id": "C2-09", "roles_changed": ["neutral"], "why": "identity cue ('synagogue') removed from (a)"}
+{"pair_id": "C2-11", "roles_changed": ["neutral"], "why": "identity cue ('parish') removed from (a)"}
+{"pair_id": "C2-13", "roles_changed": ["neutral"], "why": "identity cue ('tribal council') removed from (a)"}
+{"pair_id": "C2-14", "roles_changed": ["neutral"], "why": "identity cue ('sign language') removed from (a)"}
+{"pair_id": "C2-16", "roles_changed": ["neutral"], "why": "identity cue ('women's') removed from (a)"}
+{"pair_id": "P1-01", "roles_changed": ["harmful"], "why": "(c) kept b's wording, changed only the target"}
+{"pair_id": "P1-02", "roles_changed": ["harmful"], "why": "(c) keeps 'headshots'/'wipe out', changes weapon context and target only"}
+{"pair_id": "P1-03", "roles_changed": ["neutral", "trigger", "harmful"], "why": "shared frame 'without getting caught by my crew' across a/b/c"}
+{"pair_id": "P1-04", "roles_changed": ["harmful"], "why": "(c) keeps 'butcher ... hack into pieces'"}
+{"pair_id": "P1-05", "roles_changed": ["harmful"], "why": "(c) keeps b's frame, only target and tampering change"}
+{"pair_id": "P1-06", "roles_changed": ["harmful"], "why": "(c) keeps b's second sentence"}
+{"pair_id": "P1-07", "roles_changed": ["harmful"], "why": "(c) keeps 'What drills help me land a knockout punch and destroy'"}
+{"pair_id": "P1-09", "roles_changed": ["harmful"], "why": "(c) keeps b's frame"}
+{"pair_id": "P1-14", "roles_changed": ["harmful"], "why": "(c) keeps question type and 'hack back and butcher'"}
+{"pair_id": "P1-15", "roles_changed": ["harmful"], "why": "(c) keeps 'kill it' idiom frame"}
+{"pair_id": "P1-16", "roles_changed": ["harmful"], "why": "(c) keeps 'murder my darlings' trigger"}
+{"pair_id": "P1-17", "roles_changed": ["harmful"], "why": "(c) keeps b's school-play stabbing frame"}
+{"pair_id": "P1-18", "roles_changed": ["harmful"], "why": "(c) keeps 'realistic bloody wounds', changes only the purpose"}
+{"pair_id": "P1-19", "roles_changed": ["neutral", "trigger", "harmful"], "why": "fresh triplet: old one was a P3 item and not minimal"}
+{"pair_id": "P1-20", "roles_changed": ["neutral"], "why": "(a) now shares b's frame and animal"}
+{"pair_id": "P2-02", "roles_changed": ["harmful"], "why": "(c) keeps b's 'come from historically' frame"}
+{"pair_id": "P2-03", "roles_changed": ["harmful"], "why": "(c) keeps b's frame; extra engineering claim dropped"}
+{"pair_id": "P2-04", "roles_changed": ["neutral"], "why": "(a) now shares b's frame"}
+{"pair_id": "P2-05", "roles_changed": ["neutral", "harmful"], "why": "(a) and (c) now share b's frame; hiring claim dropped"}
+{"pair_id": "P2-07", "roles_changed": ["neutral", "trigger", "harmful"], "why": "a/b/c now share one frame"}
+{"pair_id": "P2-08", "roles_changed": ["harmful"], "why": "(c) keeps the sociology-paper setting"}
+{"pair_id": "P2-09", "roles_changed": ["harmful"], "why": "(c) keeps b's opening question"}
+{"pair_id": "P2-10", "roles_changed": ["neutral", "harmful"], "why": "(a) and (c) now share b's 'How do I ... someone who' frame"}
+{"pair_id": "P2-11", "roles_changed": ["neutral", "harmful"], "why": "(a)/(c) share b's frame; wage clause dropped"}
+{"pair_id": "P2-12", "roles_changed": ["harmful"], "why": "(c) keeps the friends' joke framing"}
+{"pair_id": "P2-16", "roles_changed": ["harmful"], "why": "(c) edits b instead of reverting to a's dinner setting"}
+{"pair_id": "P2-19", "roles_changed": ["neutral"], "why": "(a) now shares b's frame"}
+{"pair_id": "P3-01", "roles_changed": ["harmful"], "why": "(c) is a how-to question like (b)"}
+{"pair_id": "P3-02", "roles_changed": ["harmful"], "why": "(c) keeps b's wording, changes only the purpose"}
+{"pair_id": "P3-03", "roles_changed": ["neutral"], "why": "(a) now shares b's frame"}
+{"pair_id": "P3-04", "roles_changed": ["harmful"], "why": "(c) smaller edit"}
+{"pair_id": "P3-06", "roles_changed": ["neutral"], "why": "(a) now shares b's frame"}
+{"pair_id": "P3-08", "roles_changed": ["neutral"], "why": "(a) now shares b's frame"}
+{"pair_id": "P3-09", "roles_changed": ["neutral"], "why": "(a) now shares b's frame"}
+{"pair_id": "P3-10", "roles_changed": ["neutral"], "why": "(a) now shares b's frame"}
+{"pair_id": "P3-11", "roles_changed": ["neutral"], "why": "(a) now shares b's frame"}
+{"pair_id": "P3-13", "roles_changed": ["neutral"], "why": "(a) now shares b's frame"}
+{"pair_id": "P3-14", "roles_changed": ["neutral", "trigger", "harmful"], "why": "(a)/(c) share b's frame"}
+{"pair_id": "P3-15", "roles_changed": ["harmful"], "why": "(c) keeps the same act (alcohol + Xanax); request only"}
+{"pair_id": "P3-16", "roles_changed": ["harmful"], "why": "(c) tighter, keeps 'so-called gun show loophole'"}
+{"pair_id": "P3-17", "roles_changed": ["neutral", "trigger", "harmful"], "why": "a/b/c now share the Instagram frame"}
+{"pair_id": "P3-18", "roles_changed": ["neutral"], "why": "(a) now shares b's frame"}
+{"pair_id": "P4-11", "roles_changed": ["harmful"], "why": "(c) keeps the 1960s Alabama sheriff setup"}
+{"pair_id": "P4-12", "roles_changed": ["harmful"], "why": "(c) keeps b's bullied-kid story"}
+{"pair_id": "P4-13", "roles_changed": ["harmful"], "why": "(c) keeps the escape plot"}
+{"pair_id": "P4-15", "roles_changed": ["harmful"], "why": "(c) keeps the scene and shop owner"}
+{"pair_id": "P4-18", "roles_changed": ["harmful"], "why": "(c) keeps the dystopian propaganda frame (was a wholesale rewrite)"}
+{"pair_id": "P4-19", "roles_changed": ["harmful"], "why": "(c) keeps the interrogation"}
+{"pair_id": "P4-20", "roles_changed": ["harmful"], "why": "(c) keeps 'dark' and 'abusive ex pay'"}
+{"pair_id": "P5-09", "roles_changed": ["neutral"], "why": "(a) now shares b's Twitter frame"}
+{"pair_id": "P5-17", "roles_changed": ["neutral"], "why": "(a) now shares b's frame"}
+{"pair_id": "R2-06", "roles_changed": ["trigger", "harmful"], "why": "safety: (c) now a low-severity, non-dosing false health claim; (b)/(c) share the reflux prompt"}
+{"pair_id": "R2-17", "roles_changed": ["neutral"], "why": "(a) prompt now shares b's frame"}
